@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/decision-lab/business_decision.schema.json",
+  "title": "Business Decision",
+  "allOf": [
+    { "$ref": "./general_decision.schema.json" },
+    {
+      "type": "object",
+      "required": ["strategic_goal", "stakeholders", "constraints", "financial_impact", "execution_plan"],
+      "properties": {
+        "decision_type": { "const": "business" },
+        "strategic_goal": { "type": "string" },
+        "stakeholders": { "type": "array", "items": { "type": "string" } },
+        "constraints": { "type": "array", "items": { "type": "string" } },
+        "financial_impact": {
+          "type": "object",
+          "properties": {
+            "revenue": { "type": "string" },
+            "cost": { "type": "string" },
+            "cash_flow": { "type": "string" },
+            "payback_period": { "type": "string" }
+          }
+        },
+        "execution_plan": {
+          "type": "object",
+          "required": ["owner", "milestones", "dependencies"],
+          "properties": {
+            "owner": { "type": "string" },
+            "milestones": { "type": "array", "items": { "type": "string" } },
+            "dependencies": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "schema_version": "0.1.0",
+  "decision_type": "investment",
+  "title": "Add to NVIDIA Position After Pullback",
+  "question": "Should I add to my NVIDIA position after a 15% pullback?",
+  "created_at": "2026-04-28",
+  "owner": "personal portfolio",
+  "context": "The portfolio already owns NVIDIA. The stock pulled back after a strong run, and the decision is whether to add modestly or wait for better evidence on data center demand durability.",
+  "recommendation": {
+    "decision": "add small",
+    "summary": "Add a small tranche only if position size remains within risk limits. The thesis is attractive, but valuation and cyclicality argue against an aggressive add.",
+    "confidence": 0.68,
+    "decision_deadline": "2026-05-10",
+    "review_date": "2026-08-15"
+  },
+  "asset": {
+    "name": "NVIDIA",
+    "ticker": "NVDA",
+    "asset_class": "equity",
+    "market": "US",
+    "time_horizon": "24-36 months",
+    "proposed_action": "add small"
+  },
+  "valuation": {
+    "current_price": null,
+    "base_case": "Revenue growth normalizes but remains above large-cap semiconductor peers due to accelerated compute demand.",
+    "bull_case": "Enterprise AI adoption broadens and networking/software attach rates support higher quality revenue.",
+    "bear_case": "Hyperscaler capex pauses, gross margins compress, and multiple contraction overwhelms earnings growth.",
+    "margin_of_safety": "Only add if total exposure remains below the portfolio's single-name risk limit."
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "statement": "Accelerated compute demand remains structurally stronger than the market expects.",
+      "why_it_matters": "If demand duration is longer than expected, earnings power can compound despite a high starting valuation.",
+      "confidence": 0.72,
+      "evidence": [
+        "Cloud providers continue to emphasize AI infrastructure as a strategic priority.",
+        "Developer ecosystem and CUDA switching costs remain meaningful."
+      ],
+      "assumptions": [
+        "AI workloads continue moving from experimentation to production.",
+        "Customers tolerate high capital intensity because model performance remains revenue-relevant."
+      ],
+      "counterarguments": [
+        "Demand could be pulled forward by a short-term infrastructure race.",
+        "Custom silicon could pressure long-term accelerator margins."
+      ],
+      "disconfirming_signals": [
+        "Major cloud capex guidance turns negative for multiple quarters.",
+        "Lead times collapse while inventories rise across the channel."
+      ]
+    },
+    {
+      "id": "H2",
+      "statement": "The pullback improves expected return but does not remove valuation risk.",
+      "why_it_matters": "A good company can still be a poor investment if expectations remain too high.",
+      "confidence": 0.61,
+      "evidence": [
+        "The stock remains sensitive to margin and capex narratives.",
+        "The market still prices substantial future growth."
+      ],
+      "assumptions": [
+        "Earnings revisions remain more important than near-term multiple compression.",
+        "The portfolio can handle volatility without forced selling."
+      ],
+      "counterarguments": [
+        "A 15% pullback may be noise after a large multi-year rally.",
+        "Consensus estimates may already embed the most obvious upside."
+      ],
+      "disconfirming_signals": [
+        "Earnings revisions flatten while valuation remains elevated.",
+        "Competitive benchmarks show credible performance-per-dollar alternatives."
+      ]
+    }
+  ],
+  "options": [
+    {
+      "id": "A",
+      "name": "Add small tranche",
+      "description": "Increase exposure by a limited amount while preserving cash for a deeper drawdown.",
+      "expected_value": "Moderate upside participation with controlled regret.",
+      "upside": "Participates if the pullback is temporary.",
+      "downside": "Adds to an already volatile and crowded position.",
+      "cost": "Uses portfolio cash and increases concentration.",
+      "reversibility": "high"
+    },
+    {
+      "id": "B",
+      "name": "Wait",
+      "description": "Do nothing until earnings or capex data improves confidence.",
+      "expected_value": "Lower risk but potential missed rebound.",
+      "upside": "Avoids buying before further downside.",
+      "downside": "Could miss an attractive entry.",
+      "cost": "Opportunity cost if shares rebound.",
+      "reversibility": "high"
+    }
+  ],
+  "evidence": [
+    {
+      "claim": "AI infrastructure remains a top strategic priority for major cloud platforms.",
+      "source": "Recent company earnings calls and capex commentary to be verified before execution.",
+      "strength": "medium",
+      "notes": "Needs latest primary-source confirmation."
+    },
+    {
+      "claim": "NVIDIA has ecosystem advantages beyond chip performance.",
+      "source": "Developer adoption, CUDA ecosystem, and software stack observations.",
+      "strength": "medium",
+      "notes": "Qualitative but important."
+    },
+    {
+      "claim": "Valuation remains the main risk even after the pullback.",
+      "source": "Portfolio valuation model.",
+      "strength": "medium",
+      "notes": "Model assumptions should be versioned."
+    }
+  ],
+  "risks": [
+    {
+      "risk": "Hyperscaler capex pause",
+      "probability": "medium",
+      "impact": "high",
+      "mitigation": "Use tranche sizing and require post-earnings review."
+    },
+    {
+      "risk": "Position concentration",
+      "probability": "medium",
+      "impact": "medium",
+      "mitigation": "Cap total exposure before any add."
+    },
+    {
+      "risk": "Multiple compression",
+      "probability": "medium",
+      "impact": "high",
+      "mitigation": "Avoid adding aggressively without updated valuation work."
+    }
+  ],
+  "decision_criteria": [
+    "Expected return remains attractive after conservative revenue and margin assumptions.",
+    "Total position size remains within personal risk limits.",
+    "There is no clear evidence of demand deterioration before execution."
+  ],
+  "what_would_change_my_mind": [
+    "Cloud capex guidance weakens across multiple large customers.",
+    "Inventory or lead-time data indicates oversupply.",
+    "Valuation model shows poor expected return under base-case assumptions."
+  ],
+  "open_questions": [
+    "What is the latest customer concentration risk?",
+    "How much of the current demand is production workload versus experimentation?",
+    "What position size would still feel acceptable in a 40% drawdown?"
+  ],
+  "next_actions": [
+    "Update valuation model with latest revenue and margin assumptions.",
+    "Read the latest earnings call transcripts for hyperscaler capex commentary.",
+    "Define exact tranche size before placing any order."
+  ],
+  "catalysts": [
+    "Next earnings report confirms data center demand.",
+    "Cloud capex commentary remains constructive.",
+    "New product cycle improves performance-per-dollar."
+  ],
+  "risk_controls": [
+    "Keep single-name exposure below predefined limit.",
+    "Add only one tranche before next earnings.",
+    "Review thesis if drawdown exceeds expected volatility without fundamental support."
+  ],
+  "post_decision_review": {
+    "success_metrics": [
+      "Position return versus semiconductor benchmark over the review period.",
+      "Revenue and margin revisions after next earnings.",
+      "Whether stated disconfirming signals appeared."
+    ],
+    "review_questions": [
+      "Was the add based on evidence or price anchoring?",
+      "Did the position size feel manageable during volatility?",
+      "Which assumption mattered most?"
+    ],
+    "actual_outcome": ""
+  }
+}

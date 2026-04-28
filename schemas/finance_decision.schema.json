@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/decision-lab/finance_decision.schema.json",
+  "title": "Finance Decision",
+  "allOf": [
+    { "$ref": "./general_decision.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "financial_hypothesis",
+        "model_driver",
+        "planning_horizon",
+        "base_case",
+        "upside_case",
+        "downside_case",
+        "sensitivity_checks",
+        "financial_guardrails"
+      ],
+      "properties": {
+        "decision_type": { "const": "finance" },
+        "financial_hypothesis": { "type": "string" },
+        "model_driver": { "type": "string" },
+        "planning_horizon": { "type": "string" },
+        "base_case": { "type": "string" },
+        "upside_case": { "type": "string" },
+        "downside_case": { "type": "string" },
+        "sensitivity_checks": { "type": "array", "items": { "type": "string" } },
+        "financial_guardrails": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  ]
+}

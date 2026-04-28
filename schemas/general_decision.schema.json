@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/decision-lab/general_decision.schema.json",
+  "title": "General Decision",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "decision_type",
+    "title",
+    "question",
+    "context",
+    "recommendation",
+    "hypotheses",
+    "options",
+    "evidence",
+    "risks",
+    "decision_criteria",
+    "what_would_change_my_mind",
+    "open_questions",
+    "next_actions",
+    "post_decision_review"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "decision_type": { "enum": ["general", "investment", "business", "finance"] },
+    "title": { "type": "string", "minLength": 1 },
+    "question": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string" },
+    "owner": { "type": "string" },
+    "context": { "type": "string", "minLength": 1 },
+    "recommendation": {
+      "type": "object",
+      "required": ["decision", "summary", "confidence"],
+      "properties": {
+        "decision": { "type": "string" },
+        "summary": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "decision_deadline": { "type": "string" },
+        "review_date": { "type": "string" }
+      }
+    },
+    "hypotheses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "statement", "confidence", "evidence", "assumptions", "counterarguments", "disconfirming_signals"],
+        "properties": {
+          "id": { "type": "string" },
+          "statement": { "type": "string" },
+          "why_it_matters": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "assumptions": { "type": "array", "items": { "type": "string" } },
+          "counterarguments": { "type": "array", "items": { "type": "string" } },
+          "disconfirming_signals": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "options": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "expected_value": { "type": "string" },
+          "upside": { "type": "string" },
+          "downside": { "type": "string" },
+          "cost": { "type": "string" },
+          "reversibility": { "enum": ["low", "medium", "high"] }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "source", "strength"],
+        "properties": {
+          "claim": { "type": "string" },
+          "source": { "type": "string" },
+          "strength": { "enum": ["weak", "medium", "strong"] },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["risk", "mitigation"],
+        "properties": {
+          "risk": { "type": "string" },
+          "probability": { "enum": ["low", "medium", "high"] },
+          "impact": { "enum": ["low", "medium", "high"] },
+          "mitigation": { "type": "string" }
+        }
+      }
+    },
+    "decision_criteria": { "type": "array", "items": { "type": "string" } },
+    "what_would_change_my_mind": { "type": "array", "items": { "type": "string" } },
+    "open_questions": { "type": "array", "items": { "type": "string" } },
+    "next_actions": { "type": "array", "items": { "type": "string" } },
+    "post_decision_review": {
+      "type": "object",
+      "properties": {
+        "success_metrics": { "type": "array", "items": { "type": "string" } },
+        "review_questions": { "type": "array", "items": { "type": "string" } },
+        "actual_outcome": { "type": "string" }
+      }
+    }
+  }
+}
