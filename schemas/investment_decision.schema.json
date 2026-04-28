@@ -6,7 +6,7 @@
     { "$ref": "./general_decision.schema.json" },
     {
       "type": "object",
-      "required": ["asset", "valuation", "catalysts", "risk_controls"],
+      "required": ["asset", "portfolio_context", "valuation", "catalysts", "risk_controls"],
       "properties": {
         "decision_type": { "const": "investment" },
         "asset": {
@@ -29,7 +29,19 @@
             "base_case": { "type": "string" },
             "bull_case": { "type": "string" },
             "bear_case": { "type": "string" },
-            "margin_of_safety": { "type": "string" }
+            "margin_of_safety": { "type": "string" },
+            "valuation_method": { "type": "string" }
+          }
+        },
+        "portfolio_context": {
+          "type": "object",
+          "required": ["role_in_portfolio", "sizing_rule"],
+          "properties": {
+            "role_in_portfolio": { "type": "string" },
+            "current_exposure": { "type": "string" },
+            "target_exposure": { "type": "string" },
+            "sizing_rule": { "type": "string" },
+            "liquidity_needs": { "type": "string" }
           }
         },
         "catalysts": { "type": "array", "items": { "type": "string" } },

@@ -9,6 +9,7 @@
     "title",
     "question",
     "context",
+    "decision_frame",
     "recommendation",
     "hypotheses",
     "options",
@@ -23,16 +24,32 @@
   "properties": {
     "schema_version": { "type": "string" },
     "decision_type": { "enum": ["general", "investment", "business", "finance"] },
+    "status": { "enum": ["draft", "researching", "decided", "reviewed"] },
     "title": { "type": "string", "minLength": 1 },
     "question": { "type": "string", "minLength": 1 },
     "created_at": { "type": "string" },
+    "updated_at": { "type": "string" },
     "owner": { "type": "string" },
     "context": { "type": "string", "minLength": 1 },
+    "decision_frame": {
+      "type": "object",
+      "required": ["decision_class", "reversibility", "urgency", "default_action", "desired_outcome", "constraints", "non_goals"],
+      "properties": {
+        "decision_class": { "type": "string" },
+        "reversibility": { "type": "string" },
+        "urgency": { "type": "string" },
+        "default_action": { "type": "string" },
+        "desired_outcome": { "type": "string" },
+        "constraints": { "type": "array", "items": { "type": "string" } },
+        "non_goals": { "type": "array", "items": { "type": "string" } }
+      }
+    },
     "recommendation": {
       "type": "object",
       "required": ["decision", "summary", "confidence"],
       "properties": {
         "decision": { "type": "string" },
+        "selected_option": { "type": "string" },
         "summary": { "type": "string" },
         "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
         "decision_deadline": { "type": "string" },
@@ -71,7 +88,7 @@
           "upside": { "type": "string" },
           "downside": { "type": "string" },
           "cost": { "type": "string" },
-          "reversibility": { "enum": ["low", "medium", "high"] }
+          "reversibility": { "type": "string" }
         }
       }
     },
@@ -84,7 +101,22 @@
           "claim": { "type": "string" },
           "source": { "type": "string" },
           "strength": { "enum": ["weak", "medium", "strong"] },
+          "source_type": { "type": "string" },
+          "recency": { "type": "string" },
           "notes": { "type": "string" }
+        }
+      }
+    },
+    "assumption_register": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["assumption", "importance", "test"],
+        "properties": {
+          "assumption": { "type": "string" },
+          "importance": { "type": "string" },
+          "test": { "type": "string" },
+          "owner": { "type": "string" }
         }
       }
     },
@@ -97,11 +129,42 @@
           "risk": { "type": "string" },
           "probability": { "enum": ["low", "medium", "high"] },
           "impact": { "enum": ["low", "medium", "high"] },
+          "trigger": { "type": "string" },
           "mitigation": { "type": "string" }
         }
       }
     },
-    "decision_criteria": { "type": "array", "items": { "type": "string" } },
+    "decision_criteria": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["id", "name"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "weight": { "type": "number", "minimum": 0, "maximum": 10 },
+              "description": { "type": "string" }
+            }
+          }
+        ]
+      }
+    },
+    "option_scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["option_id", "criterion_id", "score", "rationale"],
+        "properties": {
+          "option_id": { "type": "string" },
+          "criterion_id": { "type": "string" },
+          "score": { "type": "number", "minimum": 0, "maximum": 5 },
+          "rationale": { "type": "string" }
+        }
+      }
+    },
     "what_would_change_my_mind": { "type": "array", "items": { "type": "string" } },
     "open_questions": { "type": "array", "items": { "type": "string" } },
     "next_actions": { "type": "array", "items": { "type": "string" } },
@@ -109,8 +172,11 @@
       "type": "object",
       "properties": {
         "success_metrics": { "type": "array", "items": { "type": "string" } },
+        "expected_signals": { "type": "array", "items": { "type": "string" } },
+        "failure_signals": { "type": "array", "items": { "type": "string" } },
         "review_questions": { "type": "array", "items": { "type": "string" } },
-        "actual_outcome": { "type": "string" }
+        "actual_outcome": { "type": "string" },
+        "lessons": { "type": "array", "items": { "type": "string" } }
       }
     }
   }

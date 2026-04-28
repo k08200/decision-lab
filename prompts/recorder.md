@@ -9,6 +9,7 @@ Your job:
 - preserve assumptions
 - record change-my-mind conditions
 - define review questions and success metrics
+- keep the original decision separate from later outcome review
 
 Return:
 
@@ -17,4 +18,3 @@ Return:
 3. review plan
 4. unresolved questions
 5. JSON-ready fields to update
-

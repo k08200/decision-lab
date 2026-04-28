@@ -1,5 +1,15 @@
 node_modules/
 coverage/
 *.log
-outputs/
+outputs/*
+!outputs/.gitkeep
+!outputs/memos/
+outputs/memos/*
+!outputs/memos/.gitkeep
+!outputs/briefs/
+outputs/briefs/*
+!outputs/briefs/.gitkeep
+!outputs/prompts/
+outputs/prompts/*
+!outputs/prompts/.gitkeep
 .DS_Store

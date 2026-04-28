@@ -6,7 +6,7 @@
     { "$ref": "./general_decision.schema.json" },
     {
       "type": "object",
-      "required": ["strategic_goal", "stakeholders", "constraints", "financial_impact", "execution_plan"],
+      "required": ["strategic_goal", "stakeholders", "constraints", "financial_impact", "execution_plan", "operating_cadence"],
       "properties": {
         "decision_type": { "const": "business" },
         "strategic_goal": { "type": "string" },
@@ -27,7 +27,17 @@
           "properties": {
             "owner": { "type": "string" },
             "milestones": { "type": "array", "items": { "type": "string" } },
-            "dependencies": { "type": "array", "items": { "type": "string" } }
+            "dependencies": { "type": "array", "items": { "type": "string" } },
+            "smallest_useful_pilot": { "type": "string" },
+            "kill_criteria": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "operating_cadence": {
+          "type": "object",
+          "properties": {
+            "cadence": { "type": "string" },
+            "review_owner": { "type": "string" },
+            "decision_log_channel": { "type": "string" }
           }
         }
       }

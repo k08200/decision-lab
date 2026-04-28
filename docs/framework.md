@@ -2,59 +2,53 @@
 
 Decision Lab treats decisions as records, not vibes.
 
-## The Core Loop
+The goal is not to make the model sound smart. The goal is to make judgment inspectable.
 
-1. Decision question
-2. Context
-3. Options
-4. Hypotheses
-5. Evidence
-6. Counterarguments
-7. Risks
-8. Criteria
-9. Recommendation
-10. Review loop
+## Core Loop
+
+1. Frame the decision: what kind of decision is this, how reversible is it, and what happens if we do nothing?
+2. List options: make the default action explicit.
+3. State hypotheses: write what must be true for the recommendation to work.
+4. Attach evidence: separate facts, assumptions, inference, and unknowns.
+5. Register assumptions: identify the fragile assumptions that deserve tests.
+6. Force opposition: generate counterarguments and disconfirming signals.
+7. Score options: compare each option against weighted criteria.
+8. Decide: record recommendation, confidence, deadline, and review date.
+9. Review later: compare outcome against the original expectations.
 
 ## Quality Bar
 
 A decision is not mature until it has:
 
-- at least one explicit opposing argument
-- at least one disconfirming signal
-- clear criteria
-- a review date or review metric
-- a statement of what would change your mind
+- a clear default action
+- at least two hypotheses
+- at least three evidence items
+- explicit counterarguments
+- disconfirming signals
+- a separate assumption register
+- weighted criteria and option scores
+- risk triggers, not only risk names
+- a review plan
+- conditions that would change your mind
 
-## Investment Decisions
+## Decision Classes
 
-Investment records should force:
+Use a lightweight distinction:
 
-- thesis
-- valuation range
-- catalyst
-- downside case
-- position sizing or risk control
-- time horizon
+- Type 1: hard to reverse, high downside, requires more evidence and smaller blast radius
+- Type 2: reversible, learnable, can be piloted
+- Capital allocation: investment, hiring, budget, acquisition, or opportunity-cost decision
+- Operating decision: execution path, process change, product priority, pricing, or staffing
 
-## Business Decisions
+## Output Standards
 
-Business records should force:
+The final memo should make these visible:
 
-- strategic goal
-- options
-- stakeholder impact
-- financial impact
-- execution owner
-- milestones
-- review loop
-
-## Suggested Roles
-
-Run one decision record through multiple role prompts:
-
-- Analyst strengthens the thesis.
-- Skeptic breaks it.
-- CFO prices the downside.
-- CEO judges strategy and execution.
-- Recorder produces the final memo.
-
+- what was decided
+- why now
+- selected option and runner-up
+- strongest opposing case
+- assumptions that can break the decision
+- early-warning indicators
+- owner and next actions
+- review date and success metrics

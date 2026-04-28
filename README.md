@@ -1,36 +1,45 @@
 # Decision Lab
 
-Decision Lab is a schema-first framework for investment, finance, and management decisions.
+Decision Lab is a schema-first personal decision operating system for investment, finance, and management judgment.
 
-It is not a prompt pile. It is a decision operating system:
+It is not a prompt pile. It is a way to turn a vague question into a durable decision record:
 
-1. State the decision.
-2. Make the thesis explicit.
-3. Attach evidence and assumptions.
-4. Force counterarguments.
-5. Score quality and risk.
-6. Render a decision memo.
-7. Define what would change your mind later.
+1. Frame the decision.
+2. State the thesis.
+3. Compare options.
+4. Attach evidence.
+5. Register assumptions.
+6. Force counterarguments.
+7. Score the decision.
+8. Render a memo.
+9. Review the outcome later.
 
 ## Quick Start
 
 ```bash
 npm test
-node bin/decision-lab.js new investment > my-decision.json
+node bin/decision-lab.js new investment --out decisions/drafts/nvda.json
 node bin/decision-lab.js validate examples/investment/nvidia_add_position.json
-node bin/decision-lab.js render examples/business/enterprise_pricing_change.json
-node bin/decision-lab.js render examples/finance/hiring_runway_tradeoff.json
-node bin/decision-lab.js prompt skeptic examples/investment/nvidia_add_position.json
+node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json
+node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
+node bin/decision-lab.js render examples/business/enterprise_pricing_change.json --out outputs/memos/pricing.md
+node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.json --out-dir outputs/prompts/pricing
 ```
 
 ## Commands
 
 ```bash
-decision-lab new <general|investment|business|finance>
+decision-lab init [directory]
+decision-lab new <general|investment|business|finance> [--out file.json]
 decision-lab validate <file.json>
 decision-lab score <file.json>
+decision-lab audit <file.json>
+decision-lab compare <file.json>
 decision-lab render <file.json> [--out memo.md]
-decision-lab prompt <analyst|skeptic|cfo|ceo|recorder> <file.json>
+decision-lab brief <file.json> [--out brief.md]
+decision-lab review-plan <file.json> [--out review.md]
+decision-lab prompt <analyst|skeptic|cfo|ceo|operator|risk|recorder|all> <file.json> [--out file.md|--out-dir prompts]
+decision-lab list-types
 decision-lab list-prompts
 ```
 
@@ -38,71 +47,66 @@ decision-lab list-prompts
 
 ```text
 bin/                  CLI entrypoint
-src/                  decision validation, scoring, rendering
+src/                  validation, scoring, audits, rendering, prompt generation
 schemas/              JSON schemas for decision records
-prompts/              role prompts for LLM-assisted reasoning
-examples/             realistic sample decisions
+prompts/              reusable role prompts
+examples/             complete investment, business, and finance records
+docs/                 operating system, playbooks, and framework notes
+decisions/            local decision records created by `init`
+research/             sources and financial/model artifacts created by `init`
+outputs/              rendered memos, briefs, reviews, and prompts
 test/                 Node test runner tests
-docs/                 framework notes
 ```
 
 ## Decision Types
 
 `general` is the shared base for any meaningful decision.
 
-`investment` adds:
+`investment` adds asset, portfolio context, valuation, catalysts, and risk controls.
 
-- asset, ticker, time horizon, position action
-- upside thesis and downside thesis
-- valuation, catalysts, risk controls
+`business` adds strategic goal, stakeholders, financial impact, execution plan, pilot design, and operating cadence.
 
-`business` adds:
+`finance` adds financial hypothesis, model driver, runway/planning horizon, scenarios, sensitivity checks, and guardrails.
 
-- strategic goal, stakeholders, operating constraints
-- options, financial impact, execution risk
-- owner, review cadence, reversible/irreversible classification
+## Core Record
 
-`finance` adds:
+Every mature record should include:
 
-- financial hypothesis, model driver, runway impact
-- base/upside/downside case
-- sensitivity checks and guardrails
+- `decision_frame`: reversibility, urgency, default action, desired outcome, constraints, non-goals
+- `hypotheses`: thesis statements with assumptions, evidence, counterarguments, and disconfirming signals
+- `options`: possible actions
+- `decision_criteria`: weighted criteria
+- `option_scores`: score each option against each criterion
+- `assumption_register`: the assumptions most likely to break the conclusion
+- `post_decision_review`: metrics and questions for judgment improvement
 
-## Workflow
+## Role Chain
 
-Use this in two modes.
+Use the same record with multiple roles:
 
-First, as a solo thinking tool:
-
-```bash
-node bin/decision-lab.js new business > pricing.json
-# edit pricing.json
-node bin/decision-lab.js score pricing.json
-node bin/decision-lab.js render pricing.json --out pricing.memo.md
-```
-
-Second, as an LLM prompt harness:
-
-```bash
-node bin/decision-lab.js prompt analyst pricing.json
-node bin/decision-lab.js prompt skeptic pricing.json
-node bin/decision-lab.js prompt cfo pricing.json
-node bin/decision-lab.js prompt recorder pricing.json
-```
-
-The generated prompts tell the model to fill missing evidence, challenge weak claims, and produce structured updates rather than vague advice.
+- `analyst`: strengthens the thesis and identifies missing evidence
+- `skeptic`: breaks the thesis and finds hidden assumptions
+- `cfo`: translates the decision into financial impact and opportunity cost
+- `ceo`: judges strategy, timing, and long-term compounding value
+- `operator`: turns the decision into pilots, owners, milestones, and kill criteria
+- `risk`: maps fragile assumptions, correlated downside, and early-warning indicators
+- `recorder`: writes the final auditable memo
 
 ## Philosophy
 
-The framework is designed to fight three failure modes:
+Good judgment is not just a better answer. It is a better loop.
+
+Decision Lab is built to fight:
 
 - confident but unsupported recommendations
 - decisions that never state their assumptions
-- no postmortem loop, so judgment never improves
+- hidden downside that appears only after commitment
+- no postmortem loop, so judgment never compounds
 
-Every decision should answer:
+The record should always answer:
 
 - What must be true?
-- Why might this be wrong?
+- What is the strongest opposing case?
 - What evidence would change my mind?
+- Which option wins under explicit criteria?
 - How will I know later whether this was a good decision?

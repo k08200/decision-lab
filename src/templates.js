@@ -1,15 +1,33 @@
+import { VALID_TYPES } from "./decision-core.js";
+
 export function createTemplate(type = "general") {
+  if (!VALID_TYPES.has(type)) {
+    throw new Error(`Unknown template type: ${type}`);
+  }
+
   const now = new Date().toISOString().slice(0, 10);
   const base = {
-    schema_version: "0.1.0",
+    schema_version: "0.2.0",
     decision_type: type,
+    status: "draft",
     title: "Untitled decision",
     question: "What decision are we making?",
     created_at: now,
+    updated_at: now,
     owner: "",
     context: "",
+    decision_frame: {
+      decision_class: "type-2",
+      reversibility: "medium",
+      urgency: "medium",
+      default_action: "wait",
+      desired_outcome: "",
+      constraints: [],
+      non_goals: []
+    },
     recommendation: {
       decision: "undecided",
+      selected_option: "",
       summary: "",
       confidence: 0.5,
       decision_deadline: "",
@@ -25,30 +43,118 @@ export function createTemplate(type = "general") {
         assumptions: [],
         counterarguments: [],
         disconfirming_signals: []
+      },
+      {
+        id: "H2",
+        statement: "",
+        why_it_matters: "",
+        confidence: 0.5,
+        evidence: [],
+        assumptions: [],
+        counterarguments: [],
+        disconfirming_signals: []
       }
     ],
     options: [
       {
         id: "A",
-        name: "",
+        name: "Do it now",
         description: "",
         expected_value: "",
         upside: "",
         downside: "",
         cost: "",
         reversibility: "medium"
+      },
+      {
+        id: "B",
+        name: "Wait",
+        description: "",
+        expected_value: "",
+        upside: "",
+        downside: "",
+        cost: "",
+        reversibility: "high"
       }
     ],
     evidence: [],
+    assumption_register: [
+      {
+        assumption: "",
+        importance: "high",
+        test: "",
+        owner: ""
+      }
+    ],
     risks: [],
-    decision_criteria: [],
+    decision_criteria: [
+      {
+        id: "C1",
+        name: "Expected upside",
+        weight: 2,
+        description: ""
+      },
+      {
+        id: "C2",
+        name: "Downside protection",
+        weight: 2,
+        description: ""
+      },
+      {
+        id: "C3",
+        name: "Execution confidence",
+        weight: 1,
+        description: ""
+      }
+    ],
+    option_scores: [
+      {
+        option_id: "A",
+        criterion_id: "C1",
+        score: 0,
+        rationale: ""
+      },
+      {
+        option_id: "A",
+        criterion_id: "C2",
+        score: 0,
+        rationale: ""
+      },
+      {
+        option_id: "A",
+        criterion_id: "C3",
+        score: 0,
+        rationale: ""
+      },
+      {
+        option_id: "B",
+        criterion_id: "C1",
+        score: 0,
+        rationale: ""
+      },
+      {
+        option_id: "B",
+        criterion_id: "C2",
+        score: 0,
+        rationale: ""
+      },
+      {
+        option_id: "B",
+        criterion_id: "C3",
+        score: 0,
+        rationale: ""
+      }
+    ],
     what_would_change_my_mind: [],
     open_questions: [],
     next_actions: [],
     post_decision_review: {
       success_metrics: [],
+      expected_signals: [],
+      failure_signals: [],
       review_questions: [],
-      actual_outcome: ""
+      actual_outcome: "",
+      lessons: []
     }
   };
 
@@ -63,12 +169,20 @@ export function createTemplate(type = "general") {
         time_horizon: "12-36 months",
         proposed_action: "watch"
       },
+      portfolio_context: {
+        role_in_portfolio: "",
+        current_exposure: "",
+        target_exposure: "",
+        sizing_rule: "",
+        liquidity_needs: ""
+      },
       valuation: {
         current_price: null,
         base_case: "",
         bull_case: "",
         bear_case: "",
-        margin_of_safety: ""
+        margin_of_safety: "",
+        valuation_method: ""
       },
       catalysts: [],
       risk_controls: []
@@ -90,7 +204,14 @@ export function createTemplate(type = "general") {
       execution_plan: {
         owner: "",
         milestones: [],
-        dependencies: []
+        dependencies: [],
+        smallest_useful_pilot: "",
+        kill_criteria: []
+      },
+      operating_cadence: {
+        cadence: "",
+        review_owner: "",
+        decision_log_channel: ""
       }
     };
   }
@@ -107,10 +228,6 @@ export function createTemplate(type = "general") {
       sensitivity_checks: [],
       financial_guardrails: []
     };
-  }
-
-  if (type !== "general") {
-    throw new Error(`Unknown template type: ${type}`);
   }
 
   return base;

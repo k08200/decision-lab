@@ -1,13 +1,31 @@
 {
-  "schema_version": "0.1.0",
+  "schema_version": "0.2.0",
   "decision_type": "finance",
+  "status": "decided",
   "title": "Hire Two Engineers Now or Preserve Runway",
   "question": "Should we hire two additional engineers this quarter despite reducing runway?",
   "created_at": "2026-04-28",
+  "updated_at": "2026-04-28",
   "owner": "founder",
   "context": "The product roadmap has revenue-critical enterprise features, but cash discipline matters because the next fundraise timing is uncertain.",
+  "decision_frame": {
+    "decision_class": "type-2 hiring and runway allocation",
+    "reversibility": "medium",
+    "urgency": "medium",
+    "default_action": "hire one, defer one",
+    "desired_outcome": "Increase roadmap velocity while preserving enough runway to keep fundraising optionality.",
+    "constraints": [
+      "Projected runway cannot fall below the internal minimum.",
+      "Second hire must be tied to revenue evidence."
+    ],
+    "non_goals": [
+      "Do not solve every roadmap problem with headcount.",
+      "Do not hire below the seniority bar just to move faster."
+    ]
+  },
   "recommendation": {
     "decision": "hire one now, defer one",
+    "selected_option": "B",
     "summary": "Approve one senior engineering hire tied to enterprise revenue milestones and defer the second hire until pipeline conversion improves.",
     "confidence": 0.71,
     "decision_deadline": "2026-05-20",
@@ -112,19 +130,45 @@
       "claim": "Enterprise blockers are concentrated in a small set of product gaps.",
       "source": "Sales notes and product discovery calls.",
       "strength": "medium",
+      "source_type": "customer and sales notes",
+      "recency": "current pipeline",
       "notes": "Needs tagging by deal stage and ACV."
     },
     {
       "claim": "Current engineering capacity is the roadmap bottleneck.",
       "source": "Sprint planning and roadmap slippage review.",
       "strength": "medium",
+      "source_type": "internal operating data",
+      "recency": "last two planning cycles",
       "notes": "Should separate scope churn from true capacity shortage."
     },
     {
       "claim": "Two hires reduce runway before revenue proof is strong enough.",
       "source": "Internal runway model.",
       "strength": "strong",
+      "source_type": "internal financial model",
+      "recency": "refresh before offer approval",
       "notes": "Model should be refreshed before offer approval."
+    }
+  ],
+  "assumption_register": [
+    {
+      "assumption": "Enterprise feature gaps are genuine blockers to conversion.",
+      "importance": "high",
+      "test": "Map each blocker to named deals, expected ACV, and written customer confirmation where possible.",
+      "owner": "Founder"
+    },
+    {
+      "assumption": "One senior hire can onboard fast enough to affect this quarter's roadmap.",
+      "importance": "medium",
+      "test": "Define first 30-day milestone and compare against current team delivery bottlenecks.",
+      "owner": "Engineering Lead"
+    },
+    {
+      "assumption": "Fundraising optionality is more valuable than maximum near-term velocity.",
+      "importance": "high",
+      "test": "Stress-test runway under delayed revenue and delayed fundraising scenarios.",
+      "owner": "Finance"
     }
   ],
   "risks": [
@@ -132,25 +176,99 @@
       "risk": "Burn increases without ARR conversion",
       "probability": "medium",
       "impact": "high",
+      "trigger": "Feature delivery does not create signed commitments or late-stage conversion.",
       "mitigation": "Approve one hire and tie second hire to conversion evidence."
     },
     {
       "risk": "Roadmap remains slow",
       "probability": "medium",
       "impact": "medium",
+      "trigger": "Milestone slippage continues after onboarding or blockers were misdiagnosed.",
       "mitigation": "Define exact features and delivery milestones before hiring."
     },
     {
       "risk": "Hiring quality tradeoff",
       "probability": "medium",
       "impact": "high",
+      "trigger": "Candidate pipeline pressure causes lowering the seniority bar.",
       "mitigation": "Do not compromise seniority bar to fill quickly."
     }
   ],
   "decision_criteria": [
-    "Runway remains above internal minimum after the hire.",
-    "Hire maps to enterprise features with measurable revenue linkage.",
-    "Second hire waits for conversion or pipeline evidence."
+    {
+      "id": "C1",
+      "name": "Runway protection",
+      "weight": 2,
+      "description": "Runway remains above internal minimum after the hire."
+    },
+    {
+      "id": "C2",
+      "name": "Revenue linkage",
+      "weight": 2,
+      "description": "Hire maps to enterprise features with measurable revenue linkage."
+    },
+    {
+      "id": "C3",
+      "name": "Execution speed",
+      "weight": 1,
+      "description": "Decision improves roadmap velocity within the planning horizon."
+    }
+  ],
+  "option_scores": [
+    {
+      "option_id": "A",
+      "criterion_id": "C1",
+      "score": 1,
+      "rationale": "Two hires create the largest runway reduction before revenue proof."
+    },
+    {
+      "option_id": "A",
+      "criterion_id": "C2",
+      "score": 3,
+      "rationale": "Some revenue linkage exists, but the second hire has weaker direct mapping."
+    },
+    {
+      "option_id": "A",
+      "criterion_id": "C3",
+      "score": 5,
+      "rationale": "Fastest capacity increase if onboarding works."
+    },
+    {
+      "option_id": "B",
+      "criterion_id": "C1",
+      "score": 4,
+      "rationale": "One hire preserves more runway and keeps the second hire conditional."
+    },
+    {
+      "option_id": "B",
+      "criterion_id": "C2",
+      "score": 4,
+      "rationale": "The hire can be scoped to named enterprise blockers."
+    },
+    {
+      "option_id": "B",
+      "criterion_id": "C3",
+      "score": 3,
+      "rationale": "Improves velocity, though less than hiring two people at once."
+    },
+    {
+      "option_id": "C",
+      "criterion_id": "C1",
+      "score": 5,
+      "rationale": "Best cash preservation."
+    },
+    {
+      "option_id": "C",
+      "criterion_id": "C2",
+      "score": 1,
+      "rationale": "Does not address revenue-linked roadmap blockers."
+    },
+    {
+      "option_id": "C",
+      "criterion_id": "C3",
+      "score": 1,
+      "rationale": "Likely leaves current capacity bottleneck unchanged."
+    }
   ],
   "what_would_change_my_mind": [
     "Updated model shows one hire still pushes runway below the internal minimum.",
@@ -174,11 +292,21 @@
       "Pipeline conversion after feature delivery.",
       "Burn multiple trend."
     ],
+    "expected_signals": [
+      "The hired engineer owns and ships the enterprise blocker milestones.",
+      "Pipeline conversion or written commitment quality improves after delivery."
+    ],
+    "failure_signals": [
+      "Runway falls below threshold after updated model.",
+      "Feature delivery does not change pipeline behavior.",
+      "Second-hire pressure returns without conversion evidence."
+    ],
     "review_questions": [
       "Did the hire accelerate the roadmap?",
       "Did enterprise conversion improve?",
       "Was the second-hire trigger reached?"
     ],
-    "actual_outcome": ""
+    "actual_outcome": "",
+    "lessons": []
   }
 }
