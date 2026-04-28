@@ -28,6 +28,26 @@ node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type 
 node bin/decision-lab.js ledger decisions --out outputs/ledger.md
 ```
 
+`calibration` summarizes reviewed decisions by type and confidence bucket.
+
+```bash
+node bin/decision-lab.js calibration decisions --out outputs/calibration.md
+```
+
+`evidence`, `patch`, and `set` improve existing records without rewriting them by hand.
+
+```bash
+node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source"
+node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
+node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
+```
+
+`doctor` checks repository wiring and example decision validity.
+
+```bash
+node bin/decision-lab.js doctor
+```
+
 `close` marks a decision as reviewed and records the outcome.
 
 ```bash
@@ -42,6 +62,9 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - generates option scores
 - creates role prompts for analyst, skeptic, CFO, CEO, operator, risk, and recorder
 - creates audit, memo, brief, comparison, review plan, and agent report
+- applies JSON patch edits safely
+- attaches evidence without breaking the record shape
+- tracks calibration across reviewed decisions
 
 ## What The Bot Does Not Do
 

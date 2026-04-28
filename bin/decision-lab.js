@@ -25,6 +25,15 @@ import {
   writeWorkflowArtifacts,
   runDecisionWorkflow
 } from "../src/decision-agent.js";
+import {
+  applyJsonPatch,
+  attachEvidence,
+  parseJsonish,
+  renderCalibration,
+  renderDoctor,
+  setJsonPath,
+  summarizeDecisionHealth
+} from "../src/decision-tools.js";
 import { createTemplate } from "../src/templates.js";
 
 const [, , command, ...args] = process.argv;
@@ -41,11 +50,17 @@ Usage:
   decision-lab validate <file.json>
   decision-lab score <file.json>
   decision-lab audit <file.json>
+  decision-lab health <file.json>
   decision-lab compare <file.json>
+  decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
+  decision-lab patch <file.json> <patch.json> [--out file.json]
+  decision-lab set <file.json> <path> <json-value> [--out file.json]
   decision-lab render <file.json> [--out memo.md]
   decision-lab brief <file.json> [--out brief.md]
   decision-lab review-plan <file.json> [--out review.md]
   decision-lab ledger [directory] [--out ledger.md]
+  decision-lab calibration [directory] [--out report.md]
+  decision-lab doctor [directory] [--out report.md]
   decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
   decision-lab prompt <analyst|skeptic|cfo|ceo|operator|risk|recorder|all> <file.json> [--out file.md|--out-dir prompts]
   decision-lab list-types
@@ -94,6 +109,10 @@ function writePromptSet(items, outDir) {
 function requireFile(filePath) {
   if (!filePath) throw new Error("Missing file path");
   return loadDecisionFile(filePath);
+}
+
+function writeDecisionUpdate(filePath, decision, outPath) {
+  writeOrPrint(`${JSON.stringify(decision, null, 2)}\n`, outPath || filePath);
 }
 
 function readDecisionFiles(root) {
@@ -230,8 +249,52 @@ try {
     process.exit(audit.validation.valid ? 0 : 1);
   }
 
+  if (command === "health") {
+    console.log(JSON.stringify(summarizeDecisionHealth(requireFile(args[0])), null, 2));
+    process.exit(0);
+  }
+
   if (command === "compare") {
     writeOrPrint(renderCompare(requireFile(args[0])), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "evidence") {
+    const filePath = args[0];
+    const decision = requireFile(filePath);
+    const next = attachEvidence(decision, {
+      claim: readFlag(args, "--claim"),
+      source: readFlag(args, "--source"),
+      strength: readFlag(args, "--strength") || "medium",
+      source_type: readFlag(args, "--source-type") || "",
+      recency: readFlag(args, "--recency") || "",
+      notes: readFlag(args, "--notes") || ""
+    }, {
+      hypothesisId: readFlag(args, "--hypothesis"),
+      now: readFlag(args, "--date") || null
+    });
+    writeDecisionUpdate(filePath, next, readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "patch") {
+    const filePath = args[0];
+    const patchPath = args[1];
+    if (!patchPath) throw new Error("Usage: decision-lab patch <file.json> <patch.json>");
+    const decision = requireFile(filePath);
+    const patch = JSON.parse(fs.readFileSync(path.resolve(patchPath), "utf8"));
+    writeDecisionUpdate(filePath, applyJsonPatch(decision, patch), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "set") {
+    const filePath = args[0];
+    const dottedPath = args[1];
+    const rawValue = args[2];
+    if (!filePath || !dottedPath || rawValue === undefined) {
+      throw new Error("Usage: decision-lab set <file.json> <path> <json-value>");
+    }
+    writeDecisionUpdate(filePath, setJsonPath(requireFile(filePath), dottedPath, parseJsonish(rawValue)), readFlag(args, "--out"));
     process.exit(0);
   }
 
@@ -259,6 +322,19 @@ try {
   if (command === "ledger") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderLedger(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "calibration") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderCalibration(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "doctor") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : ".";
+    const examples = readDecisionFiles(path.join(root, "examples"));
+    writeOrPrint(renderDoctor({ root, examples }), readFlag(args, "--out"));
     process.exit(0);
   }
 

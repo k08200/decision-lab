@@ -31,8 +31,19 @@ node bin/decision-lab.js pipeline "Should we change pricing?" --type business --
 ```bash
 node bin/decision-lab.js validate examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json
+node bin/decision-lab.js health examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js compare examples/business/enterprise_pricing_change.json
 ```
+
+## Improve
+
+```bash
+node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source name" --strength strong
+node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
+node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
+```
+
+`patch` accepts JSON patch operations with `add`, `replace`, and `remove`.
 
 ## Render
 
@@ -53,5 +64,7 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 
 ```bash
 node bin/decision-lab.js ledger decisions
+node bin/decision-lab.js calibration decisions
+node bin/decision-lab.js doctor
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Report earlier."
 ```

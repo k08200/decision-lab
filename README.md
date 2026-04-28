@@ -23,6 +23,8 @@ node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type 
 node bin/decision-lab.js new investment --out decisions/drafts/nvda.json
 node bin/decision-lab.js validate examples/investment/nvidia_add_position.json
 node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json
+node bin/decision-lab.js evidence examples/business/enterprise_pricing_change.json --claim "Pipeline data refreshed" --source "CRM export" --strength strong --out /tmp/pricing.json
+node bin/decision-lab.js doctor
 node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
 node bin/decision-lab.js render examples/business/enterprise_pricing_change.json --out outputs/memos/pricing.md
 node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.json --out-dir outputs/prompts/pricing
@@ -39,11 +41,17 @@ decision-lab new <general|investment|business|finance> [--out file.json]
 decision-lab validate <file.json>
 decision-lab score <file.json>
 decision-lab audit <file.json>
+decision-lab health <file.json>
 decision-lab compare <file.json>
+decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
+decision-lab patch <file.json> <patch.json> [--out file.json]
+decision-lab set <file.json> <path> <json-value> [--out file.json]
 decision-lab render <file.json> [--out memo.md]
 decision-lab brief <file.json> [--out brief.md]
 decision-lab review-plan <file.json> [--out review.md]
 decision-lab ledger [directory] [--out ledger.md]
+decision-lab calibration [directory] [--out report.md]
+decision-lab doctor [directory] [--out report.md]
 decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
 decision-lab prompt <analyst|skeptic|cfo|ceo|operator|risk|recorder|all> <file.json> [--out file.md|--out-dir prompts]
 decision-lab list-types
@@ -129,6 +137,38 @@ The pipeline writes:
 - `run/review-plan.md`
 - `run/agent-report.md`
 - `run/prompts/*.md`
+
+## Improve Records
+
+Attach evidence:
+
+```bash
+node bin/decision-lab.js evidence decisions/drafts/aapl.json \
+  --claim "Latest 10-Q shows services margin resilience." \
+  --source "Company filing" \
+  --strength strong \
+  --source-type primary \
+  --recency current
+```
+
+Apply JSON patches proposed by role prompts or another agent:
+
+```bash
+node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
+```
+
+Set a single field:
+
+```bash
+node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
+```
+
+Track judgment over time:
+
+```bash
+node bin/decision-lab.js calibration decisions --out outputs/calibration.md
+node bin/decision-lab.js doctor
+```
 
 ## Philosophy
 

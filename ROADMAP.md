@@ -8,6 +8,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Local bot workflow from rough question to full artifact set
 - Role prompt chain
 - Audits, option comparison, memo rendering, review plans, and ledger
+- Evidence attachment, JSON patch application, calibration reports, and repository doctor checks
 - CI for syntax and test coverage
 
 ## Next
@@ -15,7 +16,6 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Evidence import adapters for transcripts, PDFs, notes, and spreadsheets
 - Optional LLM provider adapters that propose JSON patches instead of rewriting records
 - Decision review reminders
-- Historical calibration across confidence, outcome, and decision type
 - Web UI for browsing the decision ledger
 
 ## Principles

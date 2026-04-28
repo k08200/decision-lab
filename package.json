@@ -8,7 +8,7 @@
     "decision-lab": "./bin/decision-lab.js"
   },
   "scripts": {
-    "check": "node --check bin/decision-lab.js && node --check src/decision-core.js && node --check src/decision-agent.js && node --check src/templates.js && node --check test/decision-core.test.js",
+    "check": "node --check bin/decision-lab.js && node --check src/decision-core.js && node --check src/decision-agent.js && node --check src/decision-tools.js && node --check src/templates.js && node --check test/decision-core.test.js",
     "test": "node --test",
     "example:investment": "node bin/decision-lab.js render examples/investment/nvidia_add_position.json",
     "example:business": "node bin/decision-lab.js render examples/business/enterprise_pricing_change.json",
