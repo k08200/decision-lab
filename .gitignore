@@ -12,4 +12,14 @@ outputs/briefs/*
 !outputs/prompts/
 outputs/prompts/*
 !outputs/prompts/.gitkeep
+decisions/drafts/*
+!decisions/drafts/.gitkeep
+decisions/active/*
+!decisions/active/.gitkeep
+decisions/reviewed/*
+!decisions/reviewed/.gitkeep
+research/sources/*
+!research/sources/.gitkeep
+research/models/*
+!research/models/.gitkeep
 .DS_Store

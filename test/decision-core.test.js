@@ -13,6 +13,13 @@ import {
   scoreOptions,
   validateDecision
 } from "../src/decision-core.js";
+import {
+  closeDecision,
+  createDecisionFromQuestion,
+  inferDecisionType,
+  renderLedger,
+  runDecisionWorkflow
+} from "../src/decision-agent.js";
 
 const investment = JSON.parse(readFileSync("examples/investment/nvidia_add_position.json", "utf8"));
 const business = JSON.parse(readFileSync("examples/business/enterprise_pricing_change.json", "utf8"));
@@ -77,6 +84,43 @@ test("builds prompt chain", () => {
   assert.equal(chain[0].role, "analyst");
 });
 
+test("infers decision type from rough questions", () => {
+  assert.equal(inferDecisionType("Should I buy AAPL now?"), "investment");
+  assert.equal(inferDecisionType("Should we change enterprise pricing?"), "business");
+  assert.equal(inferDecisionType("Should we hire despite runway pressure?"), "finance");
+});
+
+test("creates valid decision records from a rough question", () => {
+  const decision = createDecisionFromQuestion("Should I buy AAPL now?", {
+    now: "2026-04-28",
+    owner: "personal portfolio"
+  });
+  const result = validateDecision(decision);
+  assert.equal(decision.decision_type, "investment");
+  assert.equal(result.valid, true, JSON.stringify(result.issues, null, 2));
+});
+
+test("runs full decision workflow artifacts", () => {
+  const decision = createDecisionFromQuestion("Should we change enterprise pricing?", {
+    type: "business",
+    now: "2026-04-28"
+  });
+  const workflow = runDecisionWorkflow(decision);
+  assert.equal(workflow.validation.valid, true);
+  assert.ok(workflow.artifacts["audit.json"]);
+  assert.ok(workflow.artifacts["memo.md"]);
+  assert.ok(workflow.artifacts["prompts/skeptic.md"]);
+});
+
+test("renders ledger and closes decisions", () => {
+  const closed = closeDecision(business, {
+    outcome: "Pilot completed.",
+    lessons: ["Staged pricing changes need tighter finance reporting."]
+  });
+  assert.equal(closed.status, "reviewed");
+  assert.match(renderLedger([{ filePath: "pricing.json", decision: closed }]), /Decision Ledger/);
+});
+
 test("cli validates example", () => {
   const output = execFileSync("node", ["bin/decision-lab.js", "validate", "examples/business/enterprise_pricing_change.json"], {
     encoding: "utf8"
@@ -89,6 +133,15 @@ test("cli compares options", () => {
     encoding: "utf8"
   });
   assert.match(output, /Controlled pilot/);
+});
+
+test("cli creates decision from rough question", () => {
+  const output = execFileSync("node", ["bin/decision-lab.js", "ask", "Should I buy AAPL now?"], {
+    encoding: "utf8"
+  });
+  const decision = JSON.parse(output);
+  assert.equal(decision.decision_type, "investment");
+  assert.match(decision.question, /AAPL/);
 });
 
 test("rejects weak decision records", () => {

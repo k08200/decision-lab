@@ -14,6 +14,7 @@ Decision Lab is designed to become a personal operating system for judgment, not
 
 ```bash
 node bin/decision-lab.js init
+node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing
 node bin/decision-lab.js new business --out decisions/drafts/pricing.json
 node bin/decision-lab.js prompt all decisions/drafts/pricing.json --out-dir outputs/prompts/pricing
 node bin/decision-lab.js audit decisions/drafts/pricing.json
@@ -31,9 +32,9 @@ node bin/decision-lab.js review-plan decisions/drafts/pricing.json --out outputs
 - `research/models`: valuation, finance, sensitivity, or planning models
 - `outputs`: generated memos, briefs, reviews, and prompts
 
-## Bot Expansion Path
+## Bot Layer
 
-The repository is intentionally schema-first so a future bot can:
+The repository is intentionally schema-first so the bot can:
 
 - create a record from a rough question
 - ask role agents to propose edits
@@ -43,4 +44,4 @@ The repository is intentionally schema-first so a future bot can:
 - remind you to review the decision
 - build a personal judgment ledger over time
 
-The bot should never be the source of truth. The record is.
+The local bot layer already creates records, full artifact runs, prompt chains, ledgers, and close-out reviews. External LLM or data integrations should plug into that layer without replacing the record as the source of truth.

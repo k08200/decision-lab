@@ -16,6 +16,15 @@ import {
   scoreOptions,
   validateDecision
 } from "../src/decision-core.js";
+import {
+  closeDecision,
+  createDecisionFromQuestion,
+  renderLedger,
+  renderOptionComparison,
+  slugify,
+  writeWorkflowArtifacts,
+  runDecisionWorkflow
+} from "../src/decision-agent.js";
 import { createTemplate } from "../src/templates.js";
 
 const [, , command, ...args] = process.argv;
@@ -25,6 +34,9 @@ function printHelp() {
 
 Usage:
   decision-lab init [directory]
+  decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
+  decision-lab run <file.json> [--out-dir directory]
+  decision-lab pipeline [question...] [--type type] [--owner name] [--slug name] [--out-dir directory]
   decision-lab new <general|investment|business|finance> [--out file.json]
   decision-lab validate <file.json>
   decision-lab score <file.json>
@@ -33,6 +45,8 @@ Usage:
   decision-lab render <file.json> [--out memo.md]
   decision-lab brief <file.json> [--out brief.md]
   decision-lab review-plan <file.json> [--out review.md]
+  decision-lab ledger [directory] [--out ledger.md]
+  decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
   decision-lab prompt <analyst|skeptic|cfo|ceo|operator|risk|recorder|all> <file.json> [--out file.md|--out-dir prompts]
   decision-lab list-types
   decision-lab list-prompts
@@ -44,6 +58,18 @@ function readFlag(argv, flag) {
   if (index === -1) return null;
   if (!argv[index + 1]) throw new Error(`${flag} requires a value`);
   return argv[index + 1];
+}
+
+function readRestQuestion(argv) {
+  const chunks = [];
+  for (let index = 0; index < argv.length; index += 1) {
+    if (argv[index].startsWith("--")) {
+      index += 1;
+      continue;
+    }
+    chunks.push(argv[index]);
+  }
+  return chunks.join(" ").trim();
 }
 
 function writeOrPrint(text, outPath) {
@@ -70,6 +96,32 @@ function requireFile(filePath) {
   return loadDecisionFile(filePath);
 }
 
+function readDecisionFiles(root) {
+  const files = walk(root).filter((filePath) => filePath.endsWith(".json"));
+  const records = [];
+  for (const filePath of files) {
+    try {
+      const decision = loadDecisionFile(filePath);
+      if (decision && typeof decision === "object" && decision.decision_type) {
+        records.push({ filePath, decision });
+      }
+    } catch {
+      // Ignore non-decision JSON files in the ledger scan.
+    }
+  }
+  return records;
+}
+
+function walk(root) {
+  if (!fs.existsSync(root)) return [];
+  const entries = fs.readdirSync(root, { withFileTypes: true });
+  return entries.flatMap((entry) => {
+    const fullPath = path.join(root, entry.name);
+    if (entry.isDirectory()) return walk(fullPath);
+    return [fullPath];
+  });
+}
+
 function initWorkspace(directory = ".") {
   const root = path.resolve(directory);
   const folders = [
@@ -91,15 +143,7 @@ function initWorkspace(directory = ".") {
 }
 
 function renderCompare(decision) {
-  const rows = scoreOptions(decision);
-  if (!rows.length) return "No option scores found.\n";
-  return [
-    "| Rank | Option | Weighted Score | Points |",
-    "| ---: | --- | ---: | ---: |",
-    ...rows.map((item, index) => (
-      `| ${index + 1} | ${escapeCell(item.name)} | ${Math.round(item.weighted_score * 100)}% | ${item.points}/${item.max_points} |`
-    ))
-  ].join("\n") + "\n";
+  return renderOptionComparison(decision);
 }
 
 function escapeCell(value) {
@@ -114,6 +158,43 @@ try {
 
   if (command === "init") {
     initWorkspace(args[0] || ".");
+    process.exit(0);
+  }
+
+  if (command === "ask") {
+    const question = readFlag(args, "--question") || readRestQuestion(args);
+    const decision = createDecisionFromQuestion(question, {
+      type: readFlag(args, "--type") || null,
+      owner: readFlag(args, "--owner") || null
+    });
+    writeOrPrint(`${JSON.stringify(decision, null, 2)}\n`, readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "run") {
+    const filePath = args[0];
+    const decision = requireFile(filePath);
+    const slug = slugify(decision.title || path.basename(filePath, ".json"));
+    const outDir = readFlag(args, "--out-dir") || path.join("outputs", "runs", slug);
+    const workflow = runDecisionWorkflow(decision);
+    writeWorkflowArtifacts(outDir, workflow);
+    console.log(`Wrote workflow artifacts to ${outDir}`);
+    process.exit(workflow.validation.valid ? 0 : 1);
+  }
+
+  if (command === "pipeline") {
+    const question = readFlag(args, "--question") || readRestQuestion(args);
+    const decision = createDecisionFromQuestion(question, {
+      type: readFlag(args, "--type") || null,
+      owner: readFlag(args, "--owner") || null
+    });
+    const slug = readFlag(args, "--slug") || slugify(decision.title);
+    const root = readFlag(args, "--out-dir") || path.join("decisions", "drafts", slug);
+    fs.mkdirSync(root, { recursive: true });
+    const recordPath = path.join(root, "decision.json");
+    fs.writeFileSync(recordPath, `${JSON.stringify(decision, null, 2)}\n`);
+    writeWorkflowArtifacts(path.join(root, "run"), runDecisionWorkflow(decision));
+    console.log(`Wrote decision pipeline to ${root}`);
     process.exit(0);
   }
 
@@ -172,6 +253,22 @@ try {
 
   if (command === "review-plan") {
     writeOrPrint(renderReviewPlan(requireFile(args[0])), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "ledger") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderLedger(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "close") {
+    const filePath = args[0];
+    const decision = requireFile(filePath);
+    const outcome = readFlag(args, "--outcome") || "";
+    const lesson = readFlag(args, "--lesson");
+    const closed = closeDecision(decision, { outcome, lessons: lesson ? [lesson] : [] });
+    writeOrPrint(`${JSON.stringify(closed, null, 2)}\n`, readFlag(args, "--out") || filePath);
     process.exit(0);
   }
 
