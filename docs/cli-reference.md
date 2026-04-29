@@ -40,6 +40,7 @@ node bin/decision-lab.js compare examples/business/enterprise_pricing_change.jso
 node bin/decision-lab.js diff decisions/snapshots/pricing-before.json decisions/active/pricing.json
 node bin/decision-lab.js graph examples/business/enterprise_pricing_change.json --out outputs/graphs/pricing.md
 node bin/decision-lab.js premortem examples/business/enterprise_pricing_change.json --out outputs/premortems/pricing.md
+node bin/decision-lab.js research-plan examples/business/enterprise_pricing_change.json --out outputs/research/pricing.md
 ```
 
 `diff` compares two record versions across status, recommendation, confidence, score, and core register counts.
@@ -47,6 +48,8 @@ node bin/decision-lab.js premortem examples/business/enterprise_pricing_change.j
 `graph` renders a Mermaid map of the decision, recommendation, hypotheses, options, evidence, assumptions, and risks.
 
 `premortem` turns recorded risks, assumptions, counterarguments, and change-my-mind conditions into a pre-commit failure review.
+
+`research-plan` converts weak evidence, open questions, assumptions, and disconfirming signals into concrete research tasks.
 
 ## Improve
 

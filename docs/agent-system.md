@@ -47,6 +47,12 @@ node bin/decision-lab.js diff decisions/snapshots/aapl-before.json decisions/act
 node bin/decision-lab.js premortem decisions/active/aapl.json --out outputs/premortems/aapl.md
 ```
 
+`research-plan` converts weak evidence, open questions, assumptions, and disconfirming signals into research tasks.
+
+```bash
+node bin/decision-lab.js research-plan decisions/active/aapl.json --out outputs/research/aapl.md
+```
+
 `pipeline` creates the record and runs the full workflow in one command.
 
 ```bash
@@ -146,6 +152,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - renders Mermaid decision maps for visual inspection
 - compares record versions for review and change tracking
 - generates premortem reports before commitment
+- creates research plans from weak evidence and open questions
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape

@@ -48,6 +48,7 @@ import {
   renderGateReport,
   renderMonthlyReview,
   renderPremortem,
+  renderResearchPlan,
   renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
@@ -298,6 +299,13 @@ test("renders premortem reports", () => {
   assert.match(report, /Pre-Commit Checklist/);
 });
 
+test("renders research plans", () => {
+  const report = renderResearchPlan(finance);
+  assert.match(report, /Research Plan/);
+  assert.match(report, /Evidence To Upgrade/);
+  assert.match(report, /Research Tasks/);
+});
+
 test("evaluates quality gates and stale decisions", () => {
   const records = [{ filePath: "business.json", decision: business }];
   const gate = evaluateGate(records, { minScore: 0.9, requireOperational: true });
@@ -358,6 +366,14 @@ test("cli renders premortem report", () => {
   });
   assert.match(output, /Premortem/);
   assert.match(output, /Strongest Counterarguments/);
+});
+
+test("cli renders research plan", () => {
+  const output = execFileSync("node", ["bin/decision-lab.js", "research-plan", "examples/finance/hiring_runway_tradeoff.json"], {
+    encoding: "utf8"
+  });
+  assert.match(output, /Research Plan/);
+  assert.match(output, /Assumption Tests/);
 });
 
 test("cli creates decision from rough question", () => {

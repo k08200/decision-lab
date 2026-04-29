@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.0
+
+### Added
+
+- Research plan command that converts weak evidence, assumptions, open questions, and disconfirming signals into research tasks
+
 ## 2.1.0
 
 ### Added

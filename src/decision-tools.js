@@ -703,6 +703,51 @@ export function renderPremortem(decision) {
   ].join("\n") + "\n";
 }
 
+export function renderResearchPlan(decision) {
+  const weakEvidence = (decision.evidence || []).filter((item) => item.strength !== "strong");
+  const assumptions = decision.assumption_register || [];
+  const openQuestions = decision.open_questions || [];
+  const disconfirmingSignals = (decision.hypotheses || [])
+    .flatMap((hypothesis) => hypothesis.disconfirming_signals || [])
+    .filter(Boolean);
+
+  return [
+    `# Research Plan: ${decision.title || "Untitled decision"}`,
+    "",
+    "## Objective",
+    `Improve the decision record enough to make or revise the recommendation for: ${decision.question || decision.title || "untitled decision"}.`,
+    "",
+    "## Priority Questions",
+    list(openQuestions),
+    "",
+    "## Evidence To Upgrade",
+    weakEvidence.length
+      ? table(["Claim", "Current Strength", "Source", "Upgrade Needed"], weakEvidence.map((item) => [
+        item.claim || "",
+        item.strength || "",
+        item.source || "",
+        evidenceUpgrade(item)
+      ]))
+      : "No weak or medium evidence items found.",
+    "",
+    "## Assumption Tests",
+    assumptions.length
+      ? table(["Assumption", "Importance", "Test", "Owner"], assumptions.map((item) => [
+        item.assumption || "",
+        item.importance || "",
+        item.test || "",
+        item.owner || ""
+      ]))
+      : "No assumptions recorded.",
+    "",
+    "## Disconfirming Signals",
+    list(disconfirmingSignals),
+    "",
+    "## Research Tasks",
+    researchTasks(decision, weakEvidence, assumptions, openQuestions)
+  ].join("\n") + "\n";
+}
+
 function timelineEvent(filePath, decision, kind, date) {
   if (!date || !isIsoDate(date)) return null;
   return { filePath, decision, kind, date };
@@ -727,6 +772,25 @@ function normalizeEvidence(evidence) {
   }
 
   return normalized;
+}
+
+function evidenceUpgrade(item) {
+  if (item.source_type === "user input") return "Find an external or measured source.";
+  if (item.strength === "weak") return "Replace or corroborate with primary evidence.";
+  if (item.strength === "medium") return "Confirm recency, sample size, and counterexample coverage.";
+  return "Document why this should be considered strong.";
+}
+
+function researchTasks(decision, weakEvidence, assumptions, openQuestions) {
+  const tasks = [
+    ...openQuestions.slice(0, 5).map((item) => `- Answer: ${item}`),
+    ...weakEvidence.slice(0, 5).map((item) => `- Upgrade evidence for claim: ${item.claim || "unnamed claim"}`),
+    ...assumptions.slice(0, 5).map((item) => `- Test assumption: ${item.assumption || "unnamed assumption"}`)
+  ];
+  if (decision.recommendation?.decision_deadline) {
+    tasks.push(`- Finish critical research before decision deadline: ${decision.recommendation.decision_deadline}`);
+  }
+  return tasks.length ? tasks.join("\n") : "- No research tasks found.";
 }
 
 function fieldChange(name, before, after) {

@@ -20,6 +20,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Local configuration defaults
 - Portfolio action queue
 - Point-in-time snapshots and timeline reports
+- Research plans for missing evidence
 - Standalone dashboard and CSV/JSON export
 - CI for syntax and test coverage
 

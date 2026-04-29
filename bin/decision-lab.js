@@ -49,6 +49,7 @@ import {
   renderGateReport,
   renderMonthlyReview,
   renderPremortem,
+  renderResearchPlan,
   renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
@@ -100,6 +101,7 @@ Usage:
   decision-lab diff <before.json> <after.json> [--out diff.md]
   decision-lab graph <file.json> [--out graph.md]
   decision-lab premortem <file.json> [--out premortem.md]
+  decision-lab research-plan <file.json> [--out research-plan.md]
   decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
   decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
   decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
@@ -458,6 +460,11 @@ try {
 
   if (command === "premortem") {
     writeOrPrint(renderPremortem(requireFile(args[0])), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "research-plan") {
+    writeOrPrint(renderResearchPlan(requireFile(args[0])), readFlag(args, "--out"));
     process.exit(0);
   }
 
