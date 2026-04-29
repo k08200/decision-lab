@@ -22,6 +22,12 @@ node bin/decision-lab.js inbox inbox.txt --out-dir decisions/drafts
 node bin/decision-lab.js run decisions/drafts/aapl.json --out-dir outputs/runs/aapl
 ```
 
+`graph` renders a Mermaid map of a record so thesis, evidence, assumptions, and risks can be inspected visually.
+
+```bash
+node bin/decision-lab.js graph decisions/drafts/aapl.json --out outputs/graphs/aapl.md
+```
+
 `pipeline` creates the record and runs the full workflow in one command.
 
 ```bash
@@ -115,6 +121,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - generates option scores
 - creates role prompts for analyst, skeptic, CFO, CEO, operator, risk, and recorder
 - creates audit, memo, brief, comparison, review plan, and agent report
+- renders Mermaid decision maps for visual inspection
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape

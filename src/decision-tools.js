@@ -507,6 +507,39 @@ export function renderStaleReport(records, { asOf = new Date().toISOString().sli
   ].join("\n") + "\n";
 }
 
+export function renderDecisionGraph(decision) {
+  const lines = [
+    `# Decision Graph: ${decision.title || "Untitled decision"}`,
+    "",
+    "```mermaid",
+    "flowchart LR",
+    `  D["${mermaidLabel("Decision", decision.title || decision.question || "Untitled")}"]`,
+    `  Q["${mermaidLabel("Question", decision.question || "")}"]`,
+    `  R["${mermaidLabel("Recommendation", decision.recommendation?.decision || "undecided")}"]`,
+    "  D --> Q",
+    "  Q --> R"
+  ];
+
+  appendNodeGroup(lines, "H", "Hypotheses", decision.hypotheses || [], (item, index) => (
+    mermaidLabel(item.id || `H${index + 1}`, item.thesis || item.hypothesis || "")
+  ), "D");
+  appendNodeGroup(lines, "O", "Options", decision.options || [], (item, index) => (
+    mermaidLabel(item.id || `O${index + 1}`, item.name || item.description || "")
+  ), "Q");
+  appendNodeGroup(lines, "E", "Evidence", decision.evidence || [], (item, index) => (
+    mermaidLabel(item.strength || `E${index + 1}`, item.claim || "")
+  ), "D");
+  appendNodeGroup(lines, "A", "Assumptions", decision.assumption_register || [], (item, index) => (
+    mermaidLabel(item.importance || `A${index + 1}`, item.assumption || "")
+  ), "R");
+  appendNodeGroup(lines, "K", "Risks", decision.risks || [], (item, index) => (
+    mermaidLabel(item.impact || `K${index + 1}`, item.risk || "")
+  ), "R");
+
+  lines.push("```", "");
+  return lines.join("\n");
+}
+
 function normalizeEvidence(evidence) {
   const normalized = {
     claim: requireText(evidence.claim, "claim"),
@@ -522,6 +555,36 @@ function normalizeEvidence(evidence) {
   }
 
   return normalized;
+}
+
+function appendNodeGroup(lines, prefix, title, items, labelFn, parentId) {
+  const visible = items.slice(0, 8);
+  if (!visible.length) return;
+  lines.push(`  subgraph ${prefix}G["${title}"]`);
+  visible.forEach((item, index) => {
+    lines.push(`    ${prefix}${index}["${labelFn(item, index)}"]`);
+  });
+  if (items.length > visible.length) {
+    lines.push(`    ${prefix}More["${items.length - visible.length} more"]`);
+  }
+  lines.push("  end");
+  visible.forEach((_, index) => {
+    lines.push(`  ${parentId} --> ${prefix}${index}`);
+  });
+  if (items.length > visible.length) lines.push(`  ${parentId} --> ${prefix}More`);
+}
+
+function mermaidLabel(heading, detail) {
+  const head = String(heading || "").trim();
+  const body = String(detail || "").trim();
+  const label = body ? `${head}: ${body}` : head;
+  return label
+    .replaceAll("\\", "\\\\")
+    .replaceAll("\"", "'")
+    .replaceAll("[", "(")
+    .replaceAll("]", ")")
+    .replaceAll("\n", "<br/>")
+    .slice(0, 140);
 }
 
 function yamlScalar(value) {

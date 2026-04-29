@@ -34,7 +34,10 @@ node bin/decision-lab.js validate examples/business/enterprise_pricing_change.js
 node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js health examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js compare examples/business/enterprise_pricing_change.json
+node bin/decision-lab.js graph examples/business/enterprise_pricing_change.json --out outputs/graphs/pricing.md
 ```
+
+`graph` renders a Mermaid map of the decision, recommendation, hypotheses, options, evidence, assumptions, and risks.
 
 ## Improve
 

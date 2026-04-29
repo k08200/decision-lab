@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0
+
+### Added
+
+- Mermaid decision graph command for visualizing hypotheses, evidence, assumptions, options, risks, and recommendations
+
 ## 1.5.0
 
 ### Added

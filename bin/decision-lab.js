@@ -41,6 +41,7 @@ import {
   renderCalibration,
   renderDoctor,
   renderDueReviews,
+  renderDecisionGraph,
   renderAssumptionReport,
   evaluateGate,
   renderGateReport,
@@ -73,6 +74,7 @@ Usage:
   decision-lab audit <file.json>
   decision-lab health <file.json>
   decision-lab compare <file.json>
+  decision-lab graph <file.json> [--out graph.md]
   decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
   decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
   decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
@@ -355,6 +357,11 @@ try {
 
   if (command === "compare") {
     writeOrPrint(renderCompare(requireFile(args[0])), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "graph") {
+    writeOrPrint(renderDecisionGraph(requireFile(args[0])), readFlag(args, "--out"));
     process.exit(0);
   }
 

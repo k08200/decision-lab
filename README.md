@@ -30,6 +30,7 @@ node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrat
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
+node bin/decision-lab.js graph examples/business/enterprise_pricing_change.json --out outputs/graphs/pricing.md
 node bin/decision-lab.js render examples/business/enterprise_pricing_change.json --out outputs/memos/pricing.md
 node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.json --out-dir outputs/prompts/pricing
 ```
@@ -48,6 +49,7 @@ decision-lab score <file.json>
 decision-lab audit <file.json>
 decision-lab health <file.json>
 decision-lab compare <file.json>
+decision-lab graph <file.json> [--out graph.md]
 decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
 decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
 decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
@@ -242,6 +244,12 @@ Enforce quality and find neglected records:
 ```bash
 node bin/decision-lab.js gate decisions --min-score 0.85 --operational
 node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
+```
+
+Visualize a record as a Mermaid graph:
+
+```bash
+node bin/decision-lab.js graph decisions/active/pricing.json --out outputs/graphs/pricing.md
 ```
 
 Upgrade older records into the current operating schema:

@@ -40,6 +40,7 @@ import {
   promoteDecision,
   renderAssumptionReport,
   renderCalibration,
+  renderDecisionGraph,
   renderDoctor,
   renderDueReviews,
   renderGateReport,
@@ -267,6 +268,14 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
 });
 
+test("renders decision graphs", () => {
+  const graph = renderDecisionGraph(business);
+  assert.match(graph, /```mermaid/);
+  assert.match(graph, /Decision Graph/);
+  assert.match(graph, /Hypotheses/);
+  assert.match(graph, /Risks/);
+});
+
 test("evaluates quality gates and stale decisions", () => {
   const records = [{ filePath: "business.json", decision: business }];
   const gate = evaluateGate(records, { minScore: 0.9, requireOperational: true });
@@ -296,6 +305,14 @@ test("cli compares options", () => {
     encoding: "utf8"
   });
   assert.match(output, /Controlled pilot/);
+});
+
+test("cli renders decision graph", () => {
+  const output = execFileSync("node", ["bin/decision-lab.js", "graph", "examples/business/enterprise_pricing_change.json"], {
+    encoding: "utf8"
+  });
+  assert.match(output, /flowchart LR/);
+  assert.match(output, /Recommendation/);
 });
 
 test("cli creates decision from rough question", () => {
