@@ -164,6 +164,12 @@ node bin/decision-lab.js hypotheses decisions --out outputs/hypotheses.md
 node bin/decision-lab.js scenarios decisions --out outputs/scenarios.md
 ```
 
+`sensitivities` surfaces model drivers, financial guardrails, valuation ranges, and change-my-mind conditions.
+
+```bash
+node bin/decision-lab.js sensitivities decisions --out outputs/sensitivities.md
+```
+
 `review-pack` writes worksheets for every due review into one folder.
 
 ```bash

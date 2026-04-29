@@ -76,6 +76,7 @@ import {
   renderReviewPackIndex,
   renderSearchResults,
   renderScenarioReport,
+  renderSensitivityReport,
   renderSignalWatchlist,
   renderSourceIndex,
   renderStaleReport,
@@ -159,6 +160,7 @@ Usage:
   decision-lab questions [directory] [--out report.md]
   decision-lab hypotheses [directory] [--out report.md]
   decision-lab scenarios [directory] [--out report.md]
+  decision-lab sensitivities [directory] [--out report.md]
   decision-lab guardrails [directory] [--out report.md]
   decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -343,6 +345,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
     "scenarios.md": renderScenarioReport(records),
+    "sensitivities.md": renderSensitivityReport(records),
     "guardrails.md": renderGuardrailReport(records),
     "playbook.md": renderOperatingPlaybook(records, { asOf }),
     "scorecard.md": renderOperatingScorecard(records, { asOf }),
@@ -372,6 +375,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
     "scenarios.md": renderScenarioReport(records),
+    "sensitivities.md": renderSensitivityReport(records),
     "signals.md": renderSignalWatchlist(records, { asOf }),
     "evidence-scorecard.md": renderEvidenceScorecard(records),
     "assumption-tests.md": renderAssumptionTestQueue(records),
@@ -814,6 +818,12 @@ try {
   if (command === "scenarios") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderScenarioReport(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "sensitivities") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderSensitivityReport(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

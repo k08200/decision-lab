@@ -106,6 +106,7 @@ node bin/decision-lab.js signals decisions --as-of 2026-08-01
 node bin/decision-lab.js questions decisions
 node bin/decision-lab.js hypotheses decisions
 node bin/decision-lab.js scenarios decisions
+node bin/decision-lab.js sensitivities decisions
 node bin/decision-lab.js guardrails decisions
 node bin/decision-lab.js owners decisions --as-of 2026-08-01
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01

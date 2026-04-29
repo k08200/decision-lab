@@ -111,6 +111,7 @@ export function renderReportCatalog() {
     ["Portfolio", "evidence-scorecard", "Summarize evidence strength and source coverage.", "weekly"],
     ["Portfolio", "hypotheses", "Collect hypotheses, evidence, counterarguments, and disconfirming signals.", "weekly"],
     ["Portfolio", "scenarios", "Create base, upside, and downside scenario views for active decisions.", "weekly"],
+    ["Portfolio", "sensitivities", "Surface model drivers, sensitivity checks, and financial guardrails.", "weekly"],
     ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
     ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
     ["Portfolio", "outcomes", "Summarize reviewed outcomes, review completeness, lessons, and calibration cues.", "monthly"],
@@ -1262,6 +1263,49 @@ export function renderScenarioReport(records) {
   ].join("\n") + "\n";
 }
 
+export function renderSensitivityReport(records) {
+  const drivers = records.map(({ filePath, decision }) => sensitivityDriver(filePath, decision));
+  const checks = records.flatMap(({ filePath, decision }) => sensitivityRows(filePath, decision));
+  const guardrails = checks.filter((row) => row.kind.includes("guardrail") || row.kind.includes("limit") || row.kind.includes("change-my-mind"));
+  const byType = groupBy(checks, (row) => row.type || "unknown");
+
+  return [
+    "# Sensitivity Report",
+    "",
+    `Records: ${records.length}`,
+    `Drivers: ${drivers.filter((row) => row.driver).length}`,
+    `Sensitivity rows: ${checks.length}`,
+    `Guardrail rows: ${guardrails.length}`,
+    "",
+    "## Decision Drivers",
+    drivers.length
+      ? table(["File", "Type", "Decision", "Driver", "Base", "Upside", "Downside"], drivers.map((row) => [
+        row.filePath,
+        row.type,
+        row.title,
+        row.driver,
+        row.base,
+        row.upside,
+        row.downside
+      ]))
+      : "No decision records found.",
+    "",
+    "## By Type",
+    countTable(byType),
+    "",
+    "## Sensitivity And Guardrail Register",
+    checks.length
+      ? table(["Kind", "File", "Type", "Decision", "Item"], checks.map((row) => [
+        row.kind,
+        row.filePath,
+        row.type,
+        row.title,
+        row.item
+      ]))
+      : "No sensitivity items found."
+  ].join("\n") + "\n";
+}
+
 export function renderGuardrailReport(records) {
   const guardrails = records.flatMap(({ filePath, decision }) => {
     const frame = decision.decision_frame || {};
@@ -2156,6 +2200,53 @@ function highestRisk(decision) {
   return (decision.risks || [])
     .slice()
     .sort((a, b) => (riskWeight(b.probability) * riskWeight(b.impact)) - (riskWeight(a.probability) * riskWeight(a.impact)))[0] || null;
+}
+
+function sensitivityDriver(filePath, decision) {
+  const valuation = decision.valuation || {};
+  const financialImpact = decision.financial_impact || {};
+  return {
+    filePath,
+    type: decision.decision_type || "",
+    title: decision.title || "",
+    driver: decision.model_driver || decision.financial_hypothesis || decision.strategic_goal || decision.asset?.time_horizon || "",
+    base: decision.base_case || valuation.base_case || financialImpact.revenue || decision.recommendation?.summary || "",
+    upside: decision.upside_case || valuation.bull_case || selectedOption(decision)?.upside || "",
+    downside: decision.downside_case || valuation.bear_case || highestRisk(decision)?.risk || ""
+  };
+}
+
+function sensitivityRows(filePath, decision) {
+  const rows = [];
+  const push = (kind, items) => {
+    for (const item of items.filter(Boolean)) {
+      rows.push({
+        kind,
+        filePath,
+        type: decision.decision_type || "",
+        title: decision.title || "",
+        item
+      });
+    }
+  };
+  const valuation = decision.valuation || {};
+  const impact = decision.financial_impact || {};
+
+  push("sensitivity check", decision.sensitivity_checks || []);
+  push("financial guardrail", decision.financial_guardrails || []);
+  push("investment valuation", [
+    valuation.base_case && `Base: ${valuation.base_case}`,
+    valuation.bull_case && `Bull: ${valuation.bull_case}`,
+    valuation.bear_case && `Bear: ${valuation.bear_case}`,
+    valuation.margin_of_safety && `Margin of safety: ${valuation.margin_of_safety}`
+  ]);
+  push("portfolio limit", decision.risk_controls || []);
+  push("business financial impact", Object.entries(impact).map(([key, value]) => `${key}: ${value}`));
+  push("high-importance assumption", (decision.assumption_register || [])
+    .filter((assumption) => assumption.importance === "high")
+    .map((assumption) => `${assumption.assumption}${assumption.test ? ` | test: ${assumption.test}` : ""}`));
+  push("change-my-mind", decision.what_would_change_my_mind || []);
+  return rows;
 }
 
 function checklistForType(decision) {

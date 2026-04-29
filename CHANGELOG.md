@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.33.0
+
+### Added
+
+- Sensitivity report command for model drivers, valuation ranges, financial guardrails, and change-my-mind conditions
+- Operating packs and weekly packs now include `sensitivities.md`
+
 ## 2.32.0
 
 ### Added

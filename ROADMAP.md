@@ -32,6 +32,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Operating playbook recommendations for the next command sequence
 - Outcome scorecard for review completeness, lessons, and calibration cues
 - Scenario report for base, upside, and downside views across active decisions
+- Sensitivity report for model drivers, valuation ranges, guardrails, and change-my-mind conditions
 - Principles report for reusable judgment rules from lessons, guardrails, and anti-patterns
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
