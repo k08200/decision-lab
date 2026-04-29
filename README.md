@@ -47,6 +47,8 @@ decision-lab audit <file.json>
 decision-lab health <file.json>
 decision-lab compare <file.json>
 decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
+decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
+decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
 decision-lab patch <file.json> <patch.json> [--out file.json]
 decision-lab set <file.json> <path> <json-value> [--out file.json]
 decision-lab render <file.json> [--out memo.md]
@@ -56,7 +58,11 @@ decision-lab ledger [directory] [--out ledger.md]
 decision-lab dashboard [directory] [--out dashboard.html]
 decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab calibration [directory] [--out report.md]
+decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab search [directory] --query text [--out report.md]
 decision-lab doctor [directory] [--out report.md]
+decision-lab promote <file.json> <draft|researching|decided|reviewed> [--out file.json]
+decision-lab review <file.json> [--out worksheet.md]
 decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
 decision-lab prompt <analyst|skeptic|cfo|ceo|operator|risk|recorder|all> <file.json> [--out file.md|--out-dir prompts]
 decision-lab list-types
@@ -160,6 +166,15 @@ node bin/decision-lab.js evidence decisions/drafts/aapl.json \
   --recency current
 ```
 
+Normalize a source note and link it as evidence:
+
+```bash
+node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
+node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md \
+  --claim "Customer notes support the core hypothesis." \
+  --strength medium
+```
+
 Apply JSON patches proposed by role prompts or another agent:
 
 ```bash
@@ -185,6 +200,15 @@ Generate a local dashboard or export:
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js export decisions --format json --out outputs/decisions.json
+```
+
+Find due reviews and search the ledger:
+
+```bash
+node bin/decision-lab.js due decisions --as-of 2026-08-01
+node bin/decision-lab.js search decisions --query platform
+node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review-worksheet.md
+node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 ```
 
 ## Philosophy

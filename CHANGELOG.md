@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0
+
+### Added
+
+- Source note normalization and source-linked evidence
+- Due review reports
+- Decision ledger search
+- Review worksheets
+- Status promotion command
+- Expanded doctor checks
+
 ## 1.0.0
 
 Initial complete release of Decision Lab.

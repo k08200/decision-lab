@@ -39,6 +39,8 @@ node bin/decision-lab.js compare examples/business/enterprise_pricing_change.jso
 
 ```bash
 node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source name" --strength strong
+node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
+node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
 ```
@@ -67,6 +69,10 @@ node bin/decision-lab.js ledger decisions
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js calibration decisions
+node bin/decision-lab.js due decisions --as-of 2026-08-01
+node bin/decision-lab.js search decisions --query pricing
 node bin/decision-lab.js doctor
+node bin/decision-lab.js promote decisions/drafts/pricing.json decided
+node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review.md
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Report earlier."
 ```

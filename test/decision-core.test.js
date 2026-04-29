@@ -30,8 +30,14 @@ import {
 import {
   applyJsonPatch,
   attachEvidence,
+  attachSourceEvidence,
+  createSourceNote,
+  promoteDecision,
   renderCalibration,
   renderDoctor,
+  renderDueReviews,
+  renderReviewWorksheet,
+  renderSearchResults,
   setJsonPath,
   summarizeDecisionHealth
 } from "../src/decision-tools.js";
@@ -178,6 +184,31 @@ test("summarizes decision health", () => {
   assert.equal(health.maturity, "operational");
 });
 
+test("creates source notes and links source evidence", () => {
+  const note = createSourceNote({
+    title: "QBR Notes",
+    sourcePath: "research/raw/qbr.md",
+    content: "Enterprise buyers asked for workflow pricing.",
+    tags: "pricing,enterprise",
+    date: "2026-04-29"
+  });
+  assert.match(note, /QBR Notes/);
+  assert.match(note, /Enterprise buyers/);
+
+  const next = attachSourceEvidence(business, "research/sources/qbr-notes.md", {
+    claim: "QBR notes support platform pricing test.",
+    strength: "medium"
+  });
+  assert.equal(next.evidence.at(-1).source, "research/sources/qbr-notes.md");
+});
+
+test("renders due reviews, search results, promotion, and review worksheets", () => {
+  assert.match(renderDueReviews([{ filePath: "pricing.json", decision: business }], "2026-08-01"), /pricing.json/);
+  assert.match(renderSearchResults([{ filePath: "pricing.json", decision: business }], "platform"), /pricing.json/);
+  assert.equal(promoteDecision(business, "reviewed", { now: "2026-04-29" }).status, "reviewed");
+  assert.match(renderReviewWorksheet(business), /Review Worksheet/);
+});
+
 test("exports decision rows and dashboard", () => {
   const records = [{ filePath: "pricing.json", decision: business }];
   const rows = buildDecisionRows(records);
@@ -236,6 +267,54 @@ test("cli applies evidence and patch commands", () => {
   execFileSync("node", ["bin/decision-lab.js", "patch", decisionPath, patchPath]);
   const patched = JSON.parse(readFileSync(decisionPath, "utf8"));
   assert.equal(patched.recommendation.confidence, 0.62);
+});
+
+test("cli imports source, links source evidence, and renders due/search/review", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-source-test-"));
+  const decisionPath = path.join(dir, "decision.json");
+  const rawSourcePath = path.join(dir, "source.md");
+  const sourceNotePath = path.join(dir, "source-note.md");
+  writeFileSync(decisionPath, `${JSON.stringify(business, null, 2)}\n`);
+  writeFileSync(rawSourcePath, "Customer QBR mentioned platform pricing.");
+
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "source",
+    rawSourcePath,
+    "--title",
+    "Customer QBR",
+    "--out",
+    sourceNotePath
+  ]);
+  assert.match(readFileSync(sourceNotePath, "utf8"), /Customer QBR/);
+
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "source-evidence",
+    decisionPath,
+    sourceNotePath,
+    "--claim",
+    "QBR supports platform pricing."
+  ]);
+  assert.equal(JSON.parse(readFileSync(decisionPath, "utf8")).evidence.at(-1).source, sourceNotePath);
+
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "due", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /enterprise_pricing_change/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "search", "examples", "--query", "platform"], {
+    encoding: "utf8"
+  }), /enterprise_pricing_change/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "review", "examples/business/enterprise_pricing_change.json"], {
+    encoding: "utf8"
+  }), /Review Worksheet/);
+});
+
+test("cli promotes decision status", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-promote-test-"));
+  const decisionPath = path.join(dir, "decision.json");
+  writeFileSync(decisionPath, `${JSON.stringify(business, null, 2)}\n`);
+  execFileSync("node", ["bin/decision-lab.js", "promote", decisionPath, "reviewed"]);
+  assert.equal(JSON.parse(readFileSync(decisionPath, "utf8")).status, "reviewed");
 });
 
 test("cli exports dashboard and csv", () => {

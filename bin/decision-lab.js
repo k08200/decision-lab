@@ -31,10 +31,16 @@ import {
 } from "../src/decision-export.js";
 import {
   applyJsonPatch,
+  attachSourceEvidence,
   attachEvidence,
+  createSourceNote,
   parseJsonish,
   renderCalibration,
   renderDoctor,
+  renderDueReviews,
+  renderReviewWorksheet,
+  renderSearchResults,
+  promoteDecision,
   setJsonPath,
   summarizeDecisionHealth
 } from "../src/decision-tools.js";
@@ -57,6 +63,8 @@ Usage:
   decision-lab health <file.json>
   decision-lab compare <file.json>
   decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
+  decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
+  decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
   decision-lab patch <file.json> <patch.json> [--out file.json]
   decision-lab set <file.json> <path> <json-value> [--out file.json]
   decision-lab render <file.json> [--out memo.md]
@@ -66,7 +74,11 @@ Usage:
   decision-lab dashboard [directory] [--out dashboard.html]
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab calibration [directory] [--out report.md]
+  decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab search [directory] --query text [--out report.md]
   decision-lab doctor [directory] [--out report.md]
+  decision-lab promote <file.json> <draft|researching|decided|reviewed> [--out file.json]
+  decision-lab review <file.json> [--out worksheet.md]
   decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
   decision-lab prompt <analyst|skeptic|cfo|ceo|operator|risk|recorder|all> <file.json> [--out file.md|--out-dir prompts]
   decision-lab list-types
@@ -119,6 +131,18 @@ function requireFile(filePath) {
 
 function writeDecisionUpdate(filePath, decision, outPath) {
   writeOrPrint(`${JSON.stringify(decision, null, 2)}\n`, outPath || filePath);
+}
+
+function positional(argv) {
+  const values = [];
+  for (let index = 0; index < argv.length; index += 1) {
+    if (argv[index].startsWith("--")) {
+      index += 1;
+      continue;
+    }
+    values.push(argv[index]);
+  }
+  return values;
 }
 
 function readDecisionFiles(root) {
@@ -283,6 +307,44 @@ try {
     process.exit(0);
   }
 
+  if (command === "source") {
+    const sourcePath = args[0];
+    if (!sourcePath) throw new Error("Usage: decision-lab source <source-file>");
+    const content = fs.readFileSync(path.resolve(sourcePath), "utf8");
+    const title = readFlag(args, "--title") || path.basename(sourcePath);
+    const sourceNote = createSourceNote({
+      title,
+      kind: readFlag(args, "--kind") || "note",
+      sourcePath,
+      content,
+      tags: readFlag(args, "--tags") || "",
+      notes: readFlag(args, "--notes") || "",
+      date: readFlag(args, "--date") || null
+    });
+    const outPath = readFlag(args, "--out") || path.join("research", "sources", `${slugify(title)}.md`);
+    writeOrPrint(sourceNote, outPath);
+    process.exit(0);
+  }
+
+  if (command === "source-evidence") {
+    const [filePath, sourcePath] = positional(args);
+    if (!filePath || !sourcePath) {
+      throw new Error("Usage: decision-lab source-evidence <file.json> <source-file> --claim text");
+    }
+    const next = attachSourceEvidence(requireFile(filePath), sourcePath, {
+      claim: readFlag(args, "--claim"),
+      strength: readFlag(args, "--strength") || "medium",
+      source_type: readFlag(args, "--source-type") || "source note",
+      recency: readFlag(args, "--recency") || "",
+      notes: readFlag(args, "--notes") || ""
+    }, {
+      hypothesisId: readFlag(args, "--hypothesis"),
+      now: readFlag(args, "--date") || null
+    });
+    writeDecisionUpdate(filePath, next, readFlag(args, "--out"));
+    process.exit(0);
+  }
+
   if (command === "patch") {
     const filePath = args[0];
     const patchPath = args[1];
@@ -349,10 +411,36 @@ try {
     process.exit(0);
   }
 
+  if (command === "due") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderDueReviews(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "search") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderSearchResults(readDecisionFiles(root), readFlag(args, "--query") || ""), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
   if (command === "doctor") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : ".";
     const examples = readDecisionFiles(path.join(root, "examples"));
     writeOrPrint(renderDoctor({ root, examples }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "promote") {
+    const filePath = args[0];
+    const status = args[1];
+    if (!filePath || !status) throw new Error("Usage: decision-lab promote <file.json> <status>");
+    writeDecisionUpdate(filePath, promoteDecision(requireFile(filePath), status), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "review") {
+    const filePath = args[0];
+    writeOrPrint(renderReviewWorksheet(requireFile(filePath)), readFlag(args, "--out"));
     process.exit(0);
   }
 

@@ -38,8 +38,19 @@ node bin/decision-lab.js calibration decisions --out outputs/calibration.md
 
 ```bash
 node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source"
+node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
+node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
+```
+
+`due`, `search`, `review`, and `promote` keep the system operational as records accumulate.
+
+```bash
+node bin/decision-lab.js due decisions --as-of 2026-08-01
+node bin/decision-lab.js search decisions --query platform
+node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review.md
+node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 ```
 
 `doctor` checks repository wiring and example decision validity.
@@ -71,7 +82,10 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - creates audit, memo, brief, comparison, review plan, and agent report
 - applies JSON patch edits safely
 - attaches evidence without breaking the record shape
+- normalizes source notes and links them as evidence
 - tracks calibration across reviewed decisions
+- lists due reviews and searches the decision ledger
+- produces review worksheets and status promotion updates
 - renders a standalone HTML dashboard
 - exports decision summaries to CSV or JSON
 

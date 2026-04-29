@@ -96,6 +96,7 @@ export function renderDoctor({ root = ".", examples = [] } = {}) {
     fileCheck("bin/decision-lab.js", fs.existsSync(`${root}/bin/decision-lab.js`)),
     fileCheck("src/decision-core.js", fs.existsSync(`${root}/src/decision-core.js`)),
     fileCheck("src/decision-agent.js", fs.existsSync(`${root}/src/decision-agent.js`)),
+    fileCheck("src/decision-export.js", fs.existsSync(`${root}/src/decision-export.js`)),
     fileCheck("src/decision-tools.js", fs.existsSync(`${root}/src/decision-tools.js`)),
     fileCheck("schemas/general_decision.schema.json", fs.existsSync(`${root}/schemas/general_decision.schema.json`)),
     fileCheck(".github/workflows/ci.yml", fs.existsSync(`${root}/.github/workflows/ci.yml`))
@@ -138,6 +139,145 @@ export function summarizeDecisionHealth(decision) {
   };
 }
 
+export function createSourceNote({ title, kind = "note", sourcePath = "", content = "", tags = "", notes = "", date = null }) {
+  const recordedAt = date || new Date().toISOString().slice(0, 10);
+  return [
+    "---",
+    `title: ${yamlScalar(title || sourcePath || "Untitled source")}`,
+    `kind: ${yamlScalar(kind)}`,
+    `source_path: ${yamlScalar(sourcePath)}`,
+    `recorded_at: ${yamlScalar(recordedAt)}`,
+    `tags: ${yamlScalar(tags)}`,
+    "---",
+    "",
+    "# Source Notes",
+    "",
+    notes || "No notes recorded.",
+    "",
+    "# Source Content",
+    "",
+    content || "No source content recorded."
+  ].join("\n") + "\n";
+}
+
+export function attachSourceEvidence(decision, sourcePath, evidence, options = {}) {
+  return attachEvidence(decision, {
+    ...evidence,
+    source: sourcePath,
+    source_type: evidence.source_type || "source note",
+    notes: evidence.notes || `Linked source file: ${sourcePath}`
+  }, options);
+}
+
+export function promoteDecision(decision, status, options = {}) {
+  if (!["draft", "researching", "decided", "reviewed"].includes(status)) {
+    throw new Error("Status must be draft, researching, decided, or reviewed");
+  }
+  const next = structuredClone(decision);
+  next.status = status;
+  next.updated_at = options.now || new Date().toISOString().slice(0, 10);
+  return next;
+}
+
+export function renderDueReviews(records, asOf = new Date().toISOString().slice(0, 10)) {
+  const asOfDate = parseDate(asOf);
+  const due = records
+    .map(({ filePath, decision }) => ({
+      filePath,
+      decision,
+      reviewDate: decision.recommendation?.review_date || decision.post_decision_review?.review_date || ""
+    }))
+    .filter((item) => item.reviewDate && parseDate(item.reviewDate) <= asOfDate)
+    .sort((a, b) => a.reviewDate.localeCompare(b.reviewDate));
+
+  return [
+    "# Due Reviews",
+    "",
+    `As of: ${asOf}`,
+    "",
+    due.length
+      ? table(["File", "Type", "Title", "Decision", "Review Date"], due.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        item.decision.recommendation?.decision || "",
+        item.reviewDate
+      ]))
+      : "No reviews are due."
+  ].join("\n") + "\n";
+}
+
+export function renderSearchResults(records, query) {
+  if (!query || !query.trim()) throw new Error("Search query is required");
+  const needle = query.toLowerCase();
+  const matches = records
+    .map(({ filePath, decision }) => ({ filePath, decision, haystack: searchableText(decision) }))
+    .filter((item) => item.haystack.includes(needle))
+    .map((item) => ({
+      filePath: item.filePath,
+      decision: item.decision,
+      score: countOccurrences(item.haystack, needle)
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  return [
+    "# Search Results",
+    "",
+    `Query: ${query}`,
+    "",
+    matches.length
+      ? table(["File", "Type", "Title", "Status", "Matches"], matches.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        item.decision.status || "draft",
+        String(item.score)
+      ]))
+      : "No matching decisions found."
+  ].join("\n") + "\n";
+}
+
+export function renderReviewWorksheet(decision) {
+  const review = decision.post_decision_review || {};
+  return [
+    `# Review Worksheet: ${decision.title}`,
+    "",
+    "## Original Decision",
+    table(["Field", "Value"], [
+      ["Question", decision.question || ""],
+      ["Decision", decision.recommendation?.decision || ""],
+      ["Confidence", percent(decision.recommendation?.confidence)],
+      ["Review Date", decision.recommendation?.review_date || ""]
+    ]),
+    "",
+    "## Success Metrics",
+    list(review.success_metrics || []),
+    "",
+    "## Expected Signals",
+    list(review.expected_signals || []),
+    "",
+    "## Failure Signals",
+    list(review.failure_signals || []),
+    "",
+    "## Review Questions",
+    list(review.review_questions || []),
+    "",
+    "## Actual Outcome",
+    "",
+    "- ",
+    "",
+    "## Lessons",
+    "",
+    "- ",
+    "",
+    "## Calibration Notes",
+    "",
+    "- Was the confidence level appropriate?",
+    "- Which assumption had the most leverage?",
+    "- What should change in the next similar decision?"
+  ].join("\n") + "\n";
+}
+
 function normalizeEvidence(evidence) {
   const normalized = {
     claim: requireText(evidence.claim, "claim"),
@@ -153,6 +293,35 @@ function normalizeEvidence(evidence) {
   }
 
   return normalized;
+}
+
+function yamlScalar(value) {
+  return JSON.stringify(String(value ?? ""));
+}
+
+function parseDate(value) {
+  const timestamp = Date.parse(`${value}T00:00:00Z`);
+  if (Number.isNaN(timestamp)) throw new Error(`Invalid date: ${value}`);
+  return timestamp;
+}
+
+function searchableText(decision) {
+  return JSON.stringify(decision).toLowerCase();
+}
+
+function countOccurrences(text, needle) {
+  let count = 0;
+  let index = text.indexOf(needle);
+  while (index !== -1) {
+    count += 1;
+    index = text.indexOf(needle, index + needle.length);
+  }
+  return count;
+}
+
+function list(items) {
+  if (!items.length) return "- None";
+  return items.map((item) => `- ${item}`).join("\n");
 }
 
 function applyOperation(document, operation) {
