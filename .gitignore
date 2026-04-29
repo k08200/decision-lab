@@ -12,6 +12,9 @@ outputs/briefs/*
 !outputs/prompts/
 outputs/prompts/*
 !outputs/prompts/.gitkeep
+outputs/dashboard.html
+outputs/*.csv
+outputs/*.json
 decisions/drafts/*
 !decisions/drafts/.gitkeep
 decisions/active/*

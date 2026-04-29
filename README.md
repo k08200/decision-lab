@@ -25,6 +25,8 @@ node bin/decision-lab.js validate examples/investment/nvidia_add_position.json
 node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js evidence examples/business/enterprise_pricing_change.json --claim "Pipeline data refreshed" --source "CRM export" --strength strong --out /tmp/pricing.json
 node bin/decision-lab.js doctor
+node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
+node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
 node bin/decision-lab.js render examples/business/enterprise_pricing_change.json --out outputs/memos/pricing.md
 node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.json --out-dir outputs/prompts/pricing
@@ -50,6 +52,8 @@ decision-lab render <file.json> [--out memo.md]
 decision-lab brief <file.json> [--out brief.md]
 decision-lab review-plan <file.json> [--out review.md]
 decision-lab ledger [directory] [--out ledger.md]
+decision-lab dashboard [directory] [--out dashboard.html]
+decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab calibration [directory] [--out report.md]
 decision-lab doctor [directory] [--out report.md]
 decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
@@ -168,6 +172,14 @@ Track judgment over time:
 ```bash
 node bin/decision-lab.js calibration decisions --out outputs/calibration.md
 node bin/decision-lab.js doctor
+```
+
+Generate a local dashboard or export:
+
+```bash
+node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
+node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
+node bin/decision-lab.js export decisions --format json --out outputs/decisions.json
 ```
 
 ## Philosophy

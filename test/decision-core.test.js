@@ -23,6 +23,11 @@ import {
   runDecisionWorkflow
 } from "../src/decision-agent.js";
 import {
+  buildDecisionRows,
+  renderDashboard,
+  renderExport
+} from "../src/decision-export.js";
+import {
   applyJsonPatch,
   attachEvidence,
   renderCalibration,
@@ -173,6 +178,15 @@ test("summarizes decision health", () => {
   assert.equal(health.maturity, "operational");
 });
 
+test("exports decision rows and dashboard", () => {
+  const records = [{ filePath: "pricing.json", decision: business }];
+  const rows = buildDecisionRows(records);
+  assert.equal(rows[0].type, "business");
+  assert.match(renderExport(records, "csv"), /pricing.json/);
+  assert.match(renderExport(records, "json"), /Move Enterprise Plan/);
+  assert.match(renderDashboard(records), /Decision Lab Dashboard/);
+});
+
 test("cli validates example", () => {
   const output = execFileSync("node", ["bin/decision-lab.js", "validate", "examples/business/enterprise_pricing_change.json"], {
     encoding: "utf8"
@@ -222,6 +236,19 @@ test("cli applies evidence and patch commands", () => {
   execFileSync("node", ["bin/decision-lab.js", "patch", decisionPath, patchPath]);
   const patched = JSON.parse(readFileSync(decisionPath, "utf8"));
   assert.equal(patched.recommendation.confidence, 0.62);
+});
+
+test("cli exports dashboard and csv", () => {
+  const output = execFileSync("node", ["bin/decision-lab.js", "export", "examples", "--format", "csv"], {
+    encoding: "utf8"
+  });
+  assert.match(output, /enterprise_pricing_change/);
+
+  const dashboard = execFileSync("node", ["bin/decision-lab.js", "dashboard", "examples"], {
+    encoding: "utf8"
+  });
+  assert.match(dashboard, /Wrote outputs\/dashboard.html/);
+  assert.match(readFileSync("outputs/dashboard.html", "utf8"), /Decision Lab Dashboard/);
 });
 
 test("rejects weak decision records", () => {

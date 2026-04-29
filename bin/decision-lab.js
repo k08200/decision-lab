@@ -26,6 +26,10 @@ import {
   runDecisionWorkflow
 } from "../src/decision-agent.js";
 import {
+  renderDashboard,
+  renderExport
+} from "../src/decision-export.js";
+import {
   applyJsonPatch,
   attachEvidence,
   parseJsonish,
@@ -59,6 +63,8 @@ Usage:
   decision-lab brief <file.json> [--out brief.md]
   decision-lab review-plan <file.json> [--out review.md]
   decision-lab ledger [directory] [--out ledger.md]
+  decision-lab dashboard [directory] [--out dashboard.html]
+  decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab calibration [directory] [--out report.md]
   decision-lab doctor [directory] [--out report.md]
   decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
@@ -322,6 +328,18 @@ try {
   if (command === "ledger") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderLedger(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "dashboard") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderDashboard(readDecisionFiles(root)), readFlag(args, "--out") || "outputs/dashboard.html");
+    process.exit(0);
+  }
+
+  if (command === "export") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderExport(readDecisionFiles(root), readFlag(args, "--format") || "json"), readFlag(args, "--out"));
     process.exit(0);
   }
 

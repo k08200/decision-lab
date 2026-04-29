@@ -48,6 +48,13 @@ node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidenc
 node bin/decision-lab.js doctor
 ```
 
+`dashboard` and `export` make the ledger usable outside the terminal.
+
+```bash
+node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
+node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
+```
+
 `close` marks a decision as reviewed and records the outcome.
 
 ```bash
@@ -65,6 +72,8 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - applies JSON patch edits safely
 - attaches evidence without breaking the record shape
 - tracks calibration across reviewed decisions
+- renders a standalone HTML dashboard
+- exports decision summaries to CSV or JSON
 
 ## What The Bot Does Not Do
 

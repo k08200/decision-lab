@@ -64,6 +64,8 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 
 ```bash
 node bin/decision-lab.js ledger decisions
+node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
+node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js calibration decisions
 node bin/decision-lab.js doctor
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Report earlier."
