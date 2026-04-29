@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.10.0
+
+### Added
+
+- Repository status command for portfolio health, status/type counts, weak records, and due reviews
+- Archive plan command for reviewed or outcome-bearing decision records
+- Operating packs now include `status.md`
+
 ## 2.9.0
 
 ### Added

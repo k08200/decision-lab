@@ -38,6 +38,7 @@ import {
   attachEvidence,
   createSourceNote,
   parseJsonish,
+  renderArchivePlan,
   renderCalibration,
   renderDoctor,
   renderDueReviews,
@@ -60,6 +61,7 @@ import {
   renderSearchResults,
   renderSourceIndex,
   renderStaleReport,
+  renderRepositoryStatus,
   renderTimeline,
   promoteDecision,
   setJsonPath,
@@ -119,6 +121,7 @@ Usage:
   decision-lab brief <file.json> [--out brief.md]
   decision-lab review-plan <file.json> [--out review.md]
   decision-lab ledger [directory] [--out ledger.md]
+  decision-lab status [directory] [--as-of YYYY-MM-DD] [--out status.md]
   decision-lab dashboard [directory] [--out dashboard.html]
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab manifest [directory] [--out manifest.md]
@@ -138,6 +141,7 @@ Usage:
   decision-lab doctor [directory] [--out report.md]
   decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
   decision-lab stale [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab archive-plan [directory] [--destination decisions/archive] [--out report.md]
   decision-lab promote <file.json> <draft|researching|decided|reviewed> [--out file.json]
   decision-lab review <file.json> [--out worksheet.md]
   decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
@@ -279,6 +283,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
   fs.mkdirSync(outDir, { recursive: true });
   const artifacts = {
     "ledger.md": renderLedger(records),
+    "status.md": renderRepositoryStatus(records, { asOf }),
     "dashboard.html": renderDashboard(records),
     "decisions.csv": renderExport(records, "csv"),
     "decisions.json": renderExport(records, "json"),
@@ -591,6 +596,14 @@ try {
     process.exit(0);
   }
 
+  if (command === "status") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderRepositoryStatus(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
+    }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
   if (command === "dashboard") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderDashboard(readDecisionFiles(root)), readFlag(args, "--out") || "outputs/dashboard.html");
@@ -714,6 +727,14 @@ try {
     writeOrPrint(renderStaleReport(readDecisionFiles(root), {
       days: Number(readFlag(args, "--days") || config.stale_after_days),
       asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
+    }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "archive-plan") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderArchivePlan(readDecisionFiles(root), {
+      destination: readFlag(args, "--destination") || "decisions/archive"
     }), readFlag(args, "--out"));
     process.exit(0);
   }

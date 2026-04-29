@@ -38,6 +38,7 @@ import {
   createSourceNote,
   evaluateGate,
   promoteDecision,
+  renderArchivePlan,
   renderActionQueue,
   renderAssumptionReport,
   renderCalibration,
@@ -59,6 +60,7 @@ import {
   renderSearchResults,
   renderSourceIndex,
   renderStaleReport,
+  renderRepositoryStatus,
   renderTimeline,
   setJsonPath,
   summarizeDecisionHealth
@@ -281,6 +283,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
   assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
   assert.match(renderPriorityReview(records, "2026-08-01"), /Decision Priority Review/);
+  assert.match(renderRepositoryStatus(records, { asOf: "2026-08-01" }), /Repository Status/);
   assert.match(renderTimeline(records), /Decision Timeline/);
 });
 
@@ -481,6 +484,7 @@ test("cli creates inbox drafts and operating packs", () => {
   ], { encoding: "utf8" }), /Wrote operating pack/);
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
+  assert.match(readFileSync(path.join(packDir, "status.md"), "utf8"), /Repository Status/);
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
   assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
   assert.match(readFileSync(path.join(packDir, "briefing.md"), "utf8"), /Portfolio Briefing/);
@@ -603,6 +607,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "sources", "examples"], {
     encoding: "utf8"
   }), /Source Index/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "status", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Repository Status/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "briefing", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Portfolio Briefing/);
@@ -638,6 +645,35 @@ test("cli evaluates gates and stale decisions", () => {
     "--days",
     "30"
   ], { encoding: "utf8" }), /Stale Decisions/);
+});
+
+test("renders archive plans", () => {
+  const reviewed = closeDecision(business, {
+    outcome: "Pilot completed.",
+    lessons: ["Document owner earlier."]
+  });
+  const plan = renderArchivePlan([{ filePath: "pricing.json", decision: reviewed }]);
+  assert.match(plan, /Archive Plan/);
+  assert.match(plan, /decisions\/archive\/business\/pricing.json/);
+});
+
+test("cli renders archive plans", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-archive-test-"));
+  const decisionPath = path.join(dir, "reviewed.json");
+  writeFileSync(decisionPath, `${JSON.stringify(closeDecision(business, {
+    outcome: "Pilot completed.",
+    lessons: ["Document owner earlier."]
+  }), null, 2)}\n`);
+
+  const output = execFileSync("node", [
+    "bin/decision-lab.js",
+    "archive-plan",
+    dir,
+    "--destination",
+    "archive"
+  ], { encoding: "utf8" });
+  assert.match(output, /Archive Plan/);
+  assert.match(output, /archive\/business\/reviewed.json/);
 });
 
 test("cli promotes decision status", () => {

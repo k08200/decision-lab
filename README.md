@@ -32,6 +32,7 @@ node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrat
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest examples --out outputs/manifest.md
+node bin/decision-lab.js status examples --as-of 2026-08-01 --out outputs/status.md
 node bin/decision-lab.js briefing examples --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js next examples --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize examples --as-of 2026-08-01 --out outputs/priorities.md
@@ -77,6 +78,7 @@ decision-lab render <file.json> [--out memo.md]
 decision-lab brief <file.json> [--out brief.md]
 decision-lab review-plan <file.json> [--out review.md]
 decision-lab ledger [directory] [--out ledger.md]
+decision-lab status [directory] [--as-of YYYY-MM-DD] [--out status.md]
 decision-lab dashboard [directory] [--out dashboard.html]
 decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab manifest [directory] [--out manifest.md]
@@ -96,6 +98,7 @@ decision-lab search [directory] --query text [--out report.md]
 decision-lab doctor [directory] [--out report.md]
 decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
 decision-lab stale [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab archive-plan [directory] [--destination decisions/archive] [--out report.md]
 decision-lab promote <file.json> <draft|researching|decided|reviewed> [--out file.json]
 decision-lab review <file.json> [--out worksheet.md]
 decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
@@ -252,6 +255,7 @@ node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js export decisions --format json --out outputs/decisions.json
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md
+node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
 ```
 
 Find due reviews and search the ledger:
@@ -282,6 +286,7 @@ Enforce quality and find neglected records:
 ```bash
 node bin/decision-lab.js gate decisions --min-score 0.85 --operational
 node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
+node bin/decision-lab.js archive-plan decisions --destination decisions/archive --out outputs/archive-plan.md
 ```
 
 Visualize a record as a Mermaid graph:

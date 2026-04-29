@@ -63,6 +63,7 @@ node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type 
 
 ```bash
 node bin/decision-lab.js ledger decisions --out outputs/ledger.md
+node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
 ```
 
 `calibration` summarizes reviewed decisions by type and confidence bucket.
@@ -120,6 +121,7 @@ node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/pac
 ```bash
 node bin/decision-lab.js gate decisions --min-score 0.85 --operational
 node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
+node bin/decision-lab.js archive-plan decisions --destination decisions/archive --out outputs/archive-plan.md
 ```
 
 `doctor` checks repository wiring and example decision validity.
@@ -170,6 +172,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - ranks decisions by priority signals
 - creates one-page portfolio briefings
 - creates integrity manifests with validation status and file hashes
+- creates repository status summaries and archive plans
 - creates timeline reports and point-in-time snapshots
 - writes full operating packs for recurring review
 - enforces quality gates and highlights stale decisions

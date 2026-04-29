@@ -197,6 +197,82 @@ export function renderIntegrityManifest(records) {
   ].join("\n") + "\n";
 }
 
+export function renderRepositoryStatus(records, { asOf = new Date().toISOString().slice(0, 10) } = {}) {
+  const audits = records.map(({ filePath, decision }) => ({ filePath, decision, audit: auditDecision(decision) }));
+  const invalid = audits.filter((item) => !item.audit.validation.valid);
+  const weak = audits.filter((item) => item.audit.score.ratio < 0.75);
+  const due = records.filter(({ decision }) => {
+    const date = decision.recommendation?.review_date || decision.post_decision_review?.review_date || "";
+    return isIsoDate(date) && parseDate(date) <= parseDate(asOf);
+  });
+  const statusCounts = groupBy(records, ({ decision }) => decision.status || "draft");
+  const typeCounts = groupBy(records, ({ decision }) => decision.decision_type || "unknown");
+
+  return [
+    "# Repository Status",
+    "",
+    `As of: ${asOf}`,
+    "",
+    "## Health",
+    table(["Metric", "Value"], [
+      ["Decision records", String(records.length)],
+      ["Invalid records", String(invalid.length)],
+      ["Below quality target", String(weak.length)],
+      ["Due reviews", String(due.length)],
+      ["Operational records", String(audits.filter((item) => item.audit.maturity === "operational").length)]
+    ]),
+    "",
+    "## By Status",
+    countTable(statusCounts),
+    "",
+    "## By Type",
+    countTable(typeCounts),
+    "",
+    "## Needs Attention",
+    weak.length
+      ? table(["File", "Status", "Type", "Title", "Score", "Next Actions"], weak.map((item) => [
+        item.filePath,
+        item.decision.status || "draft",
+        item.decision.decision_type,
+        item.decision.title,
+        `${item.audit.score.score}/${item.audit.score.max_score}`,
+        item.audit.next_actions.join("; ")
+      ]))
+      : "No weak records found."
+  ].join("\n") + "\n";
+}
+
+export function renderArchivePlan(records, { destination = "decisions/archive" } = {}) {
+  const candidates = records
+    .filter(({ decision }) => decision.status === "reviewed" || decision.post_decision_review?.actual_outcome)
+    .map(({ filePath, decision }) => ({
+      filePath,
+      decision,
+      destination: `${destination}/${decision.decision_type || "unknown"}/${fileName(filePath)}`
+    }));
+
+  return [
+    "# Archive Plan",
+    "",
+    `Destination root: ${destination}`,
+    `Candidates: ${candidates.length}`,
+    "",
+    candidates.length
+      ? table(["Current File", "Destination", "Type", "Title", "Outcome"], candidates.map((item) => [
+        item.filePath,
+        item.destination,
+        item.decision.decision_type,
+        item.decision.title,
+        item.decision.post_decision_review?.actual_outcome || ""
+      ]))
+      : "No archive candidates found.",
+    "",
+    "## Notes",
+    "- This command only creates a plan.",
+    "- Review destinations before moving files."
+  ].join("\n") + "\n";
+}
+
 export function summarizeDecisionHealth(decision) {
   const audit = auditDecision(decision);
   return {
@@ -207,6 +283,10 @@ export function summarizeDecisionHealth(decision) {
     warnings: audit.warnings,
     next_actions: audit.next_actions
   };
+}
+
+function fileName(filePath) {
+  return String(filePath).split(/[\\/]/).at(-1) || "decision.json";
 }
 
 function fileHash(filePath) {
@@ -1263,6 +1343,12 @@ function groupBy(items, keyFn) {
     groups[key].push(item);
     return groups;
   }, {});
+}
+
+function countTable(groups) {
+  const rows = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
+  if (!rows.length) return "No records found.";
+  return table(["Value", "Count"], rows.map(([key, items]) => [key, String(items.length)]));
 }
 
 function confidenceBucket(confidence) {

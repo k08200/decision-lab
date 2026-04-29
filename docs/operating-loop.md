@@ -9,6 +9,7 @@ Use this when decisions are actively moving.
 ```bash
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md
+node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
 node bin/decision-lab.js stale decisions --days 14 --as-of 2026-08-01 --out outputs/stale.md
 ```
 
@@ -75,6 +76,7 @@ Use this when the decision has played out enough to learn from it.
 node bin/decision-lab.js review decisions/active/pricing.json --out outputs/reviews/pricing.md
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Finance reporting needed earlier."
 node bin/decision-lab.js calibration decisions --out outputs/calibration.md
+node bin/decision-lab.js archive-plan decisions --destination decisions/archive --out outputs/archive-plan.md
 ```
 
 The goal is not to prove the decision was right. The goal is to make the next similar decision sharper.
