@@ -792,7 +792,7 @@ export function getDueReviewRecords(records, asOf = new Date().toISOString().sli
       decision,
       reviewDate: decision.recommendation?.review_date || decision.post_decision_review?.review_date || ""
     }))
-    .filter((item) => isIsoDate(item.reviewDate) && parseDate(item.reviewDate) <= asOfDate)
+    .filter((item) => (item.decision.status || "draft") !== "reviewed" && isIsoDate(item.reviewDate) && parseDate(item.reviewDate) <= asOfDate)
     .sort((a, b) => a.reviewDate.localeCompare(b.reviewDate) || a.filePath.localeCompare(b.filePath));
 }
 

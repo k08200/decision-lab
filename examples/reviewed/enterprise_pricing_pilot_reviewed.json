@@ -1,0 +1,346 @@
+{
+  "schema_version": "0.2.0",
+  "decision_type": "business",
+  "status": "reviewed",
+  "title": "Move Enterprise Plan From Seat-Based to Platform Pricing",
+  "question": "Should we move enterprise customers from seat-based pricing to platform pricing this quarter?",
+  "created_at": "2026-04-28",
+  "updated_at": "2026-04-29",
+  "owner": "founder",
+  "context": "Enterprise customers increasingly use the product across workflows, but seat expansion is slow and procurement conversations focus on total business value rather than user count.",
+  "decision_frame": {
+    "decision_class": "type-1 pricing architecture with type-2 pilot",
+    "reversibility": "medium",
+    "urgency": "medium",
+    "default_action": "pilot",
+    "desired_outcome": "Learn whether platform pricing increases enterprise ARR without damaging trust, sales velocity, or reporting clarity.",
+    "constraints": [
+      "Existing contracts cannot be changed unilaterally.",
+      "Sales must be able to explain the model in one conversation.",
+      "Finance must preserve clean cohort reporting."
+    ],
+    "non_goals": [
+      "Do not migrate every customer before signal exists.",
+      "Do not optimize for short-term ACV at the expense of renewal trust."
+    ]
+  },
+  "recommendation": {
+    "decision": "pilot",
+    "selected_option": "B",
+    "summary": "Run a controlled pilot with new enterprise opportunities and one renewal cohort instead of migrating all accounts at once.",
+    "confidence": 0.74,
+    "decision_deadline": "2026-05-15",
+    "review_date": "2026-07-31"
+  },
+  "strategic_goal": "Increase enterprise ARR while aligning pricing with customer value.",
+  "stakeholders": [
+    "Sales",
+    "Customer Success",
+    "Finance",
+    "Product",
+    "Enterprise customers"
+  ],
+  "constraints": [
+    "Existing contracts cannot be changed unilaterally.",
+    "Sales team needs a simple explanation and discount guardrails.",
+    "Finance needs comparable reporting across old and new plans."
+  ],
+  "financial_impact": {
+    "revenue": "Potential ARR uplift if platform value is priced better than seat count.",
+    "cost": "Sales enablement, contract updates, billing changes, and customer communication.",
+    "cash_flow": "Positive if renewals accept higher annual commitments; negative if migration delays deals.",
+    "payback_period": "Target payback within two quarters after pilot launch."
+  },
+  "execution_plan": {
+    "owner": "Head of Revenue",
+    "milestones": [
+      "Define pilot customer segment and pricing bands.",
+      "Create sales narrative and discount rules.",
+      "Update order form and billing workflow.",
+      "Review pilot conversion and expansion data."
+    ],
+    "dependencies": [
+      "Finance model",
+      "Legal contract language",
+      "Billing system support",
+      "Customer Success migration script"
+    ],
+    "smallest_useful_pilot": "Use platform pricing for five new enterprise opportunities and three carefully selected renewals.",
+    "kill_criteria": [
+      "Sales cycle increases by more than 20% without ACV lift.",
+      "Finance cannot produce clean cohort reporting before pilot launch.",
+      "Customer objections show the value metric is not defensible."
+    ]
+  },
+  "operating_cadence": {
+    "cadence": "Weekly pilot review during rollout, then monthly pricing review.",
+    "review_owner": "Head of Revenue",
+    "decision_log_channel": "pricing-decision-log"
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "statement": "Platform pricing better matches enterprise willingness to pay than seat-based pricing.",
+      "why_it_matters": "If true, the company can capture more value without relying on slow seat expansion.",
+      "confidence": 0.76,
+      "evidence": [
+        "Enterprise buyers describe value in workflow coverage and risk reduction.",
+        "Several accounts use shared operational workflows where seat count understates value."
+      ],
+      "assumptions": [
+        "Buyers can understand and defend platform pricing internally.",
+        "The new metric maps to value better than seat count."
+      ],
+      "counterarguments": [
+        "Seat pricing is easier to benchmark and approve.",
+        "Platform pricing could create procurement friction if value metric feels arbitrary."
+      ],
+      "disconfirming_signals": [
+        "Pilot deals show longer sales cycles without higher ACV.",
+        "Customers negotiate back to seat-based pricing."
+      ]
+    },
+    {
+      "id": "H2",
+      "statement": "A pilot reduces migration risk while producing enough signal for a broader rollout.",
+      "why_it_matters": "Pricing changes are high leverage but can damage trust if forced too quickly.",
+      "confidence": 0.81,
+      "evidence": [
+        "A limited cohort allows sales and CS to refine messaging.",
+        "New opportunities are less sensitive than existing customers with anchored expectations."
+      ],
+      "assumptions": [
+        "The pilot cohort is representative enough.",
+        "Sales will follow guardrails instead of discounting away the new model."
+      ],
+      "counterarguments": [
+        "Running two pricing models creates operational complexity.",
+        "Pilot results may be noisy and delay a needed strategic change."
+      ],
+      "disconfirming_signals": [
+        "Sales team cannot explain the model consistently.",
+        "Finance cannot compare gross retention and expansion cleanly across cohorts."
+      ]
+    }
+  ],
+  "options": [
+    {
+      "id": "A",
+      "name": "Full migration this quarter",
+      "description": "Move all enterprise customers to platform pricing immediately.",
+      "expected_value": "High upside, high customer and operational risk.",
+      "upside": "Fast ARR uplift and clean strategic positioning.",
+      "downside": "Renewal friction and trust damage.",
+      "cost": "Large enablement and support load.",
+      "reversibility": "low"
+    },
+    {
+      "id": "B",
+      "name": "Controlled pilot",
+      "description": "Use platform pricing for selected new opportunities and one renewal cohort.",
+      "expected_value": "Good signal with contained risk.",
+      "upside": "Learns pricing power while limiting blast radius.",
+      "downside": "Operational complexity from parallel models.",
+      "cost": "Enablement and billing changes.",
+      "reversibility": "medium"
+    },
+    {
+      "id": "C",
+      "name": "Keep seat-based pricing",
+      "description": "Delay pricing change and optimize packaging within current model.",
+      "expected_value": "Low risk but may leave value uncaptured.",
+      "upside": "No disruption.",
+      "downside": "Continued mismatch between product value and monetization.",
+      "cost": "Opportunity cost.",
+      "reversibility": "high"
+    }
+  ],
+  "evidence": [
+    {
+      "claim": "Enterprise value is increasingly tied to workflow coverage rather than active seats.",
+      "source": "Sales call notes and customer success QBRs.",
+      "strength": "medium",
+      "source_type": "customer conversation notes",
+      "recency": "last two quarters",
+      "notes": "Needs systematic tagging across recent enterprise conversations."
+    },
+    {
+      "claim": "Full migration could create renewal friction.",
+      "source": "Customer success feedback from price increase conversations.",
+      "strength": "medium",
+      "source_type": "customer success feedback",
+      "recency": "recent renewal cycle",
+      "notes": "Risk is highest for customers with low current usage maturity."
+    },
+    {
+      "claim": "A pilot can produce useful conversion and ACV data within one quarter.",
+      "source": "Current enterprise pipeline volume and renewal calendar.",
+      "strength": "strong",
+      "source_type": "internal pipeline data",
+      "recency": "current quarter",
+      "notes": "Sample size should be checked before launch."
+    }
+  ],
+  "assumption_register": [
+    {
+      "assumption": "Workflow coverage is a better value metric than active seat count for enterprise buyers.",
+      "importance": "high",
+      "test": "Tag recent enterprise calls and compare buyer language against proposed pricing metric.",
+      "owner": "Head of Revenue"
+    },
+    {
+      "assumption": "The pilot cohort is large enough to produce signal in one quarter.",
+      "importance": "medium",
+      "test": "Confirm minimum sample size with pipeline and renewal calendar.",
+      "owner": "Finance"
+    },
+    {
+      "assumption": "Sales can explain platform pricing without discounting away the model.",
+      "importance": "high",
+      "test": "Run mock calls and review discount requests weekly during the pilot.",
+      "owner": "Sales Enablement"
+    }
+  ],
+  "risks": [
+    {
+      "risk": "Sales confusion",
+      "probability": "medium",
+      "impact": "high",
+      "trigger": "Repeated inconsistent explanations or discount exceptions in pilot deals.",
+      "mitigation": "Create a one-page pricing narrative, calculator, and discount guardrails."
+    },
+    {
+      "risk": "Customer pushback",
+      "probability": "medium",
+      "impact": "high",
+      "trigger": "Customers reject the value metric or ask to revert to seat-based pricing.",
+      "mitigation": "Start with new deals and a narrow renewal cohort."
+    },
+    {
+      "risk": "Reporting complexity",
+      "probability": "high",
+      "impact": "medium",
+      "trigger": "Finance cannot compare conversion, ACV, retention, and discounting across cohorts.",
+      "mitigation": "Define finance reporting before pilot launch."
+    }
+  ],
+  "decision_criteria": [
+    {
+      "id": "C1",
+      "name": "ARR upside",
+      "weight": 2,
+      "description": "Pilot improves ACV without materially extending sales cycle."
+    },
+    {
+      "id": "C2",
+      "name": "Customer clarity",
+      "weight": 2,
+      "description": "Customers can understand and defend the value metric."
+    },
+    {
+      "id": "C3",
+      "name": "Operational control",
+      "weight": 1,
+      "description": "Finance and operations can support the model cleanly."
+    }
+  ],
+  "option_scores": [
+    {
+      "option_id": "A",
+      "criterion_id": "C1",
+      "score": 5,
+      "rationale": "Full migration has the fastest theoretical ARR upside."
+    },
+    {
+      "option_id": "A",
+      "criterion_id": "C2",
+      "score": 2,
+      "rationale": "Existing customers may see the change as arbitrary or forced."
+    },
+    {
+      "option_id": "A",
+      "criterion_id": "C3",
+      "score": 1,
+      "rationale": "Sales, billing, legal, and finance would all absorb change at once."
+    },
+    {
+      "option_id": "B",
+      "criterion_id": "C1",
+      "score": 4,
+      "rationale": "Pilot can capture upside in selected deals while creating rollout evidence."
+    },
+    {
+      "option_id": "B",
+      "criterion_id": "C2",
+      "score": 4,
+      "rationale": "Pilot makes the value metric easier to test and refine."
+    },
+    {
+      "option_id": "B",
+      "criterion_id": "C3",
+      "score": 4,
+      "rationale": "Parallel models add complexity, but the blast radius is controlled."
+    },
+    {
+      "option_id": "C",
+      "criterion_id": "C1",
+      "score": 2,
+      "rationale": "Keeping seat-based pricing likely leaves value uncaptured."
+    },
+    {
+      "option_id": "C",
+      "criterion_id": "C2",
+      "score": 5,
+      "rationale": "Customers already understand the model."
+    },
+    {
+      "option_id": "C",
+      "criterion_id": "C3",
+      "score": 5,
+      "rationale": "No operational disruption."
+    }
+  ],
+  "what_would_change_my_mind": [
+    "Pilot customers reject platform pricing without meaningful ACV uplift.",
+    "Sales cycle length increases materially.",
+    "Billing or reporting changes consume more than one sprint."
+  ],
+  "open_questions": [
+    "Which value metric is simplest and most defensible?",
+    "How many renewal accounts should be included?",
+    "What discount authority should sales have?"
+  ],
+  "next_actions": [
+    "Build finance model for three pricing bands.",
+    "Select pilot cohort.",
+    "Draft sales narrative and customer FAQ.",
+    "Confirm billing support."
+  ],
+  "post_decision_review": {
+    "success_metrics": [
+      "Pilot ACV versus comparable seat-based opportunities.",
+      "Sales cycle length delta.",
+      "Discount rate.",
+      "Customer acceptance rate.",
+      "Expansion or renewal risk signals."
+    ],
+    "expected_signals": [
+      "Pilot ACV increases without a material sales-cycle penalty.",
+      "Sales objections cluster around fixable messaging rather than rejection of the value metric."
+    ],
+    "failure_signals": [
+      "Customers consistently negotiate back to seat pricing.",
+      "Reporting complexity prevents confident cohort analysis.",
+      "Discounting offsets most of the apparent ACV lift."
+    ],
+    "review_questions": [
+      "Did the new model explain value better?",
+      "Which objections repeated?",
+      "Should the model be rolled out, revised, or stopped?"
+    ],
+    "actual_outcome": "Pilot completed: platform pricing increased ACV on selected opportunities, but sales-cycle length rose when the value metric was not explained clearly.",
+    "lessons": [
+      "Define finance reporting and sales explanation scripts before the pilot starts."
+    ]
+  }
+}

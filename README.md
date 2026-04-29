@@ -136,7 +136,7 @@ bin/                  CLI entrypoint
 src/                  validation, scoring, audits, bot workflow, rendering, prompt generation
 schemas/              JSON schemas for decision records
 prompts/              reusable role prompts
-examples/             complete investment, business, and finance records
+examples/             complete investment, business, finance, and reviewed outcome records
 docs/                 operating system, playbooks, and framework notes
 decisions/            local decision records created by `init`
 research/             sources and financial/model artifacts created by `init`

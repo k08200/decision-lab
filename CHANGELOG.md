@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.34.0
+
+### Added
+
+- Reviewed outcome example showing the full decision learning loop
+
+### Fixed
+
+- Due review and review-pack reports now skip decisions that are already marked `reviewed`
+
 ## 2.33.0
 
 ### Added
