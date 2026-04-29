@@ -119,6 +119,8 @@ test/                 Node test runner tests
 
 See [docs/architecture.md](docs/architecture.md) for the module map and data flow.
 
+For day-to-day use, see [docs/operating-loop.md](docs/operating-loop.md).
+
 ## Decision Types
 
 `general` is the shared base for any meaningful decision.

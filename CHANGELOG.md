@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.6.0
+
+### Added
+
+- Operating loop guide for daily triage, pre-commit review, weekly review, monthly packs, and post-outcome calibration
+
 ## 2.5.0
 
 ### Added
