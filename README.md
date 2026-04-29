@@ -30,6 +30,7 @@ node bin/decision-lab.js doctor
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migration-aapl.md
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
+node bin/decision-lab.js next examples --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
 node bin/decision-lab.js diff decisions/snapshots/pricing-before.json decisions/active/pricing.json --out outputs/diffs/pricing.md
 node bin/decision-lab.js graph examples/business/enterprise_pricing_change.json --out outputs/graphs/pricing.md
@@ -73,6 +74,7 @@ decision-lab risks [directory] [--out report.md]
 decision-lab assumptions [directory] [--out report.md]
 decision-lab sources [directory] [--out report.md]
 decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
 decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab search [directory] --query text [--out report.md]
@@ -249,6 +251,7 @@ node bin/decision-lab.js risks decisions --out outputs/risks.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
+node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 ```
 

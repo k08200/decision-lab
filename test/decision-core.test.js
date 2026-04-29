@@ -38,6 +38,7 @@ import {
   createSourceNote,
   evaluateGate,
   promoteDecision,
+  renderActionQueue,
   renderAssumptionReport,
   renderCalibration,
   renderDecisionDiff,
@@ -268,6 +269,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderAssumptionReport(records), /Assumption Register/);
   assert.match(renderSourceIndex(records), /Source Index/);
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
+  assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
 });
 
 test("renders decision graphs", () => {
@@ -408,6 +410,7 @@ test("cli creates inbox drafts and operating packs", () => {
   ], { encoding: "utf8" }), /Wrote operating pack/);
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
+  assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
   assert.match(readFileSync(path.join(packDir, "dashboard.html"), "utf8"), /Decision Lab Dashboard/);
 });
 
@@ -524,6 +527,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "monthly", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Monthly Decision Review/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "next", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Action Queue/);
 });
 
 test("cli evaluates gates and stale decisions", () => {

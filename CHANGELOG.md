@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0
+
+### Added
+
+- Portfolio action queue command that collects next actions, quality follow-ups, and due reviews
+- Operating packs now include `next.md`
+
 ## 1.9.0
 
 ### Added

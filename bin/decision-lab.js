@@ -41,6 +41,7 @@ import {
   renderCalibration,
   renderDoctor,
   renderDueReviews,
+  renderActionQueue,
   renderDecisionDiff,
   renderDecisionGraph,
   renderAssumptionReport,
@@ -114,6 +115,7 @@ Usage:
   decision-lab assumptions [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
   decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab search [directory] --query text [--out report.md]
@@ -269,6 +271,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "assumptions.md": renderAssumptionReport(records),
     "sources.md": renderSourceIndex(records),
     "monthly.md": renderMonthlyReview(records, asOf),
+    "next.md": renderActionQueue(records, asOf),
     "doctor.md": renderDoctor({ root, examples: readDecisionFiles(path.join(root, "examples")) })
   };
   for (const [name, content] of Object.entries(artifacts)) {
@@ -572,6 +575,12 @@ try {
   if (command === "monthly") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderMonthlyReview(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "next") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderActionQueue(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
     process.exit(0);
   }
 

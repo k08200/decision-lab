@@ -426,6 +426,60 @@ export function renderMonthlyReview(records, asOf = new Date().toISOString().sli
   ].join("\n") + "\n";
 }
 
+export function renderActionQueue(records, asOf = new Date().toISOString().slice(0, 10)) {
+  const actionRows = records.flatMap(({ filePath, decision }) => {
+    const audit = auditDecision(decision);
+    const explicit = (decision.next_actions || []).map((action) => ({
+      filePath,
+      decision,
+      kind: "next action",
+      action,
+      owner: decision.owner || "",
+      due: decision.recommendation?.decision_deadline || ""
+    }));
+    const quality = audit.next_actions.map((action) => ({
+      filePath,
+      decision,
+      kind: "quality",
+      action,
+      owner: decision.owner || "",
+      due: ""
+    }));
+    const reviewDate = decision.recommendation?.review_date || decision.post_decision_review?.review_date || "";
+    const review = reviewDate && parseDate(reviewDate) <= parseDate(asOf)
+      ? [{
+          filePath,
+          decision,
+          kind: "review",
+          action: `Review outcome for ${decision.title}`,
+          owner: decision.post_decision_review?.review_owner || decision.owner || "",
+          due: reviewDate
+        }]
+      : [];
+    return [...review, ...explicit, ...quality];
+  });
+
+  return [
+    "# Action Queue",
+    "",
+    `As of: ${asOf}`,
+    `Actions: ${actionRows.length}`,
+    "",
+    actionRows.length
+      ? table(["Kind", "File", "Status", "Type", "Decision", "Owner", "Due", "Action"], actionRows.map((item) => [
+        item.kind,
+        item.filePath,
+        item.decision.status || "draft",
+        item.decision.decision_type,
+        item.decision.title,
+        item.owner,
+        item.due,
+        item.action
+      ]))
+      : "No actions found."
+  ].join("\n") + "\n";
+}
+
 export function evaluateGate(records, options = {}) {
   const minScore = typeof options.minScore === "number" ? options.minScore : 0.75;
   const requireOperational = Boolean(options.requireOperational);
