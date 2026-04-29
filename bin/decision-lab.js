@@ -362,6 +362,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "timeline.md": renderTimeline(records),
     "doctor.md": renderDoctor({ root, examples: readDecisionFiles(path.join(root, "examples")) })
   };
+  artifacts["index.md"] = renderPackIndex("Operating Pack", artifacts, { asOf });
   for (const [name, content] of Object.entries(artifacts)) {
     fs.writeFileSync(path.join(outDir, name), content);
   }
@@ -386,9 +387,83 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "risk-heatmap.md": renderRiskHeatmap(records),
     "review-pack.md": renderReviewPackIndex(records, asOf)
   };
+  artifacts["index.md"] = renderPackIndex("Weekly Pack", artifacts, { asOf });
   for (const [name, content] of Object.entries(artifacts)) {
     fs.writeFileSync(path.join(outDir, name), content);
   }
+}
+
+function renderPackIndex(title, artifacts, { asOf }) {
+  const names = Object.keys(artifacts).sort((a, b) => artifactRank(a) - artifactRank(b) || a.localeCompare(b));
+  return [
+    `# ${title} Index`,
+    "",
+    `As of: ${asOf}`,
+    `Artifacts: ${names.length}`,
+    "",
+    "## Start Here",
+    "- Read `executive.md` for the one-page operating summary.",
+    "- Read `playbook.md` for the next command sequence.",
+    "- Read `triage.md` and `agenda.md` to decide what moves this week.",
+    "",
+    "## Artifacts",
+    table(["File", "Purpose"], names.map((name) => [name, artifactPurpose(name)]))
+  ].join("\n") + "\n";
+}
+
+function artifactRank(name) {
+  const order = [
+    "executive.md",
+    "playbook.md",
+    "scorecard.md",
+    "triage.md",
+    "agenda.md",
+    "debt.md"
+  ];
+  const index = order.indexOf(name);
+  return index === -1 ? 100 : index;
+}
+
+function artifactPurpose(name) {
+  return {
+    "executive.md": "One-page health, priorities, risks, and next moves.",
+    "playbook.md": "Recommended command sequence from current portfolio state.",
+    "scorecard.md": "Portfolio quality, debt, evidence, review, and ownership metrics.",
+    "triage.md": "Operating lane for each decision.",
+    "agenda.md": "Near-term priorities, reviews, debt, and actions.",
+    "debt.md": "Invalid, weak, overdue, stale, ownerless, or under-evidenced records.",
+    "review-pack.md": "Due-review index or worksheet plan.",
+    "outcomes.md": "Reviewed outcomes, completeness, lessons, and calibration cues.",
+    "principles.md": "Reusable judgment principles and anti-patterns.",
+    "dashboard.html": "Local HTML dashboard.",
+    "decisions.csv": "CSV export of decision rows.",
+    "decisions.json": "JSON export of decision rows.",
+    "assumption-tests.md": "Assumptions converted into owner/test queues.",
+    "assumptions.md": "Assumption register across decisions.",
+    "briefing.md": "Portfolio snapshot, top priorities, risks, and due reviews.",
+    "calibration.md": "Reviewed decisions by type and confidence bucket.",
+    "doctor.md": "Repository wiring and example-validity checks.",
+    "due.md": "Reviews currently due.",
+    "evidence-scorecard.md": "Evidence strength, source coverage, and upgrade queue.",
+    "guardrails.md": "Constraints, non-goals, kill criteria, success metrics, and failure signals.",
+    "hypotheses.md": "Hypotheses, evidence, counterarguments, confidence, and disconfirming signals.",
+    "ledger.md": "Portfolio ledger of decision records.",
+    "lessons.md": "Captured outcomes, lessons, and recurring themes.",
+    "manifest.md": "Validity and SHA256 hashes for records.",
+    "monthly.md": "Monthly review snapshot with weak records and themes.",
+    "next.md": "Action queue from explicit actions, quality follow-ups, and reviews.",
+    "owners.md": "Active records, due reviews, and actions by owner.",
+    "priorities.md": "Ranked priority review for the portfolio.",
+    "questions.md": "Open questions, change-my-mind conditions, and evidence upgrades.",
+    "risk-heatmap.md": "Probability/impact concentration for risks.",
+    "risks.md": "Risk register with triggers and mitigations.",
+    "scenarios.md": "Base, upside, and downside scenario matrix.",
+    "sensitivities.md": "Drivers, sensitivity checks, valuation ranges, and guardrails.",
+    "signals.md": "Expected, failure, disconfirming, and trigger signals.",
+    "sources.md": "Evidence source index.",
+    "status.md": "Repository health, weak records, due reviews, and status/type counts.",
+    "timeline.md": "Created, updated, deadline, and review events."
+  }[name] || "Generated operating artifact.";
 }
 
 function writeReviewPack(records, { outDir, asOf }) {
@@ -429,6 +504,14 @@ function writeSnapshot(filePath, decision, { outDir, label, date }) {
   fs.mkdirSync(path.resolve(outDir), { recursive: true });
   fs.writeFileSync(snapshotPath, `${JSON.stringify(decision, null, 2)}\n`);
   return snapshotPath;
+}
+
+function table(headers, rows) {
+  return [
+    `| ${headers.join(" | ")} |`,
+    `| ${headers.map(() => "---").join(" | ")} |`,
+    ...rows.map((row) => `| ${row.map(escapeCell).join(" | ")} |`)
+  ].join("\n");
 }
 
 function escapeCell(value) {

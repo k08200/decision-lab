@@ -534,6 +534,7 @@ test("cli creates inbox drafts and operating packs", () => {
   ], { encoding: "utf8" }), /Wrote operating pack/);
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
+  assert.match(readFileSync(path.join(packDir, "index.md"), "utf8"), /Operating Pack Index/);
   assert.match(readFileSync(path.join(packDir, "status.md"), "utf8"), /Repository Status/);
   assert.match(readFileSync(path.join(packDir, "debt.md"), "utf8"), /Decision Debt/);
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
@@ -572,6 +573,7 @@ test("cli creates inbox drafts and operating packs", () => {
     "2026-08-01"
   ], { encoding: "utf8" }), /Wrote weekly pack/);
   assert.match(readFileSync(path.join(weeklyDir, "agenda.md"), "utf8"), /Decision Agenda/);
+  assert.match(readFileSync(path.join(weeklyDir, "index.md"), "utf8"), /Weekly Pack Index/);
   assert.match(readFileSync(path.join(weeklyDir, "executive.md"), "utf8"), /Executive Decision Summary/);
   assert.match(readFileSync(path.join(weeklyDir, "playbook.md"), "utf8"), /Operating Playbook/);
   assert.match(readFileSync(path.join(weeklyDir, "triage.md"), "utf8"), /Decision Triage/);

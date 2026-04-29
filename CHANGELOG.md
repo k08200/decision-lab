@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.36.0
+
+### Added
+
+- Operating and weekly packs now include `index.md` with recommended reading order and artifact purposes
+
 ## 2.35.0
 
 ### Added
