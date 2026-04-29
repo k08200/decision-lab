@@ -16,6 +16,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Decision debt report for weak evidence, overdue reviews, missing owners, and stale active records
 - Near-term decision agenda for priorities, reviews, debt, and next actions
 - Question register for open questions, change-my-mind conditions, and evidence upgrades
+- Guardrail report for constraints, non-goals, kill criteria, success metrics, and failure signals
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports

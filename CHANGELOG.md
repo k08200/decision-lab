@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.16.0
+
+### Added
+
+- Guardrail report command for constraints, non-goals, kill criteria, success metrics, failure signals, and change-my-mind conditions
+- Operating packs now include `guardrails.md`
+
 ## 2.15.0
 
 ### Added

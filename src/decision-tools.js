@@ -613,6 +613,43 @@ export function renderQuestionRegister(records) {
   ].join("\n") + "\n";
 }
 
+export function renderGuardrailReport(records) {
+  const guardrails = records.flatMap(({ filePath, decision }) => {
+    const frame = decision.decision_frame || {};
+    const execution = decision.execution_plan || {};
+    const review = decision.post_decision_review || {};
+    return [
+      ...guardrailRows(filePath, decision, "constraint", frame.constraints || []),
+      ...guardrailRows(filePath, decision, "non-goal", frame.non_goals || []),
+      ...guardrailRows(filePath, decision, "kill criterion", execution.kill_criteria || []),
+      ...guardrailRows(filePath, decision, "success metric", review.success_metrics || []),
+      ...guardrailRows(filePath, decision, "failure signal", review.failure_signals || []),
+      ...guardrailRows(filePath, decision, "change-my-mind", decision.what_would_change_my_mind || [])
+    ];
+  });
+  const byKind = groupBy(guardrails, (item) => item.kind);
+
+  return [
+    "# Guardrail Report",
+    "",
+    `Guardrails: ${guardrails.length}`,
+    "",
+    "## By Kind",
+    countTable(byKind),
+    "",
+    "## Register",
+    guardrails.length
+      ? table(["Kind", "File", "Type", "Decision", "Guardrail"], guardrails.map((item) => [
+        item.kind,
+        item.filePath,
+        item.type,
+        item.title,
+        item.text
+      ]))
+      : "No guardrails found."
+  ].join("\n") + "\n";
+}
+
 export function renderOwnerReport(records, asOf = new Date().toISOString().slice(0, 10)) {
   const rows = Object.entries(groupBy(records, ({ decision }) => decision.owner || "unassigned"))
     .map(([owner, items]) => {
@@ -1390,6 +1427,16 @@ function debt(filePath, decision, type, severity, fix) {
 
 function debtSeverityRank(severity) {
   return { high: 0, medium: 1, low: 2 }[severity] ?? 3;
+}
+
+function guardrailRows(filePath, decision, kind, items) {
+  return items.map((text) => ({
+    filePath,
+    kind,
+    type: decision.decision_type,
+    title: decision.title,
+    text
+  }));
 }
 
 function isIsoDate(value) {

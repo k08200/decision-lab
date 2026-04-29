@@ -14,6 +14,7 @@ node bin/decision-lab.js stale decisions --days 14 --as-of 2026-08-01 --out outp
 node bin/decision-lab.js debt decisions --days 14 --as-of 2026-08-01 --out outputs/debt.md
 node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out outputs/agenda.md
 node bin/decision-lab.js questions decisions --out outputs/questions.md
+node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md
 ```
 
 Daily questions:
@@ -24,6 +25,7 @@ Daily questions:
 - Which stale record needs to be promoted, closed, or deleted from active attention?
 - Which debt item would compound fastest if ignored for another week?
 - Which open question or weak evidence item is blocking the next judgment?
+- Which guardrail says this decision should stop, narrow, or reverse?
 
 ## Before Committing
 

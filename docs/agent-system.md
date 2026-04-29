@@ -129,6 +129,12 @@ node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out 
 node bin/decision-lab.js questions decisions --out outputs/questions.md
 ```
 
+`guardrails` keeps stop conditions, success metrics, failure signals, constraints, and change-my-mind conditions visible.
+
+```bash
+node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md
+```
+
 `gate`, `stale`, and `debt` enforce quality, surface neglected records, and show accumulated decision debt.
 
 ```bash
