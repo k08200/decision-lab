@@ -480,6 +480,35 @@ export function renderActionQueue(records, asOf = new Date().toISOString().slice
   ].join("\n") + "\n";
 }
 
+export function renderPriorityReview(records, asOf = new Date().toISOString().slice(0, 10)) {
+  const ranked = records
+    .map(({ filePath, decision }) => {
+      const audit = auditDecision(decision);
+      const priority = priorityScore(decision, audit, asOf);
+      return { filePath, decision, audit, priority };
+    })
+    .sort((a, b) => b.priority.score - a.priority.score || a.filePath.localeCompare(b.filePath));
+
+  return [
+    "# Decision Priority Review",
+    "",
+    `As of: ${asOf}`,
+    "",
+    ranked.length
+      ? table(["Rank", "Priority", "File", "Status", "Type", "Decision", "Score", "Reasons"], ranked.map((item, index) => [
+        String(index + 1),
+        String(item.priority.score),
+        item.filePath,
+        item.decision.status || "draft",
+        item.decision.decision_type,
+        item.decision.title,
+        `${item.audit.score.score}/${item.audit.score.max_score}`,
+        item.priority.reasons.join("; ")
+      ]))
+      : "No decision records found."
+  ].join("\n") + "\n";
+}
+
 export function renderTimeline(records) {
   const events = records.flatMap(({ filePath, decision }) => [
     timelineEvent(filePath, decision, "created", decision.created_at),
@@ -746,6 +775,45 @@ export function renderResearchPlan(decision) {
     "## Research Tasks",
     researchTasks(decision, weakEvidence, assumptions, openQuestions)
   ].join("\n") + "\n";
+}
+
+function priorityScore(decision, audit, asOf) {
+  const reasons = [];
+  let score = 0;
+  const status = decision.status || "draft";
+  if (status === "draft") {
+    score += 20;
+    reasons.push("draft");
+  }
+  if (status === "researching") {
+    score += 15;
+    reasons.push("researching");
+  }
+  if (audit.score.ratio < 0.75) {
+    score += Math.round((0.75 - audit.score.ratio) * 100);
+    reasons.push("quality below target");
+  }
+  const highRisks = (decision.risks || []).filter((risk) => risk.impact === "high").length;
+  if (highRisks) {
+    score += highRisks * 10;
+    reasons.push(`${highRisks} high-impact risk(s)`);
+  }
+  const deadlineDays = daysUntil(asOf, decision.recommendation?.decision_deadline);
+  if (deadlineDays !== null && deadlineDays <= 14) {
+    score += Math.max(0, 30 - deadlineDays);
+    reasons.push(`deadline in ${deadlineDays} day(s)`);
+  }
+  const reviewDays = daysUntil(asOf, decision.recommendation?.review_date || decision.post_decision_review?.review_date);
+  if (reviewDays !== null && reviewDays <= 0) {
+    score += 20;
+    reasons.push("review due");
+  }
+  return { score, reasons: reasons.length ? reasons : ["no urgent signal"] };
+}
+
+function daysUntil(asOf, date) {
+  if (!isIsoDate(asOf) || !isIsoDate(date)) return null;
+  return Math.floor((parseDate(date) - parseDate(asOf)) / 86_400_000);
 }
 
 function timelineEvent(filePath, decision, kind, date) {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.0
+
+### Added
+
+- Priority review command that ranks decisions by status, quality gap, high-impact risks, deadlines, and due reviews
+- Operating packs now include `priorities.md`
+
 ## 2.2.0
 
 ### Added

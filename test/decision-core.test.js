@@ -48,6 +48,7 @@ import {
   renderGateReport,
   renderMonthlyReview,
   renderPremortem,
+  renderPriorityReview,
   renderResearchPlan,
   renderRiskRegister,
   renderReviewWorksheet,
@@ -272,6 +273,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderSourceIndex(records), /Source Index/);
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
   assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
+  assert.match(renderPriorityReview(records, "2026-08-01"), /Decision Priority Review/);
   assert.match(renderTimeline(records), /Decision Timeline/);
 });
 
@@ -455,6 +457,7 @@ test("cli creates inbox drafts and operating packs", () => {
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
+  assert.match(readFileSync(path.join(packDir, "priorities.md"), "utf8"), /Decision Priority Review/);
   assert.match(readFileSync(path.join(packDir, "timeline.md"), "utf8"), /Decision Timeline/);
   assert.match(readFileSync(path.join(packDir, "dashboard.html"), "utf8"), /Decision Lab Dashboard/);
 });
@@ -575,6 +578,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "next", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Action Queue/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "prioritize", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Decision Priority Review/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "timeline", "examples"], {
     encoding: "utf8"
   }), /Decision Timeline/);
