@@ -25,6 +25,7 @@ npm run example:executive
 npm run example:playbook
 npm run example:red-team
 node bin/decision-lab.js commitments examples --as-of 2026-08-01 --out outputs/commitments.md
+node bin/decision-lab.js dependencies examples --out outputs/dependencies.md
 node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing
@@ -94,6 +95,7 @@ decision-lab outcomes [directory] [--out report.md]
 decision-lab principles [directory] [--out report.md]
 decision-lab themes [directory] [--out report.md]
 decision-lab commitments [directory] [--as-of YYYY-MM-DD] [--horizon 14] [--out report.md]
+decision-lab dependencies [directory] [--out report.md]
 decision-lab lessons [directory] [--out report.md]
 decision-lab risks [directory] [--out report.md]
 decision-lab risk-heatmap [directory] [--out report.md]

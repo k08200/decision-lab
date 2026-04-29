@@ -48,6 +48,7 @@ import {
   renderDecisionAgenda,
   renderDecisionChecklist,
   renderDecisionDebt,
+  renderDependencyReport,
   renderDecisionDiff,
   renderDecisionGraph,
   renderAssumptionReport,
@@ -155,6 +156,7 @@ Usage:
   decision-lab principles [directory] [--out report.md]
   decision-lab themes [directory] [--out report.md]
   decision-lab commitments [directory] [--as-of YYYY-MM-DD] [--horizon 14] [--out report.md]
+  decision-lab dependencies [directory] [--out report.md]
   decision-lab lessons [directory] [--out report.md]
   decision-lab risks [directory] [--out report.md]
   decision-lab risk-heatmap [directory] [--out report.md]
@@ -354,6 +356,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "hypotheses.md": renderHypothesisRegister(records),
     "themes.md": renderThemeReport(records),
     "commitments.md": renderCommitmentReport(records, { asOf }),
+    "dependencies.md": renderDependencyReport(records),
     "red-team.md": renderRedTeamReport(records),
     "scenarios.md": renderScenarioReport(records),
     "sensitivities.md": renderSensitivityReport(records),
@@ -390,6 +393,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "hypotheses.md": renderHypothesisRegister(records),
     "themes.md": renderThemeReport(records),
     "commitments.md": renderCommitmentReport(records, { asOf }),
+    "dependencies.md": renderDependencyReport(records),
     "red-team.md": renderRedTeamReport(records),
     "scenarios.md": renderScenarioReport(records),
     "sensitivities.md": renderSensitivityReport(records),
@@ -431,6 +435,7 @@ function artifactRank(name) {
     "triage.md",
     "agenda.md",
     "commitments.md",
+    "dependencies.md",
     "debt.md"
   ];
   const index = order.indexOf(name);
@@ -451,6 +456,7 @@ function artifactPurpose(name) {
     "principles.md": "Reusable judgment principles and anti-patterns.",
     "themes.md": "Recurring themes across hypotheses, assumptions, risks, evidence, questions, and lessons.",
     "commitments.md": "Owners, due dates, reviews, next actions, kill criteria, and success metrics.",
+    "dependencies.md": "Execution dependencies, open questions, weak evidence, assumption tests, and risk blockers.",
     "dashboard.html": "Local HTML dashboard.",
     "decisions.csv": "CSV export of decision rows.",
     "decisions.json": "JSON export of decision rows.",
@@ -868,6 +874,12 @@ try {
       asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
       horizonDays: Number(readFlag(args, "--horizon") || 14)
     }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "dependencies") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderDependencyReport(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

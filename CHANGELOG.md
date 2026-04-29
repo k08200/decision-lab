@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.43.0
+
+### Added
+
+- Dependency report command for execution dependencies, open questions, weak evidence, assumption tests, and risk blockers
+- Operating packs and weekly packs now include `dependencies.md`
+
 ## 2.42.0
 
 ### Added

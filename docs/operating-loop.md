@@ -15,6 +15,7 @@ node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/statu
 node bin/decision-lab.js scorecard decisions --as-of 2026-08-01 --out outputs/scorecard.md
 node bin/decision-lab.js triage decisions --as-of 2026-08-01 --out outputs/triage.md
 node bin/decision-lab.js commitments decisions --as-of 2026-08-01 --horizon 14 --out outputs/commitments.md
+node bin/decision-lab.js dependencies decisions --out outputs/dependencies.md
 node bin/decision-lab.js stale decisions --days 14 --as-of 2026-08-01 --out outputs/stale.md
 node bin/decision-lab.js debt decisions --days 14 --as-of 2026-08-01 --out outputs/debt.md
 node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out outputs/agenda.md
@@ -32,6 +33,7 @@ Daily questions:
 - Which triage lane has the most urgent work?
 - Which decision has a deadline before the evidence is good enough?
 - Which commitment is overdue, near-term, or missing an owner?
+- Which dependency or blocker is stopping execution?
 - Which high-impact risk has no owner?
 - Which stale record needs to be promoted, closed, or deleted from active attention?
 - Which debt item would compound fastest if ignored for another week?
@@ -71,6 +73,7 @@ node bin/decision-lab.js assumption-tests decisions --out outputs/assumption-tes
 node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-scorecard.md
 node bin/decision-lab.js signals decisions --as-of 2026-08-01 --out outputs/signals.md
 node bin/decision-lab.js commitments decisions --as-of 2026-08-01 --out outputs/commitments.md
+node bin/decision-lab.js dependencies decisions --out outputs/dependencies.md
 node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 ```
@@ -81,7 +84,7 @@ Weekly questions:
 - Which assumptions repeat across multiple decisions?
 - Which decision should be split into a smaller reversible pilot?
 - Which reviewed decision changed how future decisions should be framed?
-- Which signal or commitment should be checked before the next review?
+- Which signal, commitment, or dependency should be checked before the next review?
 
 ## Monthly Operating Pack
 
@@ -92,9 +95,9 @@ node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/pac
 node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/weekly/2026-08-01
 ```
 
-The pack includes `index.md`, ledger, dashboard, exports, calibration, outcomes, principles, themes, commitments, lessons, due reviews, review-pack index, risks, assumptions, sources, red-team, scenarios, sensitivities, executive summary, scorecard, monthly review, next actions, priorities, timeline, and doctor checks.
+The pack includes `index.md`, ledger, dashboard, exports, calibration, outcomes, principles, themes, commitments, dependencies, lessons, due reviews, review-pack index, risks, assumptions, sources, red-team, scenarios, sensitivities, executive summary, scorecard, monthly review, next actions, priorities, timeline, and doctor checks.
 
-Use `weekly` when you want a smaller working folder for agenda, executive summary, scorecard, triage, debt, questions, hypotheses, themes, commitments, red-team, scenarios, sensitivities, evidence, assumptions, risks, and due-review worksheets.
+Use `weekly` when you want a smaller working folder for agenda, executive summary, scorecard, triage, debt, questions, hypotheses, themes, commitments, dependencies, red-team, scenarios, sensitivities, evidence, assumptions, risks, and due-review worksheets.
 
 The GitHub Actions `Operating Pack` workflow runs weekly and can also be started manually. It verifies the repo, generates example operating and weekly packs, and uploads both as workflow artifacts.
 

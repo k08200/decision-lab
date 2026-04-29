@@ -35,6 +35,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Outcome scorecard for review completeness, lessons, and calibration cues
 - Theme report for recurring hypotheses, assumptions, risks, evidence, questions, and lessons
 - Commitment report for owners, deadlines, reviews, next actions, kill criteria, and success metrics
+- Dependency report for execution dependencies, open questions, weak evidence, assumption tests, and risk blockers
 - Scenario report for base, upside, and downside views across active decisions
 - Sensitivity report for model drivers, valuation ranges, guardrails, and change-my-mind conditions
 - Principles report for reusable judgment rules from lessons, guardrails, and anti-patterns

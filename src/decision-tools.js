@@ -108,6 +108,7 @@ export function renderReportCatalog() {
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
     ["Portfolio", "commitments", "Collect owners, deadlines, reviews, next actions, kill criteria, and success metrics.", "weekly"],
+    ["Portfolio", "dependencies", "Collect execution dependencies, open questions, weak evidence, and assumption tests.", "weekly"],
     ["Portfolio", "signals", "Collect expected signals, failure signals, disconfirming signals, risk triggers, and review dates.", "weekly"],
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
     ["Portfolio", "evidence-scorecard", "Summarize evidence strength and source coverage.", "weekly"],
@@ -789,6 +790,60 @@ export function renderCommitmentReport(records, { asOf = new Date().toISOString(
         row.commitment
       ]))
       : "No overdue, near-term, or ownerless commitments found."
+  ].join("\n") + "\n";
+}
+
+export function renderDependencyReport(records) {
+  const active = records.filter(({ decision }) => (decision.status || "draft") !== "reviewed");
+  const rows = active
+    .flatMap(({ filePath, decision }) => dependencyRows(filePath, decision))
+    .sort((a, b) => dependencyRank(a.kind, a.importance, a.strength) - dependencyRank(b.kind, b.importance, b.strength) || a.filePath.localeCompare(b.filePath));
+  const byKind = groupBy(rows, (row) => row.kind);
+  const byOwner = groupBy(rows, (row) => row.owner || "unassigned");
+  const blocking = rows.filter((row) => row.blocking);
+  const ownerless = rows.filter((row) => !row.owner);
+
+  return [
+    "# Dependency Report",
+    "",
+    `Active records: ${active.length}`,
+    `Dependencies: ${rows.length}`,
+    `Likely blockers: ${blocking.length}`,
+    `Ownerless: ${ownerless.length}`,
+    "",
+    "## By Kind",
+    countTable(byKind),
+    "",
+    "## By Owner",
+    countTable(byOwner),
+    "",
+    "## Blocker Queue",
+    blocking.length
+      ? table(["Kind", "File", "Type", "Decision", "Owner", "Dependency", "Resolution"], blocking.map((row) => [
+        row.kind,
+        row.filePath,
+        row.type,
+        row.title,
+        row.owner,
+        row.item,
+        row.resolution
+      ]))
+      : "No likely blockers found.",
+    "",
+    "## Dependency Register",
+    rows.length
+      ? table(["Kind", "File", "Status", "Type", "Decision", "Owner", "Blocking", "Dependency", "Resolution"], rows.map((row) => [
+        row.kind,
+        row.filePath,
+        row.status,
+        row.type,
+        row.title,
+        row.owner,
+        row.blocking ? "yes" : "no",
+        row.item,
+        row.resolution
+      ]))
+      : "No dependency items found."
   ].join("\n") + "\n";
 }
 
@@ -2520,6 +2575,79 @@ function commitmentReason(row, asOf, horizonDays) {
   if (isNumber(row.daysUntilDue) && row.daysUntilDue <= horizonDays) return `due within ${horizonDays} days`;
   if (row.due && !isIsoDate(row.due)) return "invalid due date";
   return `tracked as of ${asOf}`;
+}
+
+function dependencyRows(filePath, decision) {
+  const owner = decision.owner || "";
+  const execution = decision.execution_plan || {};
+  return [
+    ...(execution.dependencies || []).map((item) => dependencyRow(filePath, decision, {
+      kind: "execution dependency",
+      item,
+      owner: execution.owner || owner,
+      resolution: "Assign the dependency owner and unblock before commitment.",
+      blocking: ["draft", "researching"].includes(decision.status || "draft")
+    })),
+    ...(decision.open_questions || []).map((item) => dependencyRow(filePath, decision, {
+      kind: "open question",
+      item,
+      owner,
+      resolution: "Answer or convert into an explicit assumption.",
+      blocking: true
+    })),
+    ...(decision.assumption_register || []).map((assumption) => dependencyRow(filePath, decision, {
+      kind: "assumption test",
+      item: assumption.assumption || "",
+      owner: assumption.owner || owner,
+      resolution: assumption.test || "Define a test for this assumption.",
+      importance: assumption.importance || "",
+      blocking: assumption.importance === "high"
+    })),
+    ...(decision.evidence || [])
+      .filter((evidence) => evidence.strength !== "strong")
+      .map((evidence) => dependencyRow(filePath, decision, {
+        kind: "evidence upgrade",
+        item: evidence.claim || "",
+        owner,
+        resolution: evidence.source ? `Upgrade source: ${evidence.source}` : "Attach stronger source evidence.",
+        strength: evidence.strength || "",
+        blocking: evidence.strength === "weak"
+      })),
+    ...(decision.risks || [])
+      .filter((risk) => risk.impact === "high")
+      .map((risk) => dependencyRow(filePath, decision, {
+        kind: "high-impact risk",
+        item: risk.risk || "",
+        owner,
+        resolution: risk.mitigation || "Define mitigation.",
+        blocking: risk.probability !== "low"
+      }))
+  ].filter((row) => row.item);
+}
+
+function dependencyRow(filePath, decision, fields) {
+  return {
+    filePath,
+    status: decision.status || "draft",
+    type: decision.decision_type || "",
+    title: decision.title || "",
+    kind: fields.kind,
+    item: fields.item,
+    owner: fields.owner || "",
+    resolution: fields.resolution || "",
+    importance: fields.importance || "",
+    strength: fields.strength || "",
+    blocking: Boolean(fields.blocking)
+  };
+}
+
+function dependencyRank(kind, importance, strength) {
+  if (kind === "open question") return 0;
+  if (importance === "high") return 1;
+  if (strength === "weak") return 2;
+  if (kind === "execution dependency") return 3;
+  if (kind === "high-impact risk") return 4;
+  return 5;
 }
 
 function decisionScenarios(filePath, decision) {
