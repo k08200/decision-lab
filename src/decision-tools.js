@@ -278,6 +278,154 @@ export function renderReviewWorksheet(decision) {
   ].join("\n") + "\n";
 }
 
+export function renderRiskRegister(records) {
+  const risks = records.flatMap(({ filePath, decision }) => (
+    (decision.risks || []).map((risk) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      risk: risk.risk || "",
+      probability: risk.probability || "",
+      impact: risk.impact || "",
+      trigger: risk.trigger || "",
+      mitigation: risk.mitigation || ""
+    }))
+  ));
+
+  const highImpact = risks.filter((risk) => risk.impact === "high").length;
+  return [
+    "# Risk Register",
+    "",
+    `Risks: ${risks.length}`,
+    `High-impact risks: ${highImpact}`,
+    "",
+    risks.length
+      ? table(["File", "Type", "Decision", "Risk", "Probability", "Impact", "Trigger", "Mitigation"], risks.map((risk) => [
+        risk.filePath,
+        risk.type,
+        risk.title,
+        risk.risk,
+        risk.probability,
+        risk.impact,
+        risk.trigger,
+        risk.mitigation
+      ]))
+      : "No risks found."
+  ].join("\n") + "\n";
+}
+
+export function renderAssumptionReport(records) {
+  const assumptions = records.flatMap(({ filePath, decision }) => (
+    (decision.assumption_register || []).map((assumption) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      assumption: assumption.assumption || "",
+      importance: assumption.importance || "",
+      test: assumption.test || "",
+      owner: assumption.owner || ""
+    }))
+  ));
+
+  const highImportance = assumptions.filter((assumption) => assumption.importance === "high").length;
+  return [
+    "# Assumption Register",
+    "",
+    `Assumptions: ${assumptions.length}`,
+    `High-importance assumptions: ${highImportance}`,
+    "",
+    assumptions.length
+      ? table(["File", "Type", "Decision", "Assumption", "Importance", "Test", "Owner"], assumptions.map((assumption) => [
+        assumption.filePath,
+        assumption.type,
+        assumption.title,
+        assumption.assumption,
+        assumption.importance,
+        assumption.test,
+        assumption.owner
+      ]))
+      : "No assumptions found."
+  ].join("\n") + "\n";
+}
+
+export function renderSourceIndex(records) {
+  const sources = records.flatMap(({ filePath, decision }) => (
+    (decision.evidence || []).map((evidence) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      claim: evidence.claim || "",
+      source: evidence.source || "",
+      strength: evidence.strength || "",
+      source_type: evidence.source_type || "",
+      recency: evidence.recency || ""
+    }))
+  ));
+
+  return [
+    "# Source Index",
+    "",
+    `Evidence items: ${sources.length}`,
+    "",
+    sources.length
+      ? table(["File", "Type", "Decision", "Claim", "Source", "Strength", "Source Type", "Recency"], sources.map((source) => [
+        source.filePath,
+        source.type,
+        source.title,
+        source.claim,
+        source.source,
+        source.strength,
+        source.source_type,
+        source.recency
+      ]))
+      : "No evidence sources found."
+  ].join("\n") + "\n";
+}
+
+export function renderMonthlyReview(records, asOf = new Date().toISOString().slice(0, 10)) {
+  const active = records.filter(({ decision }) => ["draft", "researching", "decided"].includes(decision.status || "draft"));
+  const reviewed = records.filter(({ decision }) => decision.status === "reviewed");
+  const audits = records.map(({ filePath, decision }) => ({ filePath, decision, audit: auditDecision(decision) }));
+  const weak = audits
+    .filter((item) => item.audit.maturity !== "operational")
+    .sort((a, b) => a.audit.score.score - b.audit.score.score);
+
+  return [
+    "# Monthly Decision Review",
+    "",
+    `As of: ${asOf}`,
+    "",
+    "## Snapshot",
+    table(["Metric", "Value"], [
+      ["Total decisions", String(records.length)],
+      ["Active decisions", String(active.length)],
+      ["Reviewed decisions", String(reviewed.length)],
+      ["Needs attention", String(weak.length)]
+    ]),
+    "",
+    "## Due Reviews",
+    renderDueReviews(records, asOf).replace(/^# Due Reviews\n\n/, ""),
+    "",
+    "## Decisions Needing Attention",
+    weak.length
+      ? table(["File", "Type", "Title", "Maturity", "Score", "Next Actions"], weak.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        item.audit.maturity,
+        `${item.audit.score.score}/${item.audit.score.max_score}`,
+        item.audit.next_actions.join("; ")
+      ]))
+      : "No weak records found.",
+    "",
+    "## Top Risk Themes",
+    summarizeThemes(records.flatMap(({ decision }) => (decision.risks || []).map((risk) => risk.risk || ""))),
+    "",
+    "## Top Assumption Themes",
+    summarizeThemes(records.flatMap(({ decision }) => (decision.assumption_register || []).map((assumption) => assumption.assumption || "")))
+  ].join("\n") + "\n";
+}
+
 function normalizeEvidence(evidence) {
   const normalized = {
     claim: requireText(evidence.claim, "claim"),
@@ -323,6 +471,44 @@ function list(items) {
   if (!items.length) return "- None";
   return items.map((item) => `- ${item}`).join("\n");
 }
+
+function summarizeThemes(items) {
+  const words = items
+    .join(" ")
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣\s-]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 3 && !STOP_WORDS.has(word));
+  const counts = words.reduce((acc, word) => {
+    acc[word] = (acc[word] || 0) + 1;
+    return acc;
+  }, {});
+  const rows = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+  if (!rows.length) return "- None";
+  return rows.map(([word, count]) => `- ${word}: ${count}`).join("\n");
+}
+
+const STOP_WORDS = new Set([
+  "with",
+  "that",
+  "this",
+  "from",
+  "into",
+  "without",
+  "risk",
+  "decision",
+  "assumption",
+  "evidence",
+  "because",
+  "before",
+  "after",
+  "while",
+  "could",
+  "would",
+  "should"
+]);
 
 function applyOperation(document, operation) {
   if (!operation || typeof operation !== "object") throw new Error("Patch operation must be an object");

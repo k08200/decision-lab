@@ -38,8 +38,12 @@ import {
   renderCalibration,
   renderDoctor,
   renderDueReviews,
+  renderAssumptionReport,
+  renderMonthlyReview,
+  renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
+  renderSourceIndex,
   promoteDecision,
   setJsonPath,
   summarizeDecisionHealth
@@ -74,6 +78,10 @@ Usage:
   decision-lab dashboard [directory] [--out dashboard.html]
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab calibration [directory] [--out report.md]
+  decision-lab risks [directory] [--out report.md]
+  decision-lab assumptions [directory] [--out report.md]
+  decision-lab sources [directory] [--out report.md]
+  decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab search [directory] --query text [--out report.md]
   decision-lab doctor [directory] [--out report.md]
@@ -408,6 +416,30 @@ try {
   if (command === "calibration") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderCalibration(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "risks") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderRiskRegister(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "assumptions") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderAssumptionReport(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "sources") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderSourceIndex(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "monthly") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderMonthlyReview(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
     process.exit(0);
   }
 

@@ -53,6 +53,15 @@ node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memo
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 ```
 
+`risks`, `assumptions`, `sources`, and `monthly` turn individual records into portfolio-level operating reports.
+
+```bash
+node bin/decision-lab.js risks decisions --out outputs/risks.md
+node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
+node bin/decision-lab.js sources decisions --out outputs/sources.md
+node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
+```
+
 `doctor` checks repository wiring and example decision validity.
 
 ```bash
@@ -86,6 +95,8 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - tracks calibration across reviewed decisions
 - lists due reviews and searches the decision ledger
 - produces review worksheets and status promotion updates
+- aggregates risk, assumption, and source registers
+- creates monthly operating review packs
 - renders a standalone HTML dashboard
 - exports decision summaries to CSV or JSON
 

@@ -58,6 +58,10 @@ decision-lab ledger [directory] [--out ledger.md]
 decision-lab dashboard [directory] [--out dashboard.html]
 decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab calibration [directory] [--out report.md]
+decision-lab risks [directory] [--out report.md]
+decision-lab assumptions [directory] [--out report.md]
+decision-lab sources [directory] [--out report.md]
+decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab search [directory] --query text [--out report.md]
 decision-lab doctor [directory] [--out report.md]
@@ -209,6 +213,15 @@ node bin/decision-lab.js due decisions --as-of 2026-08-01
 node bin/decision-lab.js search decisions --query platform
 node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review-worksheet.md
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
+```
+
+Review decision portfolios:
+
+```bash
+node bin/decision-lab.js risks decisions --out outputs/risks.md
+node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
+node bin/decision-lab.js sources decisions --out outputs/sources.md
+node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 ```
 
 ## Philosophy

@@ -10,6 +10,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Audits, option comparison, memo rendering, review plans, and ledger
 - Evidence attachment, JSON patch application, calibration reports, and repository doctor checks
 - Source note import, source-linked evidence, due review reports, search, review worksheets, and status promotion
+- Portfolio-level risk, assumption, and source registers plus monthly review packs
 - Standalone dashboard and CSV/JSON export
 - CI for syntax and test coverage
 

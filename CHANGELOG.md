@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+### Added
+
+- Portfolio-level risk register
+- Portfolio-level assumption register
+- Evidence source index
+- Monthly decision operating review pack
+
 ## 1.1.0
 
 ### Added

@@ -33,11 +33,15 @@ import {
   attachSourceEvidence,
   createSourceNote,
   promoteDecision,
+  renderAssumptionReport,
   renderCalibration,
   renderDoctor,
   renderDueReviews,
+  renderMonthlyReview,
+  renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
+  renderSourceIndex,
   setJsonPath,
   summarizeDecisionHealth
 } from "../src/decision-tools.js";
@@ -209,6 +213,18 @@ test("renders due reviews, search results, promotion, and review worksheets", ()
   assert.match(renderReviewWorksheet(business), /Review Worksheet/);
 });
 
+test("renders portfolio-level operating reports", () => {
+  const records = [
+    { filePath: "business.json", decision: business },
+    { filePath: "finance.json", decision: finance },
+    { filePath: "investment.json", decision: investment }
+  ];
+  assert.match(renderRiskRegister(records), /Risk Register/);
+  assert.match(renderAssumptionReport(records), /Assumption Register/);
+  assert.match(renderSourceIndex(records), /Source Index/);
+  assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
+});
+
 test("exports decision rows and dashboard", () => {
   const records = [{ filePath: "pricing.json", decision: business }];
   const rows = buildDecisionRows(records);
@@ -307,6 +323,21 @@ test("cli imports source, links source evidence, and renders due/search/review",
   assert.match(execFileSync("node", ["bin/decision-lab.js", "review", "examples/business/enterprise_pricing_change.json"], {
     encoding: "utf8"
   }), /Review Worksheet/);
+});
+
+test("cli renders portfolio-level reports", () => {
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "risks", "examples"], {
+    encoding: "utf8"
+  }), /Risk Register/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "assumptions", "examples"], {
+    encoding: "utf8"
+  }), /Assumption Register/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "sources", "examples"], {
+    encoding: "utf8"
+  }), /Source Index/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "monthly", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Monthly Decision Review/);
 });
 
 test("cli promotes decision status", () => {
