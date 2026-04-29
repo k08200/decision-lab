@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.14.0
+
+### Added
+
+- Decision agenda report for top priorities, due reviews, decision debt, and explicit next actions
+- Operating packs now include `agenda.md`
+
 ## 2.13.0
 
 ### Added

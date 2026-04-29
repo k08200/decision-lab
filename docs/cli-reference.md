@@ -101,6 +101,7 @@ node bin/decision-lab.js briefing decisions --as-of 2026-08-01
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01
 node bin/decision-lab.js next decisions --as-of 2026-08-01
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01
+node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14
 node bin/decision-lab.js timeline decisions
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 node bin/decision-lab.js due decisions --as-of 2026-08-01

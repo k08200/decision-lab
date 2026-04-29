@@ -42,6 +42,7 @@ import {
   renderActionQueue,
   renderAssumptionReport,
   renderCalibration,
+  renderDecisionAgenda,
   renderDecisionChecklist,
   renderDecisionDebt,
   renderDecisionDiff,
@@ -286,6 +287,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
   assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
   assert.match(renderPriorityReview(records, "2026-08-01"), /Decision Priority Review/);
+  assert.match(renderDecisionAgenda(records, { asOf: "2026-08-01", horizonDays: 14 }), /Decision Agenda/);
   assert.match(renderRepositoryStatus(records, { asOf: "2026-08-01" }), /Repository Status/);
   assert.match(renderDecisionDebt(records, { asOf: "2026-08-01", staleDays: 30 }), /Decision Debt/);
   assert.match(renderTimeline(records), /Decision Timeline/);
@@ -496,6 +498,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "briefing.md"), "utf8"), /Portfolio Briefing/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
   assert.match(readFileSync(path.join(packDir, "priorities.md"), "utf8"), /Decision Priority Review/);
+  assert.match(readFileSync(path.join(packDir, "agenda.md"), "utf8"), /Decision Agenda/);
   assert.match(readFileSync(path.join(packDir, "timeline.md"), "utf8"), /Decision Timeline/);
   assert.match(readFileSync(path.join(packDir, "dashboard.html"), "utf8"), /Decision Lab Dashboard/);
 });
@@ -631,6 +634,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "prioritize", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Decision Priority Review/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "agenda", "examples", "--as-of", "2026-08-01", "--horizon", "14"], {
+    encoding: "utf8"
+  }), /Decision Agenda/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "timeline", "examples"], {
     encoding: "utf8"
   }), /Decision Timeline/);

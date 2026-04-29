@@ -755,6 +755,95 @@ export function renderPriorityReview(records, asOf = new Date().toISOString().sl
   ].join("\n") + "\n";
 }
 
+export function renderDecisionAgenda(records, { asOf = new Date().toISOString().slice(0, 10), horizonDays = 7, staleDays = 30 } = {}) {
+  const ranked = records
+    .map(({ filePath, decision }) => {
+      const audit = auditDecision(decision);
+      return { filePath, decision, audit, priority: priorityScore(decision, audit, asOf) };
+    })
+    .sort((a, b) => b.priority.score - a.priority.score || a.filePath.localeCompare(b.filePath));
+  const reviews = records
+    .map(({ filePath, decision }) => {
+      const date = decision.recommendation?.review_date || decision.post_decision_review?.review_date || "";
+      return { filePath, decision, date, days: daysUntil(asOf, date) };
+    })
+    .filter((item) => item.days !== null && item.days <= horizonDays && (item.decision.status || "draft") !== "reviewed")
+    .sort((a, b) => a.days - b.days || a.filePath.localeCompare(b.filePath));
+  const debt = records
+    .flatMap(({ filePath, decision }) => decisionDebtItems(filePath, decision, { asOf, staleDays }))
+    .sort((a, b) => debtSeverityRank(a.severity) - debtSeverityRank(b.severity) || a.filePath.localeCompare(b.filePath));
+  const actions = records
+    .flatMap(({ filePath, decision }) => (decision.next_actions || []).map((action) => ({
+      filePath,
+      decision,
+      action,
+      owner: decision.owner || "",
+      due: decision.recommendation?.decision_deadline || ""
+    })))
+    .slice(0, 15);
+
+  return [
+    "# Decision Agenda",
+    "",
+    `As of: ${asOf}`,
+    `Horizon days: ${horizonDays}`,
+    "",
+    "## Focus Metrics",
+    table(["Metric", "Value"], [
+      ["Decision records", String(records.length)],
+      ["Due or upcoming reviews", String(reviews.length)],
+      ["Open debt items", String(debt.length)],
+      ["High-severity debt", String(debt.filter((item) => item.severity === "high").length)],
+      ["Explicit next actions", String(actions.length)]
+    ]),
+    "",
+    "## Top Priority Decisions",
+    ranked.length
+      ? table(["Rank", "Priority", "File", "Status", "Type", "Decision", "Reasons"], ranked.slice(0, 5).map((item, index) => [
+        String(index + 1),
+        String(item.priority.score),
+        item.filePath,
+        item.decision.status || "draft",
+        item.decision.decision_type,
+        item.decision.title,
+        item.priority.reasons.join("; ")
+      ]))
+      : "No decision records found.",
+    "",
+    "## Due And Upcoming Reviews",
+    reviews.length
+      ? table(["File", "Type", "Decision", "Review Date", "Days From As-Of"], reviews.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        item.date,
+        String(item.days)
+      ]))
+      : "No reviews due in the agenda horizon.",
+    "",
+    "## Decision Debt To Clear",
+    debt.length
+      ? table(["Severity", "File", "Debt", "Suggested Fix"], debt.slice(0, 10).map((item) => [
+        item.severity,
+        item.filePath,
+        item.type,
+        item.fix
+      ]))
+      : "No decision debt found.",
+    "",
+    "## Next Actions",
+    actions.length
+      ? table(["File", "Decision", "Owner", "Due", "Action"], actions.map((item) => [
+        item.filePath,
+        item.decision.title,
+        item.owner,
+        item.due,
+        item.action
+      ]))
+      : "No explicit next actions found."
+  ].join("\n") + "\n";
+}
+
 export function renderTimeline(records) {
   const events = records.flatMap(({ filePath, decision }) => [
     timelineEvent(filePath, decision, "created", decision.created_at),
@@ -1108,7 +1197,10 @@ function priorityScore(decision, audit, asOf) {
     reasons.push(`${highRisks} high-impact risk(s)`);
   }
   const deadlineDays = daysUntil(asOf, decision.recommendation?.decision_deadline);
-  if (deadlineDays !== null && deadlineDays <= 14) {
+  if (deadlineDays !== null && deadlineDays < 0) {
+    score += 30;
+    reasons.push(`deadline overdue by ${Math.abs(deadlineDays)} day(s)`);
+  } else if (deadlineDays !== null && deadlineDays <= 14) {
     score += Math.max(0, 30 - deadlineDays);
     reasons.push(`deadline in ${deadlineDays} day(s)`);
   }

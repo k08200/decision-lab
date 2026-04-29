@@ -43,6 +43,7 @@ import {
   renderDoctor,
   renderDueReviews,
   renderActionQueue,
+  renderDecisionAgenda,
   renderDecisionChecklist,
   renderDecisionDebt,
   renderDecisionDiff,
@@ -137,6 +138,7 @@ Usage:
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab agenda [directory] [--as-of YYYY-MM-DD] [--horizon 7] [--days 30] [--out report.md]
   decision-lab timeline [directory] [--out report.md]
   decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
   decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -304,6 +306,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "monthly.md": renderMonthlyReview(records, asOf),
     "next.md": renderActionQueue(records, asOf),
     "priorities.md": renderPriorityReview(records, asOf),
+    "agenda.md": renderDecisionAgenda(records, { asOf }),
     "timeline.md": renderTimeline(records),
     "doctor.md": renderDoctor({ root, examples: readDecisionFiles(path.join(root, "examples")) })
   };
@@ -685,6 +688,17 @@ try {
   if (command === "prioritize") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderPriorityReview(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "agenda") {
+    const config = loadWorkspaceConfig();
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderDecisionAgenda(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
+      horizonDays: Number(readFlag(args, "--horizon") || 7),
+      staleDays: Number(readFlag(args, "--days") || config.stale_after_days)
+    }), readFlag(args, "--out"));
     process.exit(0);
   }
 

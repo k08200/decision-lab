@@ -117,6 +117,12 @@ node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 ```
 
+`agenda` turns the portfolio into a near-term operating agenda.
+
+```bash
+node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out outputs/agenda.md
+```
+
 `gate`, `stale`, and `debt` enforce quality, surface neglected records, and show accumulated decision debt.
 
 ```bash
