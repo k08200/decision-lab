@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.0
+
+### Added
+
+- Human note templates for decision intake, investment notes, business decisions, finance hypotheses, and reviews
+
 ## 2.10.0
 
 ### Added

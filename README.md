@@ -129,6 +129,8 @@ See [docs/architecture.md](docs/architecture.md) for the module map and data flo
 
 For day-to-day use, see [docs/operating-loop.md](docs/operating-loop.md).
 
+For human note starters, see [docs/templates.md](docs/templates.md).
+
 ## Decision Types
 
 `general` is the shared base for any meaningful decision.
