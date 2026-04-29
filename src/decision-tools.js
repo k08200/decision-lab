@@ -113,6 +113,7 @@ export function renderReportCatalog() {
     ["Portfolio", "owners", "Show active records, due reviews, and actions by owner.", "weekly"],
     ["Portfolio", "monthly", "Run a broader portfolio review with risks, lessons, and due reviews.", "monthly"],
     ["Portfolio", "risk-heatmap", "Map risks by probability and impact.", "weekly or monthly"],
+    ["Portfolio", "assumption-tests", "Turn assumptions into an owner/test queue.", "weekly"],
     ["Repository", "pack", "Write the full operating pack into one output directory.", "daily, weekly, or monthly"],
     ["Repository", "doctor", "Check project wiring and example validity.", "after changes"],
     ["Repository", "gate", "Fail the process when decisions are below quality thresholds.", "CI or release"]
@@ -757,6 +758,44 @@ export function renderAssumptionReport(records) {
         assumption.owner
       ]))
       : "No assumptions found."
+  ].join("\n") + "\n";
+}
+
+export function renderAssumptionTestQueue(records) {
+  const assumptions = records.flatMap(({ filePath, decision }) => (
+    (decision.assumption_register || []).map((assumption) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      assumption: assumption.assumption || "",
+      importance: assumption.importance || "",
+      test: assumption.test || "",
+      owner: assumption.owner || ""
+    }))
+  ));
+  const queue = assumptions
+    .filter((item) => item.importance !== "low")
+    .sort((a, b) => assumptionRank(a.importance) - assumptionRank(b.importance) || a.filePath.localeCompare(b.filePath));
+
+  return [
+    "# Assumption Test Queue",
+    "",
+    `Assumptions: ${assumptions.length}`,
+    `Test queue: ${queue.length}`,
+    `Missing owners: ${queue.filter((item) => !item.owner).length}`,
+    `Missing tests: ${queue.filter((item) => !item.test).length}`,
+    "",
+    queue.length
+      ? table(["Importance", "File", "Type", "Decision", "Assumption", "Test", "Owner"], queue.map((item) => [
+        item.importance,
+        item.filePath,
+        item.type,
+        item.title,
+        item.assumption,
+        item.test,
+        item.owner
+      ]))
+      : "No medium or high-importance assumptions found."
   ].join("\n") + "\n";
 }
 
@@ -1816,6 +1855,10 @@ function debtSeverityRank(severity) {
 
 function riskWeight(level) {
   return { low: 1, medium: 2, high: 3 }[level] || 0;
+}
+
+function assumptionRank(importance) {
+  return { high: 0, medium: 1, low: 2 }[importance] ?? 3;
 }
 
 function guardrailRows(filePath, decision, kind, items) {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.26.0
+
+### Added
+
+- Assumption test queue command for medium and high-importance assumptions, owners, and tests
+- Operating packs now include `assumption-tests.md`
+
 ## 2.25.0
 
 ### Added

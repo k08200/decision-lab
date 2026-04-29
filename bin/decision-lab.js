@@ -50,6 +50,7 @@ import {
   renderDecisionDiff,
   renderDecisionGraph,
   renderAssumptionReport,
+  renderAssumptionTestQueue,
   evaluateGate,
   renderEvidenceScorecard,
   renderGateReport,
@@ -144,6 +145,7 @@ Usage:
   decision-lab risks [directory] [--out report.md]
   decision-lab risk-heatmap [directory] [--out report.md]
   decision-lab assumptions [directory] [--out report.md]
+  decision-lab assumption-tests [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
   decision-lab evidence-scorecard [directory] [--out report.md]
   decision-lab questions [directory] [--out report.md]
@@ -321,6 +323,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "risks.md": renderRiskRegister(records),
     "risk-heatmap.md": renderRiskHeatmap(records),
     "assumptions.md": renderAssumptionReport(records),
+    "assumption-tests.md": renderAssumptionTestQueue(records),
     "sources.md": renderSourceIndex(records),
     "evidence-scorecard.md": renderEvidenceScorecard(records),
     "questions.md": renderQuestionRegister(records),
@@ -717,6 +720,12 @@ try {
   if (command === "assumptions") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderAssumptionReport(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "assumption-tests") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderAssumptionTestQueue(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

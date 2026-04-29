@@ -26,6 +26,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Hypothesis register for evidence, counterarguments, confidence, and disconfirming signals
 - Risk heatmap for probability and impact concentration
 - Evidence scorecard for strength, source coverage, and upgrade queues
+- Assumption test queue for medium and high-importance assumptions
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports

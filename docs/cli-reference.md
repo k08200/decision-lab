@@ -97,6 +97,7 @@ node bin/decision-lab.js lessons decisions
 node bin/decision-lab.js risks decisions
 node bin/decision-lab.js risk-heatmap decisions
 node bin/decision-lab.js assumptions decisions
+node bin/decision-lab.js assumption-tests decisions
 node bin/decision-lab.js sources decisions
 node bin/decision-lab.js evidence-scorecard decisions
 node bin/decision-lab.js questions decisions

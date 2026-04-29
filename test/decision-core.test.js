@@ -41,6 +41,7 @@ import {
   renderArchivePlan,
   renderActionQueue,
   renderAssumptionReport,
+  renderAssumptionTestQueue,
   renderCalibration,
   renderDecisionAgenda,
   renderDecisionChecklist,
@@ -297,6 +298,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderRiskRegister(records), /Risk Register/);
   assert.match(renderRiskHeatmap(records), /Risk Heatmap/);
   assert.match(renderAssumptionReport(records), /Assumption Register/);
+  assert.match(renderAssumptionTestQueue(records), /Assumption Test Queue/);
   assert.match(renderSourceIndex(records), /Source Index/);
   assert.match(renderEvidenceScorecard(records), /Evidence Scorecard/);
   assert.match(renderQuestionRegister(records), /Question Register/);
@@ -522,6 +524,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
   assert.match(readFileSync(path.join(packDir, "review-pack.md"), "utf8"), /Review Pack/);
   assert.match(readFileSync(path.join(packDir, "risk-heatmap.md"), "utf8"), /Risk Heatmap/);
+  assert.match(readFileSync(path.join(packDir, "assumption-tests.md"), "utf8"), /Assumption Test Queue/);
   assert.match(readFileSync(path.join(packDir, "evidence-scorecard.md"), "utf8"), /Evidence Scorecard/);
   assert.match(readFileSync(path.join(packDir, "questions.md"), "utf8"), /Question Register/);
   assert.match(readFileSync(path.join(packDir, "hypotheses.md"), "utf8"), /Hypothesis Register/);
@@ -662,6 +665,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "assumptions", "examples"], {
     encoding: "utf8"
   }), /Assumption Register/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "assumption-tests", "examples"], {
+    encoding: "utf8"
+  }), /Assumption Test Queue/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "sources", "examples"], {
     encoding: "utf8"
   }), /Source Index/);
