@@ -51,6 +51,7 @@ import {
   renderDecisionGraph,
   renderAssumptionReport,
   evaluateGate,
+  renderEvidenceScorecard,
   renderGateReport,
   renderGuardrailReport,
   renderHypothesisRegister,
@@ -144,6 +145,7 @@ Usage:
   decision-lab risk-heatmap [directory] [--out report.md]
   decision-lab assumptions [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
+  decision-lab evidence-scorecard [directory] [--out report.md]
   decision-lab questions [directory] [--out report.md]
   decision-lab hypotheses [directory] [--out report.md]
   decision-lab guardrails [directory] [--out report.md]
@@ -320,6 +322,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "risk-heatmap.md": renderRiskHeatmap(records),
     "assumptions.md": renderAssumptionReport(records),
     "sources.md": renderSourceIndex(records),
+    "evidence-scorecard.md": renderEvidenceScorecard(records),
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
     "guardrails.md": renderGuardrailReport(records),
@@ -720,6 +723,12 @@ try {
   if (command === "sources") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderSourceIndex(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "evidence-scorecard") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderEvidenceScorecard(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

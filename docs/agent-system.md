@@ -104,6 +104,7 @@ node bin/decision-lab.js risks decisions --out outputs/risks.md
 node bin/decision-lab.js risk-heatmap decisions --out outputs/risk-heatmap.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
+node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-scorecard.md
 node bin/decision-lab.js owners decisions --as-of 2026-08-01 --out outputs/owners.md
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md

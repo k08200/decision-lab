@@ -25,6 +25,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Decision triage lanes for repair, review, debt, framing, research, monitoring, and archive work
 - Hypothesis register for evidence, counterarguments, confidence, and disconfirming signals
 - Risk heatmap for probability and impact concentration
+- Evidence scorecard for strength, source coverage, and upgrade queues
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports

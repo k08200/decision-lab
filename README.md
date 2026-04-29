@@ -90,6 +90,7 @@ decision-lab risks [directory] [--out report.md]
 decision-lab risk-heatmap [directory] [--out report.md]
 decision-lab assumptions [directory] [--out report.md]
 decision-lab sources [directory] [--out report.md]
+decision-lab evidence-scorecard [directory] [--out report.md]
 decision-lab questions [directory] [--out report.md]
 decision-lab hypotheses [directory] [--out report.md]
 decision-lab guardrails [directory] [--out report.md]
@@ -291,6 +292,7 @@ node bin/decision-lab.js risks decisions --out outputs/risks.md
 node bin/decision-lab.js risk-heatmap decisions --out outputs/risk-heatmap.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
+node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-scorecard.md
 node bin/decision-lab.js questions decisions --out outputs/questions.md
 node bin/decision-lab.js hypotheses decisions --out outputs/hypotheses.md
 node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md

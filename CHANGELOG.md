@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.25.0
+
+### Added
+
+- Evidence scorecard command for evidence strength, source coverage, decision-level strong share, and upgrade queues
+- Operating packs now include `evidence-scorecard.md`
+
 ## 2.24.0
 
 ### Added

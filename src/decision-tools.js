@@ -106,6 +106,7 @@ export function renderReportCatalog() {
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
+    ["Portfolio", "evidence-scorecard", "Summarize evidence strength and source coverage.", "weekly"],
     ["Portfolio", "hypotheses", "Collect hypotheses, evidence, counterarguments, and disconfirming signals.", "weekly"],
     ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
     ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
@@ -790,6 +791,69 @@ export function renderSourceIndex(records) {
         source.recency
       ]))
       : "No evidence sources found."
+  ].join("\n") + "\n";
+}
+
+export function renderEvidenceScorecard(records) {
+  const evidenceRows = records.flatMap(({ filePath, decision }) => (
+    (decision.evidence || []).map((evidence) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      claim: evidence.claim || "",
+      source: evidence.source || "",
+      strength: evidence.strength || "unknown",
+      source_type: evidence.source_type || "unknown",
+      recency: evidence.recency || "unknown"
+    }))
+  ));
+  const byStrength = groupBy(evidenceRows, (item) => item.strength);
+  const bySourceType = groupBy(evidenceRows, (item) => item.source_type);
+  const byDecision = records.map(({ filePath, decision }) => {
+    const items = decision.evidence || [];
+    const strong = items.filter((item) => item.strength === "strong").length;
+    const weak = items.filter((item) => item.strength === "weak").length;
+    return { filePath, decision, count: items.length, strong, weak };
+  });
+  const upgrade = evidenceRows.filter((item) => item.strength !== "strong");
+
+  return [
+    "# Evidence Scorecard",
+    "",
+    `Evidence items: ${evidenceRows.length}`,
+    `Strong evidence: ${evidenceRows.filter((item) => item.strength === "strong").length}`,
+    `Evidence to upgrade: ${upgrade.length}`,
+    "",
+    "## By Strength",
+    countTable(byStrength),
+    "",
+    "## By Source Type",
+    countTable(bySourceType),
+    "",
+    "## By Decision",
+    byDecision.length
+      ? table(["File", "Type", "Decision", "Evidence", "Strong", "Weak", "Strong Share"], byDecision.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        String(item.count),
+        String(item.strong),
+        String(item.weak),
+        item.count ? percent(item.strong / item.count) : "N/A"
+      ]))
+      : "No decision records found.",
+    "",
+    "## Upgrade Queue",
+    upgrade.length
+      ? table(["File", "Type", "Decision", "Strength", "Claim", "Source"], upgrade.map((item) => [
+        item.filePath,
+        item.type,
+        item.title,
+        item.strength,
+        item.claim,
+        item.source
+      ]))
+      : "No evidence needs upgrading."
   ].join("\n") + "\n";
 }
 
