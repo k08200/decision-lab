@@ -97,6 +97,7 @@ decision-lab evidence-scorecard [directory] [--out report.md]
 decision-lab signals [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab questions [directory] [--out report.md]
 decision-lab hypotheses [directory] [--out report.md]
+decision-lab red-team [directory] [--out report.md]
 decision-lab scenarios [directory] [--out report.md]
 decision-lab sensitivities [directory] [--out report.md]
 decision-lab guardrails [directory] [--out report.md]
@@ -308,6 +309,7 @@ node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-sco
 node bin/decision-lab.js signals decisions --as-of 2026-08-01 --out outputs/signals.md
 node bin/decision-lab.js questions decisions --out outputs/questions.md
 node bin/decision-lab.js hypotheses decisions --out outputs/hypotheses.md
+node bin/decision-lab.js red-team decisions --out outputs/red-team.md
 node bin/decision-lab.js scenarios decisions --out outputs/scenarios.md
 node bin/decision-lab.js sensitivities decisions --out outputs/sensitivities.md
 node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md

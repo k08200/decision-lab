@@ -105,6 +105,7 @@ node bin/decision-lab.js evidence-scorecard decisions
 node bin/decision-lab.js signals decisions --as-of 2026-08-01
 node bin/decision-lab.js questions decisions
 node bin/decision-lab.js hypotheses decisions
+node bin/decision-lab.js red-team decisions
 node bin/decision-lab.js scenarios decisions
 node bin/decision-lab.js sensitivities decisions
 node bin/decision-lab.js guardrails decisions

@@ -165,6 +165,12 @@ node bin/decision-lab.js questions decisions --out outputs/questions.md
 node bin/decision-lab.js hypotheses decisions --out outputs/hypotheses.md
 ```
 
+`red-team` collects the strongest challenges across the portfolio.
+
+```bash
+node bin/decision-lab.js red-team decisions --out outputs/red-team.md
+```
+
 `scenarios` makes base, upside, and downside views explicit for active decisions.
 
 ```bash

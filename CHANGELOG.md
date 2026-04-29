@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.37.0
+
+### Added
+
+- Red-team report command for counterarguments, disconfirming signals, downside cases, and high-impact risks
+- Operating packs and weekly packs now include `red-team.md`
+
 ## 2.36.0
 
 ### Added

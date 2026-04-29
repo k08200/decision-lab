@@ -69,6 +69,7 @@ import {
   renderPortfolioBriefing,
   renderPriorityReview,
   renderQuestionRegister,
+  renderRedTeamReport,
   renderResearchPlan,
   renderReportCatalog,
   renderRiskHeatmap,
@@ -160,6 +161,7 @@ Usage:
   decision-lab signals [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab questions [directory] [--out report.md]
   decision-lab hypotheses [directory] [--out report.md]
+  decision-lab red-team [directory] [--out report.md]
   decision-lab scenarios [directory] [--out report.md]
   decision-lab sensitivities [directory] [--out report.md]
   decision-lab guardrails [directory] [--out report.md]
@@ -346,6 +348,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "signals.md": renderSignalWatchlist(records, { asOf }),
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
+    "red-team.md": renderRedTeamReport(records),
     "scenarios.md": renderScenarioReport(records),
     "sensitivities.md": renderSensitivityReport(records),
     "guardrails.md": renderGuardrailReport(records),
@@ -379,6 +382,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "debt.md": renderDecisionDebt(records, { asOf }),
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
+    "red-team.md": renderRedTeamReport(records),
     "scenarios.md": renderScenarioReport(records),
     "sensitivities.md": renderSensitivityReport(records),
     "signals.md": renderSignalWatchlist(records, { asOf }),
@@ -433,6 +437,7 @@ function artifactPurpose(name) {
     "agenda.md": "Near-term priorities, reviews, debt, and actions.",
     "debt.md": "Invalid, weak, overdue, stale, ownerless, or under-evidenced records.",
     "review-pack.md": "Due-review index or worksheet plan.",
+    "red-team.md": "Counterarguments, disconfirming signals, downside cases, and high-impact risks.",
     "outcomes.md": "Reviewed outcomes, completeness, lessons, and calibration cues.",
     "principles.md": "Reusable judgment principles and anti-patterns.",
     "dashboard.html": "Local HTML dashboard.",
@@ -899,6 +904,12 @@ try {
   if (command === "hypotheses") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderHypothesisRegister(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "red-team") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderRedTeamReport(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

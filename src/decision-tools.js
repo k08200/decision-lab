@@ -111,6 +111,7 @@ export function renderReportCatalog() {
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
     ["Portfolio", "evidence-scorecard", "Summarize evidence strength and source coverage.", "weekly"],
     ["Portfolio", "hypotheses", "Collect hypotheses, evidence, counterarguments, and disconfirming signals.", "weekly"],
+    ["Portfolio", "red-team", "Collect counterarguments, disconfirming signals, downside cases, and high-impact risks.", "before commitment"],
     ["Portfolio", "scenarios", "Create base, upside, and downside scenario views for active decisions.", "weekly"],
     ["Portfolio", "sensitivities", "Surface model drivers, sensitivity checks, and financial guardrails.", "weekly"],
     ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
@@ -170,6 +171,64 @@ export function renderHypothesisRegister(records) {
         item.disconfirming.join("; ")
       ]))
       : "No hypotheses found."
+  ].join("\n") + "\n";
+}
+
+export function renderRedTeamReport(records) {
+  const active = records.filter(({ decision }) => (decision.status || "draft") !== "reviewed");
+  const rows = active.flatMap(({ filePath, decision }) => [
+    ...redTeamRows(filePath, decision, "counterargument", (decision.hypotheses || []).flatMap((hypothesis) => hypothesis.counterarguments || [])),
+    ...redTeamRows(filePath, decision, "disconfirming signal", (decision.hypotheses || []).flatMap((hypothesis) => hypothesis.disconfirming_signals || [])),
+    ...redTeamRows(filePath, decision, "change-my-mind", decision.what_would_change_my_mind || []),
+    ...redTeamRows(filePath, decision, "downside case", [
+      decision.downside_case,
+      decision.valuation?.bear_case,
+      selectedOption(decision)?.downside
+    ].filter(Boolean)),
+    ...(decision.risks || [])
+      .filter((risk) => risk.impact === "high")
+      .map((risk) => ({
+        filePath,
+        type: decision.decision_type,
+        status: decision.status || "draft",
+        title: decision.title,
+        kind: "high-impact risk",
+        item: risk.risk || "",
+        trigger: risk.trigger || "",
+        mitigation: risk.mitigation || ""
+      }))
+  ]).filter((row) => row.item);
+  const byKind = groupBy(rows, (row) => row.kind);
+  const byType = groupBy(rows, (row) => row.type || "unknown");
+
+  return [
+    "# Red Team Report",
+    "",
+    `Active records: ${active.length}`,
+    `Items: ${rows.length}`,
+    "",
+    "## By Kind",
+    countTable(byKind),
+    "",
+    "## By Type",
+    countTable(byType),
+    "",
+    "## Challenge Register",
+    rows.length
+      ? table(["Kind", "File", "Type", "Status", "Decision", "Challenge", "Trigger", "Mitigation"], rows.map((row) => [
+        row.kind,
+        row.filePath,
+        row.type,
+        row.status,
+        row.title,
+        row.item,
+        row.trigger,
+        row.mitigation
+      ]))
+      : "No red-team items found.",
+    "",
+    "## Challenge Themes",
+    summarizeThemes(rows.map((row) => row.item))
   ].join("\n") + "\n";
 }
 
@@ -2158,6 +2217,19 @@ function triageRank(lane) {
 
 function playbookStep(work, count, command) {
   return { work, count, command };
+}
+
+function redTeamRows(filePath, decision, kind, items) {
+  return items.map((item) => ({
+    filePath,
+    type: decision.decision_type,
+    status: decision.status || "draft",
+    title: decision.title,
+    kind,
+    item,
+    trigger: "",
+    mitigation: ""
+  }));
 }
 
 function executiveReadout({ records, active, reviewed, dueReviews, debtItems, highRisks, weakEvidence, lessons }) {
