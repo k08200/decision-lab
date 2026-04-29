@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.15.0
+
+### Added
+
+- Question register command for open questions, change-my-mind conditions, and evidence items that need upgrading
+- Operating packs now include `questions.md`
+
 ## 2.14.0
 
 ### Added

@@ -57,6 +57,7 @@ import {
   renderPremortem,
   renderPortfolioBriefing,
   renderPriorityReview,
+  renderQuestionRegister,
   renderResearchPlan,
   renderRiskRegister,
   renderReviewWorksheet,
@@ -281,6 +282,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderRiskRegister(records), /Risk Register/);
   assert.match(renderAssumptionReport(records), /Assumption Register/);
   assert.match(renderSourceIndex(records), /Source Index/);
+  assert.match(renderQuestionRegister(records), /Question Register/);
   assert.match(renderOwnerReport(records, "2026-08-01"), /Owner Report/);
   assert.match(renderIntegrityManifest([{ filePath: "examples/business/enterprise_pricing_change.json", decision: business }]), /SHA256/);
   assert.match(renderPortfolioBriefing(records, "2026-08-01"), /Portfolio Briefing/);
@@ -494,6 +496,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "debt.md"), "utf8"), /Decision Debt/);
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
   assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
+  assert.match(readFileSync(path.join(packDir, "questions.md"), "utf8"), /Question Register/);
   assert.match(readFileSync(path.join(packDir, "owners.md"), "utf8"), /Owner Report/);
   assert.match(readFileSync(path.join(packDir, "briefing.md"), "utf8"), /Portfolio Briefing/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
@@ -616,6 +619,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "sources", "examples"], {
     encoding: "utf8"
   }), /Source Index/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "questions", "examples"], {
+    encoding: "utf8"
+  }), /Question Register/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "owners", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Owner Report/);

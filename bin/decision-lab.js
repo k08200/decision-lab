@@ -58,6 +58,7 @@ import {
   renderPremortem,
   renderPortfolioBriefing,
   renderPriorityReview,
+  renderQuestionRegister,
   renderResearchPlan,
   renderRiskRegister,
   renderReviewWorksheet,
@@ -133,6 +134,7 @@ Usage:
   decision-lab risks [directory] [--out report.md]
   decision-lab assumptions [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
+  decision-lab questions [directory] [--out report.md]
   decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -301,6 +303,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "risks.md": renderRiskRegister(records),
     "assumptions.md": renderAssumptionReport(records),
     "sources.md": renderSourceIndex(records),
+    "questions.md": renderQuestionRegister(records),
     "owners.md": renderOwnerReport(records, asOf),
     "briefing.md": renderPortfolioBriefing(records, asOf),
     "monthly.md": renderMonthlyReview(records, asOf),
@@ -658,6 +661,12 @@ try {
   if (command === "sources") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderSourceIndex(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "questions") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderQuestionRegister(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

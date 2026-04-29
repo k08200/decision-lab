@@ -540,6 +540,79 @@ export function renderSourceIndex(records) {
   ].join("\n") + "\n";
 }
 
+export function renderQuestionRegister(records) {
+  const questions = records.flatMap(({ filePath, decision }) => (
+    (decision.open_questions || []).map((question) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      owner: decision.owner || "",
+      question
+    }))
+  ));
+  const changeMind = records.flatMap(({ filePath, decision }) => (
+    (decision.what_would_change_my_mind || []).map((condition) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      condition
+    }))
+  ));
+  const evidenceToUpgrade = records.flatMap(({ filePath, decision }) => (
+    (decision.evidence || [])
+      .filter((evidence) => evidence.strength !== "strong")
+      .map((evidence) => ({
+        filePath,
+        type: decision.decision_type,
+        title: decision.title,
+        claim: evidence.claim || "",
+        strength: evidence.strength || "",
+        source: evidence.source || ""
+      }))
+  ));
+
+  return [
+    "# Question Register",
+    "",
+    `Open questions: ${questions.length}`,
+    `Change-my-mind conditions: ${changeMind.length}`,
+    `Evidence items to upgrade: ${evidenceToUpgrade.length}`,
+    "",
+    "## Open Questions",
+    questions.length
+      ? table(["File", "Type", "Decision", "Owner", "Question"], questions.map((item) => [
+        item.filePath,
+        item.type,
+        item.title,
+        item.owner,
+        item.question
+      ]))
+      : "No open questions found.",
+    "",
+    "## Change-My-Mind Conditions",
+    changeMind.length
+      ? table(["File", "Type", "Decision", "Condition"], changeMind.map((item) => [
+        item.filePath,
+        item.type,
+        item.title,
+        item.condition
+      ]))
+      : "No change-my-mind conditions found.",
+    "",
+    "## Evidence To Upgrade",
+    evidenceToUpgrade.length
+      ? table(["File", "Type", "Decision", "Strength", "Claim", "Source"], evidenceToUpgrade.map((item) => [
+        item.filePath,
+        item.type,
+        item.title,
+        item.strength,
+        item.claim,
+        item.source
+      ]))
+      : "No weak or medium evidence found."
+  ].join("\n") + "\n";
+}
+
 export function renderOwnerReport(records, asOf = new Date().toISOString().slice(0, 10)) {
   const rows = Object.entries(groupBy(records, ({ decision }) => decision.owner || "unassigned"))
     .map(([owner, items]) => {

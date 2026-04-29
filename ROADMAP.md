@@ -15,6 +15,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Quality gates and stale decision reports
 - Decision debt report for weak evidence, overdue reviews, missing owners, and stale active records
 - Near-term decision agenda for priorities, reviews, debt, and next actions
+- Question register for open questions, change-my-mind conditions, and evidence upgrades
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports
