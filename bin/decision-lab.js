@@ -72,6 +72,7 @@ import {
   renderStaleReport,
   renderRepositoryStatus,
   renderTimeline,
+  renderTriageReport,
   promoteDecision,
   setJsonPath,
   summarizeDecisionHealth
@@ -145,6 +146,7 @@ Usage:
   decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab scorecard [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
+  decision-lab triage [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -316,6 +318,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "questions.md": renderQuestionRegister(records),
     "guardrails.md": renderGuardrailReport(records),
     "scorecard.md": renderOperatingScorecard(records, { asOf }),
+    "triage.md": renderTriageReport(records, { asOf }),
     "owners.md": renderOwnerReport(records, asOf),
     "briefing.md": renderPortfolioBriefing(records, asOf),
     "monthly.md": renderMonthlyReview(records, asOf),
@@ -736,6 +739,16 @@ try {
     const config = loadWorkspaceConfig();
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderOperatingScorecard(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
+      staleDays: Number(readFlag(args, "--days") || config.stale_after_days)
+    }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "triage") {
+    const config = loadWorkspaceConfig();
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderTriageReport(readDecisionFiles(root), {
       asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
       staleDays: Number(readFlag(args, "--days") || config.stale_after_days)
     }), readFlag(args, "--out"));

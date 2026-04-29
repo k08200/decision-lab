@@ -141,6 +141,12 @@ node bin/decision-lab.js review-pack decisions --as-of 2026-08-01 --out-dir outp
 node bin/decision-lab.js scorecard decisions --as-of 2026-08-01 --out outputs/scorecard.md
 ```
 
+`triage` assigns each decision to the next operating lane.
+
+```bash
+node bin/decision-lab.js triage decisions --as-of 2026-08-01 --out outputs/triage.md
+```
+
 `guardrails` keeps stop conditions, success metrics, failure signals, constraints, and change-my-mind conditions visible.
 
 ```bash

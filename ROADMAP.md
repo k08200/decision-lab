@@ -22,6 +22,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Review pack generation for all due post-decision reviews
 - Operating scorecard for quality, debt, evidence, reviews, and ownership
 - Scheduled GitHub Actions operating pack generation
+- Decision triage lanes for repair, review, debt, framing, research, monitoring, and archive work
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports

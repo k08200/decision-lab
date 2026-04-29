@@ -102,6 +102,7 @@ export function renderReportCatalog() {
     ["Single Record", "research-plan", "Convert weak evidence and open questions into research tasks.", "before commitment"],
     ["Portfolio", "agenda", "Build a near-term operating agenda from priorities, reviews, debt, and actions.", "daily or weekly"],
     ["Portfolio", "scorecard", "Summarize portfolio health, quality, debt, evidence, reviews, and ownership.", "weekly"],
+    ["Portfolio", "triage", "Classify each decision into the next operating lane.", "daily or weekly"],
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
@@ -120,6 +121,40 @@ export function renderReportCatalog() {
     "Use this as the operating map for the repo.",
     "",
     table(["Area", "Command", "Purpose", "Cadence"], rows)
+  ].join("\n") + "\n";
+}
+
+export function renderTriageReport(records, { asOf = new Date().toISOString().slice(0, 10), staleDays = 30 } = {}) {
+  const rows = records
+    .map(({ filePath, decision }) => {
+      const audit = auditDecision(decision);
+      const debt = decisionDebtItems(filePath, decision, { asOf, staleDays });
+      const triage = triageDecision(decision, audit, debt, asOf);
+      return { filePath, decision, audit, debt, triage };
+    })
+    .sort((a, b) => triageRank(a.triage.lane) - triageRank(b.triage.lane) || a.filePath.localeCompare(b.filePath));
+  const byLane = groupBy(rows, (item) => item.triage.lane);
+
+  return [
+    "# Decision Triage",
+    "",
+    `As of: ${asOf}`,
+    "",
+    "## By Lane",
+    countTable(byLane),
+    "",
+    rows.length
+      ? table(["Lane", "File", "Type", "Status", "Decision", "Score", "Reason", "Next Move"], rows.map((item) => [
+        item.triage.lane,
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.status || "draft",
+        item.decision.title,
+        `${item.audit.score.score}/${item.audit.score.max_score}`,
+        item.triage.reason,
+        item.triage.nextMove
+      ]))
+      : "No decision records found."
   ].join("\n") + "\n";
 }
 
@@ -1450,6 +1485,74 @@ function priorityScore(decision, audit, asOf) {
     reasons.push("review due");
   }
   return { score, reasons: reasons.length ? reasons : ["no urgent signal"] };
+}
+
+function triageDecision(decision, audit, debt, asOf) {
+  const status = decision.status || "draft";
+  const reviewDate = decision.recommendation?.review_date || decision.post_decision_review?.review_date || "";
+  const reviewDue = isIsoDate(reviewDate) && parseDate(reviewDate) <= parseDate(asOf) && status !== "reviewed";
+  const highDebt = debt.find((item) => item.severity === "high");
+  const weakEvidence = (decision.evidence || []).some((item) => item.strength !== "strong");
+
+  if (!audit.validation.valid || audit.score.ratio < 0.75) {
+    return {
+      lane: "repair",
+      reason: "quality gate is not met",
+      nextMove: audit.next_actions[0] || "Fix validation and audit issues."
+    };
+  }
+  if (reviewDue) {
+    return {
+      lane: "review",
+      reason: `review due on ${reviewDate}`,
+      nextMove: "Run review-pack or close the decision with outcome and lessons."
+    };
+  }
+  if (highDebt) {
+    return {
+      lane: "clear debt",
+      reason: highDebt.type,
+      nextMove: highDebt.fix
+    };
+  }
+  if (status === "draft") {
+    return {
+      lane: "frame",
+      reason: "record is still draft",
+      nextMove: "Complete framing, options, criteria, evidence, and recommendation."
+    };
+  }
+  if (status === "researching" || (decision.open_questions || []).length > 0 || weakEvidence) {
+    return {
+      lane: "research",
+      reason: status === "researching" ? "record is researching" : "open questions or weak evidence remain",
+      nextMove: "Run questions or research-plan and upgrade the most decision-relevant evidence."
+    };
+  }
+  if (status === "decided") {
+    return {
+      lane: "monitor",
+      reason: "decision is made and waiting for signals",
+      nextMove: "Track expected signals and keep the review date visible."
+    };
+  }
+  return {
+    lane: "archive",
+    reason: "decision has been reviewed",
+    nextMove: "Move the record into reviewed/archive flow after lessons are captured."
+  };
+}
+
+function triageRank(lane) {
+  return {
+    repair: 0,
+    review: 1,
+    "clear debt": 2,
+    frame: 3,
+    research: 4,
+    monitor: 5,
+    archive: 6
+  }[lane] ?? 7;
 }
 
 function checklistForType(decision) {

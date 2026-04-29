@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.22.0
+
+### Added
+
+- Decision triage command for assigning records to repair, review, clear debt, frame, research, monitor, and archive lanes
+- Operating packs now include `triage.md`
+
 ## 2.21.0
 
 ### Added
