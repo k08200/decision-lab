@@ -78,6 +78,12 @@ node bin/decision-lab.js calibration decisions --out outputs/calibration.md
 node bin/decision-lab.js outcomes decisions --out outputs/outcomes.md
 ```
 
+`principles` distills reusable judgment rules from lessons, guardrails, risks, and reversals.
+
+```bash
+node bin/decision-lab.js principles decisions --out outputs/principles.md
+```
+
 `evidence`, `patch`, and `set` improve existing records without rewriting them by hand.
 
 ```bash

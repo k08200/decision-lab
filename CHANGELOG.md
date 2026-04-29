@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.32.0
+
+### Added
+
+- Principles report command that distills reusable judgment rules from lessons, guardrails, risks, and reversals
+- Operating packs now include `principles.md`
+
 ## 2.31.0
 
 ### Added

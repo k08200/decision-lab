@@ -114,6 +114,7 @@ export function renderReportCatalog() {
     ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
     ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
     ["Portfolio", "outcomes", "Summarize reviewed outcomes, review completeness, lessons, and calibration cues.", "monthly"],
+    ["Portfolio", "principles", "Distill reusable judgment principles from lessons, guardrails, risks, and reversals.", "monthly"],
     ["Portfolio", "owners", "Show active records, due reviews, and actions by owner.", "weekly"],
     ["Portfolio", "monthly", "Run a broader portfolio review with risks, lessons, and due reviews.", "monthly"],
     ["Portfolio", "risk-heatmap", "Map risks by probability and impact.", "weekly or monthly"],
@@ -460,6 +461,94 @@ export function renderOutcomeScorecard(records) {
     "",
     "## Lesson Themes",
     summarizeThemes(rows.flatMap((row) => row.lessonItems))
+  ].join("\n") + "\n";
+}
+
+export function renderPrinciplesReport(records) {
+  const lessons = records.flatMap(({ filePath, decision }) => (
+    (decision.post_decision_review?.lessons || []).map((lesson) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      lesson
+    }))
+  ));
+  const guardrails = records.flatMap(({ filePath, decision }) => {
+    const frame = decision.decision_frame || {};
+    const execution = decision.execution_plan || {};
+    return [
+      ...principleSource(filePath, decision, "constraint", frame.constraints || []),
+      ...principleSource(filePath, decision, "non-goal", frame.non_goals || []),
+      ...principleSource(filePath, decision, "kill criterion", execution.kill_criteria || []),
+      ...principleSource(filePath, decision, "change-my-mind", decision.what_would_change_my_mind || [])
+    ];
+  });
+  const antiPatterns = records.flatMap(({ filePath, decision }) => [
+    ...(decision.risks || []).map((risk) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      pattern: risk.risk || "",
+      trigger: risk.trigger || "",
+      mitigation: risk.mitigation || ""
+    })),
+    ...(decision.post_decision_review?.failure_signals || []).map((signal) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      pattern: signal,
+      trigger: signal,
+      mitigation: ""
+    }))
+  ]).filter((item) => item.pattern);
+
+  return [
+    "# Decision Principles",
+    "",
+    `Records: ${records.length}`,
+    `Lessons captured: ${lessons.length}`,
+    `Reusable guardrails: ${guardrails.length}`,
+    `Anti-patterns: ${antiPatterns.length}`,
+    "",
+    "## Candidate Principles",
+    lessons.length
+      ? table(["File", "Type", "Decision", "Principle"], lessons.map((item) => [
+        item.filePath,
+        item.type,
+        item.title,
+        principleFromLesson(item.lesson)
+      ]))
+      : "No lessons captured yet.",
+    "",
+    "## Reusable Guardrails",
+    guardrails.length
+      ? table(["Kind", "File", "Type", "Decision", "Guardrail"], guardrails.map((item) => [
+        item.kind,
+        item.filePath,
+        item.type,
+        item.title,
+        item.text
+      ]))
+      : "No reusable guardrails found.",
+    "",
+    "## Anti-Patterns To Watch",
+    antiPatterns.length
+      ? table(["File", "Type", "Decision", "Pattern", "Trigger", "Mitigation"], antiPatterns.map((item) => [
+        item.filePath,
+        item.type,
+        item.title,
+        item.pattern,
+        item.trigger,
+        item.mitigation
+      ]))
+      : "No anti-patterns found.",
+    "",
+    "## Theme Seeds",
+    summarizeThemes([
+      ...lessons.map((item) => item.lesson),
+      ...guardrails.map((item) => item.text),
+      ...antiPatterns.map((item) => item.pattern)
+    ])
   ].join("\n") + "\n";
 }
 
@@ -1987,6 +2076,22 @@ function calibrationCue(row) {
   if (row.confidence >= 0.8) return "High-confidence decision; check whether the outcome justified that certainty.";
   if (row.confidence <= 0.4) return "Low-confidence decision; check whether action was still warranted by downside control.";
   return "Compare actual signals against the original expected and failure signals.";
+}
+
+function principleSource(filePath, decision, kind, items) {
+  return items.map((text) => ({
+    filePath,
+    kind,
+    type: decision.decision_type,
+    title: decision.title,
+    text
+  }));
+}
+
+function principleFromLesson(lesson) {
+  const text = String(lesson || "").trim();
+  if (!text) return "";
+  return `When facing a similar decision, ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 }
 
 function decisionScenarios(filePath, decision) {

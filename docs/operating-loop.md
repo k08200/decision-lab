@@ -87,7 +87,7 @@ node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/pac
 node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/weekly/2026-08-01
 ```
 
-The pack includes ledger, dashboard, exports, calibration, outcomes, lessons, due reviews, review-pack index, risks, assumptions, sources, scenarios, scorecard, monthly review, next actions, priorities, timeline, and doctor checks.
+The pack includes ledger, dashboard, exports, calibration, outcomes, principles, lessons, due reviews, review-pack index, risks, assumptions, sources, scenarios, scorecard, monthly review, next actions, priorities, timeline, and doctor checks.
 
 Use `weekly` when you want a smaller working folder for agenda, scorecard, triage, debt, questions, hypotheses, scenarios, evidence, assumptions, risks, and due-review worksheets.
 
@@ -102,6 +102,7 @@ node bin/decision-lab.js review decisions/active/pricing.json --out outputs/revi
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Finance reporting needed earlier."
 node bin/decision-lab.js calibration decisions --out outputs/calibration.md
 node bin/decision-lab.js outcomes decisions --out outputs/outcomes.md
+node bin/decision-lab.js principles decisions --out outputs/principles.md
 node bin/decision-lab.js archive-plan decisions --destination decisions/archive --out outputs/archive-plan.md
 ```
 
