@@ -96,6 +96,7 @@ node bin/decision-lab.js calibration decisions
 node bin/decision-lab.js outcomes decisions
 node bin/decision-lab.js principles decisions
 node bin/decision-lab.js themes decisions
+node bin/decision-lab.js commitments decisions --as-of 2026-08-01 --horizon 14
 node bin/decision-lab.js lessons decisions
 node bin/decision-lab.js risks decisions
 node bin/decision-lab.js risk-heatmap decisions

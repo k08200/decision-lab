@@ -41,6 +41,7 @@ import {
   parseJsonish,
   renderArchivePlan,
   renderCalibration,
+  renderCommitmentReport,
   renderDoctor,
   renderDueReviews,
   renderActionQueue,
@@ -153,6 +154,7 @@ Usage:
   decision-lab outcomes [directory] [--out report.md]
   decision-lab principles [directory] [--out report.md]
   decision-lab themes [directory] [--out report.md]
+  decision-lab commitments [directory] [--as-of YYYY-MM-DD] [--horizon 14] [--out report.md]
   decision-lab lessons [directory] [--out report.md]
   decision-lab risks [directory] [--out report.md]
   decision-lab risk-heatmap [directory] [--out report.md]
@@ -351,6 +353,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
     "themes.md": renderThemeReport(records),
+    "commitments.md": renderCommitmentReport(records, { asOf }),
     "red-team.md": renderRedTeamReport(records),
     "scenarios.md": renderScenarioReport(records),
     "sensitivities.md": renderSensitivityReport(records),
@@ -386,6 +389,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
     "themes.md": renderThemeReport(records),
+    "commitments.md": renderCommitmentReport(records, { asOf }),
     "red-team.md": renderRedTeamReport(records),
     "scenarios.md": renderScenarioReport(records),
     "sensitivities.md": renderSensitivityReport(records),
@@ -426,6 +430,7 @@ function artifactRank(name) {
     "scorecard.md",
     "triage.md",
     "agenda.md",
+    "commitments.md",
     "debt.md"
   ];
   const index = order.indexOf(name);
@@ -445,6 +450,7 @@ function artifactPurpose(name) {
     "outcomes.md": "Reviewed outcomes, completeness, lessons, and calibration cues.",
     "principles.md": "Reusable judgment principles and anti-patterns.",
     "themes.md": "Recurring themes across hypotheses, assumptions, risks, evidence, questions, and lessons.",
+    "commitments.md": "Owners, due dates, reviews, next actions, kill criteria, and success metrics.",
     "dashboard.html": "Local HTML dashboard.",
     "decisions.csv": "CSV export of decision rows.",
     "decisions.json": "JSON export of decision rows.",
@@ -853,6 +859,15 @@ try {
   if (command === "themes") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderThemeReport(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "commitments") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderCommitmentReport(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
+      horizonDays: Number(readFlag(args, "--horizon") || 14)
+    }), readFlag(args, "--out"));
     process.exit(0);
   }
 

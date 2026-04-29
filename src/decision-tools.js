@@ -107,6 +107,7 @@ export function renderReportCatalog() {
     ["Portfolio", "triage", "Classify each decision into the next operating lane.", "daily or weekly"],
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
+    ["Portfolio", "commitments", "Collect owners, deadlines, reviews, next actions, kill criteria, and success metrics.", "weekly"],
     ["Portfolio", "signals", "Collect expected signals, failure signals, disconfirming signals, risk triggers, and review dates.", "weekly"],
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
     ["Portfolio", "evidence-scorecard", "Summarize evidence strength and source coverage.", "weekly"],
@@ -732,6 +733,62 @@ export function renderThemeReport(records) {
         item.text
       ]))
       : "No source fragments found."
+  ].join("\n") + "\n";
+}
+
+export function renderCommitmentReport(records, { asOf = new Date().toISOString().slice(0, 10), horizonDays = 14 } = {}) {
+  const active = records.filter(({ decision }) => (decision.status || "draft") !== "reviewed");
+  const rows = active
+    .flatMap(({ filePath, decision }) => commitmentRows(filePath, decision, asOf))
+    .sort((a, b) => commitmentRank(a.daysUntilDue) - commitmentRank(b.daysUntilDue) || a.due.localeCompare(b.due) || a.filePath.localeCompare(b.filePath));
+  const dueSoon = rows.filter((row) => isNumber(row.daysUntilDue) && row.daysUntilDue >= 0 && row.daysUntilDue <= horizonDays);
+  const overdue = rows.filter((row) => isNumber(row.daysUntilDue) && row.daysUntilDue < 0);
+  const ownerless = rows.filter((row) => !row.owner);
+  const byKind = groupBy(rows, (row) => row.kind);
+  const byOwner = groupBy(rows, (row) => row.owner || "unassigned");
+
+  return [
+    "# Commitment Report",
+    "",
+    `As of: ${asOf}`,
+    `Active records: ${active.length}`,
+    `Commitments: ${rows.length}`,
+    `Overdue: ${overdue.length}`,
+    `Due within ${horizonDays} days: ${dueSoon.length}`,
+    `Ownerless: ${ownerless.length}`,
+    "",
+    "## By Kind",
+    countTable(byKind),
+    "",
+    "## By Owner",
+    countTable(byOwner),
+    "",
+    "## Commitment Register",
+    rows.length
+      ? table(["Kind", "File", "Status", "Type", "Decision", "Owner", "Due", "Days", "Commitment"], rows.map((row) => [
+        row.kind,
+        row.filePath,
+        row.status,
+        row.type,
+        row.title,
+        row.owner,
+        row.due,
+        row.daysUntilDue === null ? "" : String(row.daysUntilDue),
+        row.commitment
+      ]))
+      : "No active commitments found.",
+    "",
+    "## Attention Queue",
+    [...overdue, ...dueSoon, ...ownerless].length
+      ? table(["Reason", "Kind", "File", "Owner", "Due", "Commitment"], uniqueCommitmentRows([...overdue, ...dueSoon, ...ownerless]).map((row) => [
+        commitmentReason(row, asOf, horizonDays),
+        row.kind,
+        row.filePath,
+        row.owner,
+        row.due,
+        row.commitment
+      ]))
+      : "No overdue, near-term, or ownerless commitments found."
   ].join("\n") + "\n";
 }
 
@@ -2394,6 +2451,75 @@ function themeWords(text) {
     .replace(/[^a-z0-9가-힣\s-]/g, " ")
     .split(/\s+/)
     .filter((word) => word.length > 3 && !STOP_WORDS.has(word));
+}
+
+function commitmentRows(filePath, decision, asOf) {
+  const owner = decision.owner || "";
+  const review = decision.post_decision_review || {};
+  const execution = decision.execution_plan || {};
+  const decisionDue = decision.recommendation?.decision_deadline || "";
+  const reviewDue = decision.recommendation?.review_date || review.review_date || "";
+  const rows = [];
+
+  if (decision.recommendation?.decision || decisionDue) {
+    rows.push(commitmentRow(filePath, decision, "decision", owner, decisionDue, decision.recommendation?.decision || "Record the final decision.", asOf));
+  }
+
+  if (reviewDue) {
+    rows.push(commitmentRow(filePath, decision, "review", review.review_owner || owner, reviewDue, `Review outcome for ${decision.title}`, asOf));
+  }
+
+  for (const action of decision.next_actions || []) {
+    rows.push(commitmentRow(filePath, decision, "next action", owner, decisionDue, action, asOf));
+  }
+
+  for (const criterion of execution.kill_criteria || []) {
+    rows.push(commitmentRow(filePath, decision, "kill criterion", owner, reviewDue, criterion, asOf));
+  }
+
+  for (const metric of review.success_metrics || []) {
+    rows.push(commitmentRow(filePath, decision, "success metric", review.review_owner || owner, reviewDue, metric, asOf));
+  }
+
+  return rows.filter((row) => row.commitment);
+}
+
+function commitmentRow(filePath, decision, kind, owner, due, commitment, asOf) {
+  return {
+    filePath,
+    kind,
+    status: decision.status || "draft",
+    type: decision.decision_type || "",
+    title: decision.title || "",
+    owner,
+    due,
+    daysUntilDue: daysUntil(asOf, due),
+    commitment
+  };
+}
+
+function commitmentRank(value) {
+  if (!isNumber(value)) return 10_000;
+  if (value < 0) return value;
+  return value + 1_000;
+}
+
+function uniqueCommitmentRows(rows) {
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = [row.kind, row.filePath, row.owner, row.due, row.commitment].join("\u0000");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function commitmentReason(row, asOf, horizonDays) {
+  if (!row.owner) return "ownerless";
+  if (isNumber(row.daysUntilDue) && row.daysUntilDue < 0) return `overdue by ${Math.abs(row.daysUntilDue)} days`;
+  if (isNumber(row.daysUntilDue) && row.daysUntilDue <= horizonDays) return `due within ${horizonDays} days`;
+  if (row.due && !isIsoDate(row.due)) return "invalid due date";
+  return `tracked as of ${asOf}`;
 }
 
 function decisionScenarios(filePath, decision) {

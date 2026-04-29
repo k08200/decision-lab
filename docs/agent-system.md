@@ -90,6 +90,12 @@ node bin/decision-lab.js principles decisions --out outputs/principles.md
 node bin/decision-lab.js themes decisions --out outputs/themes.md
 ```
 
+`commitments` collects owners, deadlines, reviews, next actions, kill criteria, and success metrics into one execution queue.
+
+```bash
+node bin/decision-lab.js commitments decisions --as-of 2026-08-01 --horizon 14 --out outputs/commitments.md
+```
+
 `evidence`, `patch`, and `set` improve existing records without rewriting them by hand.
 
 ```bash
@@ -115,7 +121,7 @@ node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memo
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 ```
 
-`risks`, `assumptions`, `sources`, `owners`, `briefing`, `executive`, `monthly`, `next`, `prioritize`, and `timeline` turn individual records into portfolio-level operating reports.
+`risks`, `assumptions`, `sources`, `owners`, `briefing`, `executive`, `monthly`, `next`, `prioritize`, `commitments`, and `timeline` turn individual records into portfolio-level operating reports.
 
 ```bash
 node bin/decision-lab.js risks decisions --out outputs/risks.md
@@ -125,6 +131,7 @@ node bin/decision-lab.js assumption-tests decisions --out outputs/assumption-tes
 node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-scorecard.md
 node bin/decision-lab.js signals decisions --as-of 2026-08-01 --out outputs/signals.md
+node bin/decision-lab.js commitments decisions --as-of 2026-08-01 --out outputs/commitments.md
 node bin/decision-lab.js owners decisions --as-of 2026-08-01 --out outputs/owners.md
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js executive decisions --as-of 2026-08-01 --out outputs/executive.md

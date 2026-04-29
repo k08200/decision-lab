@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.42.0
+
+### Added
+
+- Commitment report command for owners, deadlines, reviews, next actions, kill criteria, and success metrics
+- Operating packs and weekly packs now include `commitments.md`
+
 ## 2.41.0
 
 ### Added
