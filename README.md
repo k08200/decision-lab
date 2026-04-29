@@ -19,6 +19,7 @@ It is not a prompt pile. It is a way to turn a vague question into a durable dec
 ```bash
 npm test
 npm run verify
+node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing
 node bin/decision-lab.js new investment --out decisions/drafts/nvda.json
@@ -41,6 +42,7 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 
 ```bash
 decision-lab init [directory]
+decision-lab config [--out .decision-lab.json]
 decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
 decision-lab inbox <questions.txt> [--type type] [--owner name] [--out-dir decisions/drafts]
 decision-lab run <file.json> [--out-dir directory]
@@ -88,6 +90,7 @@ decision-lab list-prompts
 ## Repository Shape
 
 ```text
+.decision-lab.json    optional local defaults for owner, directories, quality gates, and stale reports
 bin/                  CLI entrypoint
 src/                  validation, scoring, audits, bot workflow, rendering, prompt generation
 schemas/              JSON schemas for decision records
@@ -139,6 +142,12 @@ Use the same record with multiple roles:
 - `recorder`: writes the final auditable memo
 
 ## Bot Workflow
+
+Create or refresh local defaults:
+
+```bash
+node bin/decision-lab.js config --out .decision-lab.json
+```
 
 Use `ask` when you have only a rough question:
 

@@ -4,9 +4,12 @@
 
 ```bash
 node bin/decision-lab.js init
+node bin/decision-lab.js config --out .decision-lab.json
 ```
 
 Creates local folders for decisions, research, and outputs.
+
+`config` writes the default local settings file for owner, directories, quality gate thresholds, and stale decision age.
 
 ## Create
 

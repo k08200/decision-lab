@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.0
+
+### Added
+
+- Local `.decision-lab.json` defaults for owner, workspace directories, quality gates, and stale decision thresholds
+- `config` command for writing the default settings file
+
 ## 1.8.0
 
 ### Added

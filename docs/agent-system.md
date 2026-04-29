@@ -4,6 +4,12 @@ The bot layer is intentionally local-first. It does not require an API key to cr
 
 ## Commands
 
+`config` writes local defaults for owner, directories, quality gate thresholds, and stale decision age.
+
+```bash
+node bin/decision-lab.js config --out .decision-lab.json
+```
+
 `ask` turns a rough question into a valid decision record.
 
 ```bash
@@ -127,6 +133,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 ## What The Bot Does
 
 - infers decision type from the question
+- reads local defaults from `.decision-lab.json`
 - creates a schema-valid decision record
 - creates batches of decision drafts from inbox files
 - chooses a staged default when uncertainty is material

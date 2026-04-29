@@ -2,6 +2,8 @@
 
 Decision Lab is intentionally small, local-first, and dependency-free.
 
+`.decision-lab.json` is optional. When present, the CLI uses it for default owner, workspace directories, quality gate thresholds, and stale decision age.
+
 ## Modules
 
 - `bin/decision-lab.js`: CLI entrypoint and command routing

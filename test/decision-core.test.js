@@ -365,6 +365,23 @@ test("cli creates decision from rough question", () => {
   assert.match(decision.question, /AAPL/);
 });
 
+test("cli writes config and uses default owner", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-config-test-"));
+  const cliPath = path.resolve("bin/decision-lab.js");
+  const configPath = path.join(dir, ".decision-lab.json");
+
+  execFileSync("node", [cliPath, "config", "--out", configPath]);
+  const config = JSON.parse(readFileSync(configPath, "utf8"));
+  config.default_owner = "personal operator";
+  writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
+
+  const output = execFileSync("node", [cliPath, "ask", "Should I buy AAPL now?"], {
+    cwd: dir,
+    encoding: "utf8"
+  });
+  assert.equal(JSON.parse(output).owner, "personal operator");
+});
+
 test("cli creates inbox drafts and operating packs", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-inbox-test-"));
   const inboxPath = path.join(dir, "inbox.txt");

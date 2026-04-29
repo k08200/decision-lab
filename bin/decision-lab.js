@@ -61,11 +61,29 @@ import { createTemplate } from "../src/templates.js";
 
 const [, , command, ...args] = process.argv;
 
+const DEFAULT_CONFIG = {
+  schema_version: "0.1.0",
+  default_owner: "decision owner",
+  directories: {
+    drafts: "decisions/drafts",
+    active: "decisions/active",
+    reviewed: "decisions/reviewed",
+    outputs: "outputs",
+    sources: "research/sources"
+  },
+  quality_gate: {
+    min_score: 0.75,
+    require_operational: false
+  },
+  stale_after_days: 30
+};
+
 function printHelp() {
   console.log(`Decision Lab
 
 Usage:
   decision-lab init [directory]
+  decision-lab config [--out .decision-lab.json]
   decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
   decision-lab inbox <questions.txt> [--type type] [--owner name] [--out-dir decisions/drafts]
   decision-lab run <file.json> [--out-dir directory]
@@ -213,7 +231,29 @@ function initWorkspace(directory = ".") {
     fs.mkdirSync(fullPath, { recursive: true });
     fs.writeFileSync(path.join(fullPath, ".gitkeep"), "");
   }
+  const configPath = path.join(root, ".decision-lab.json");
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(configPath, `${JSON.stringify(DEFAULT_CONFIG, null, 2)}\n`);
+  }
   console.log(`Initialized Decision Lab workspace in ${root}`);
+}
+
+function loadWorkspaceConfig(root = ".") {
+  const configPath = path.join(path.resolve(root), ".decision-lab.json");
+  if (!fs.existsSync(configPath)) return structuredClone(DEFAULT_CONFIG);
+  const raw = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  return {
+    ...structuredClone(DEFAULT_CONFIG),
+    ...raw,
+    directories: {
+      ...DEFAULT_CONFIG.directories,
+      ...(raw.directories || {})
+    },
+    quality_gate: {
+      ...DEFAULT_CONFIG.quality_gate,
+      ...(raw.quality_gate || {})
+    }
+  };
 }
 
 function writeOperatingPack(records, { outDir, asOf, root = "." }) {
@@ -255,23 +295,30 @@ try {
     process.exit(0);
   }
 
+  if (command === "config") {
+    writeOrPrint(`${JSON.stringify(DEFAULT_CONFIG, null, 2)}\n`, readFlag(args, "--out"));
+    process.exit(0);
+  }
+
   if (command === "ask") {
+    const config = loadWorkspaceConfig();
     const question = readFlag(args, "--question") || readRestQuestion(args);
     const decision = createDecisionFromQuestion(question, {
       type: readFlag(args, "--type") || null,
-      owner: readFlag(args, "--owner") || null
+      owner: readFlag(args, "--owner") || config.default_owner
     });
     writeOrPrint(`${JSON.stringify(decision, null, 2)}\n`, readFlag(args, "--out"));
     process.exit(0);
   }
 
   if (command === "inbox") {
+    const config = loadWorkspaceConfig();
     const inboxPath = args[0];
     if (!inboxPath) throw new Error("Usage: decision-lab inbox <questions.txt>");
-    const outDir = readFlag(args, "--out-dir") || path.join("decisions", "drafts");
+    const outDir = readFlag(args, "--out-dir") || config.directories.drafts;
     const items = createDecisionsFromInbox(fs.readFileSync(path.resolve(inboxPath), "utf8"), {
       type: readFlag(args, "--type") || null,
-      owner: readFlag(args, "--owner") || null
+      owner: readFlag(args, "--owner") || config.default_owner
     });
     for (const item of items) {
       const root = path.join(outDir, item.slug);
@@ -294,13 +341,14 @@ try {
   }
 
   if (command === "pipeline") {
+    const config = loadWorkspaceConfig();
     const question = readFlag(args, "--question") || readRestQuestion(args);
     const decision = createDecisionFromQuestion(question, {
       type: readFlag(args, "--type") || null,
-      owner: readFlag(args, "--owner") || null
+      owner: readFlag(args, "--owner") || config.default_owner
     });
     const slug = readFlag(args, "--slug") || slugify(decision.title);
-    const root = readFlag(args, "--out-dir") || path.join("decisions", "drafts", slug);
+    const root = readFlag(args, "--out-dir") || path.join(config.directories.drafts, slug);
     fs.mkdirSync(root, { recursive: true });
     const recordPath = path.join(root, "decision.json");
     fs.writeFileSync(recordPath, `${JSON.stringify(decision, null, 2)}\n`);
@@ -556,9 +604,10 @@ try {
   }
 
   if (command === "gate") {
+    const config = loadWorkspaceConfig();
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
-    const minScore = Number(readFlag(args, "--min-score") || 0.75);
-    const requireOperational = args.includes("--operational");
+    const minScore = Number(readFlag(args, "--min-score") || config.quality_gate.min_score);
+    const requireOperational = args.includes("--operational") || Boolean(config.quality_gate.require_operational);
     const records = readDecisionFiles(root);
     const report = renderGateReport(records, { minScore, requireOperational });
     writeOrPrint(report, readFlag(args, "--out"));
@@ -566,9 +615,10 @@ try {
   }
 
   if (command === "stale") {
+    const config = loadWorkspaceConfig();
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderStaleReport(readDecisionFiles(root), {
-      days: Number(readFlag(args, "--days") || 30),
+      days: Number(readFlag(args, "--days") || config.stale_after_days),
       asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
     }), readFlag(args, "--out"));
     process.exit(0);
