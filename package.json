@@ -1,20 +1,27 @@
 {
   "name": "decision-lab",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
   "type": "module",
   "private": true,
   "bin": {
     "decision-lab": "./bin/decision-lab.js"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "check": "node --check bin/decision-lab.js && node --check src/decision-core.js && node --check src/decision-agent.js && node --check src/decision-export.js && node --check src/decision-tools.js && node --check src/templates.js && node --check test/decision-core.test.js",
     "test": "node --test",
+    "doctor": "node bin/decision-lab.js doctor",
+    "verify": "npm run check && npm test && npm run doctor",
     "example:investment": "node bin/decision-lab.js render examples/investment/nvidia_add_position.json",
     "example:business": "node bin/decision-lab.js render examples/business/enterprise_pricing_change.json",
     "example:audit": "node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json",
     "example:prompts": "node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.json --out-dir outputs/prompts",
-    "example:pipeline": "node bin/decision-lab.js pipeline \"Should we change enterprise pricing?\" --type business --slug pricing-example"
+    "example:pipeline": "node bin/decision-lab.js pipeline \"Should we change enterprise pricing?\" --type business --slug pricing-example",
+    "example:dashboard": "node bin/decision-lab.js dashboard examples --out outputs/dashboard.html",
+    "example:export": "node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv"
   },
   "keywords": [
     "decision",

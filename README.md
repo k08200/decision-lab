@@ -18,6 +18,7 @@ It is not a prompt pile. It is a way to turn a vague question into a durable dec
 
 ```bash
 npm test
+npm run verify
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing
 node bin/decision-lab.js new investment --out decisions/drafts/nvda.json
@@ -76,6 +77,10 @@ research/             sources and financial/model artifacts created by `init`
 outputs/              rendered memos, briefs, reviews, and prompts
 test/                 Node test runner tests
 ```
+
+## Architecture
+
+See [docs/architecture.md](docs/architecture.md) for the module map and data flow.
 
 ## Decision Types
 
