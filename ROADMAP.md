@@ -12,6 +12,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Source note import, source-linked evidence, due review reports, search, review worksheets, and status promotion
 - Portfolio-level risk, assumption, and source registers plus monthly review packs
 - Inbox batch drafting and full operating pack generation
+- Quality gates and stale decision reports
 - Standalone dashboard and CSV/JSON export
 - CI for syntax and test coverage
 

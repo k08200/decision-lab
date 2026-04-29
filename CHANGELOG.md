@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0
+
+### Added
+
+- Decision quality gate command for CI or personal operating review
+- Stale decision report for neglected records
+
 ## 1.3.0
 
 ### Added

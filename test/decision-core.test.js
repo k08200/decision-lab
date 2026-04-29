@@ -34,16 +34,19 @@ import {
   attachEvidence,
   attachSourceEvidence,
   createSourceNote,
+  evaluateGate,
   promoteDecision,
   renderAssumptionReport,
   renderCalibration,
   renderDoctor,
   renderDueReviews,
+  renderGateReport,
   renderMonthlyReview,
   renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
   renderSourceIndex,
+  renderStaleReport,
   setJsonPath,
   summarizeDecisionHealth
 } from "../src/decision-tools.js";
@@ -239,6 +242,14 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
 });
 
+test("evaluates quality gates and stale decisions", () => {
+  const records = [{ filePath: "business.json", decision: business }];
+  const gate = evaluateGate(records, { minScore: 0.9, requireOperational: true });
+  assert.equal(gate.passed, true);
+  assert.match(renderGateReport(records, { minScore: 0.9, requireOperational: true }), /PASS/);
+  assert.match(renderStaleReport(records, { asOf: "2026-08-01", days: 30 }), /business.json/);
+});
+
 test("exports decision rows and dashboard", () => {
   const records = [{ filePath: "pricing.json", decision: business }];
   const rows = buildDecisionRows(records);
@@ -381,6 +392,26 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "monthly", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Monthly Decision Review/);
+});
+
+test("cli evaluates gates and stale decisions", () => {
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "gate",
+    "examples",
+    "--min-score",
+    "0.9",
+    "--operational"
+  ], { encoding: "utf8" }), /Result: PASS/);
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "stale",
+    "examples",
+    "--as-of",
+    "2026-08-01",
+    "--days",
+    "30"
+  ], { encoding: "utf8" }), /Stale Decisions/);
 });
 
 test("cli promotes decision status", () => {

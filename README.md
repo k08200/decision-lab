@@ -67,6 +67,8 @@ decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY
 decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab search [directory] --query text [--out report.md]
 decision-lab doctor [directory] [--out report.md]
+decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
+decision-lab stale [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab promote <file.json> <draft|researching|decided|reviewed> [--out file.json]
 decision-lab review <file.json> [--out worksheet.md]
 decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
@@ -231,6 +233,13 @@ node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
+```
+
+Enforce quality and find neglected records:
+
+```bash
+node bin/decision-lab.js gate decisions --min-score 0.85 --operational
+node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
 ```
 
 ## Philosophy

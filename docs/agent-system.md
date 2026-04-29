@@ -74,6 +74,13 @@ node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/mont
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 ```
 
+`gate` and `stale` enforce quality and surface neglected records.
+
+```bash
+node bin/decision-lab.js gate decisions --min-score 0.85 --operational
+node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
+```
+
 `doctor` checks repository wiring and example decision validity.
 
 ```bash
@@ -111,6 +118,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - aggregates risk, assumption, and source registers
 - creates monthly operating review packs
 - writes full operating packs for recurring review
+- enforces quality gates and highlights stale decisions
 - renders a standalone HTML dashboard
 - exports decision summaries to CSV or JSON
 

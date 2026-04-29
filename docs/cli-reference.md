@@ -78,6 +78,8 @@ node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/pac
 node bin/decision-lab.js due decisions --as-of 2026-08-01
 node bin/decision-lab.js search decisions --query pricing
 node bin/decision-lab.js doctor
+node bin/decision-lab.js gate decisions --min-score 0.85 --operational
+node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review.md
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Report earlier."

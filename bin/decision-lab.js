@@ -40,11 +40,14 @@ import {
   renderDoctor,
   renderDueReviews,
   renderAssumptionReport,
+  evaluateGate,
+  renderGateReport,
   renderMonthlyReview,
   renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
   renderSourceIndex,
+  renderStaleReport,
   promoteDecision,
   setJsonPath,
   summarizeDecisionHealth
@@ -88,6 +91,8 @@ Usage:
   decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab search [directory] --query text [--out report.md]
   decision-lab doctor [directory] [--out report.md]
+  decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
+  decision-lab stale [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab promote <file.json> <draft|researching|decided|reviewed> [--out file.json]
   decision-lab review <file.json> [--out worksheet.md]
   decision-lab close <file.json> --outcome text [--lesson text] [--out file.json]
@@ -508,6 +513,25 @@ try {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : ".";
     const examples = readDecisionFiles(path.join(root, "examples"));
     writeOrPrint(renderDoctor({ root, examples }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "gate") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    const minScore = Number(readFlag(args, "--min-score") || 0.75);
+    const requireOperational = args.includes("--operational");
+    const records = readDecisionFiles(root);
+    const report = renderGateReport(records, { minScore, requireOperational });
+    writeOrPrint(report, readFlag(args, "--out"));
+    process.exit(evaluateGate(records, { minScore, requireOperational }).passed ? 0 : 1);
+  }
+
+  if (command === "stale") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderStaleReport(readDecisionFiles(root), {
+      days: Number(readFlag(args, "--days") || 30),
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
+    }), readFlag(args, "--out"));
     process.exit(0);
   }
 

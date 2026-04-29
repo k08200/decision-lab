@@ -426,6 +426,87 @@ export function renderMonthlyReview(records, asOf = new Date().toISOString().sli
   ].join("\n") + "\n";
 }
 
+export function evaluateGate(records, options = {}) {
+  const minScore = typeof options.minScore === "number" ? options.minScore : 0.75;
+  const requireOperational = Boolean(options.requireOperational);
+  const results = records.map(({ filePath, decision }) => {
+    const audit = auditDecision(decision);
+    const scorePassed = audit.score.ratio >= minScore;
+    const maturityPassed = !requireOperational || audit.maturity === "operational";
+    const validationPassed = audit.validation.valid;
+    return {
+      filePath,
+      decision,
+      audit,
+      passed: validationPassed && scorePassed && maturityPassed,
+      reasons: [
+        validationPassed ? "" : "invalid record",
+        scorePassed ? "" : `score below ${Math.round(minScore * 100)}%`,
+        maturityPassed ? "" : "not operational"
+      ].filter(Boolean)
+    };
+  });
+  return {
+    passed: results.every((result) => result.passed),
+    minScore,
+    requireOperational,
+    results
+  };
+}
+
+export function renderGateReport(records, options = {}) {
+  const gate = evaluateGate(records, options);
+  return [
+    "# Decision Quality Gate",
+    "",
+    `Minimum score: ${Math.round(gate.minScore * 100)}%`,
+    `Require operational: ${gate.requireOperational ? "yes" : "no"}`,
+    `Result: ${gate.passed ? "PASS" : "FAIL"}`,
+    "",
+    gate.results.length
+      ? table(["File", "Type", "Title", "Maturity", "Score", "Result", "Reasons"], gate.results.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        item.audit.maturity,
+        `${item.audit.score.score}/${item.audit.score.max_score}`,
+        item.passed ? "PASS" : "FAIL",
+        item.reasons.join("; ")
+      ]))
+      : "No decision records found."
+  ].join("\n") + "\n";
+}
+
+export function renderStaleReport(records, { asOf = new Date().toISOString().slice(0, 10), days = 30 } = {}) {
+  const asOfDate = parseDate(asOf);
+  const stale = records
+    .map(({ filePath, decision }) => {
+      const date = decision.updated_at || decision.created_at || "";
+      const age = date ? Math.floor((asOfDate - parseDate(date)) / 86_400_000) : null;
+      return { filePath, decision, date, age };
+    })
+    .filter((item) => item.age === null || item.age >= days)
+    .sort((a, b) => (b.age ?? Infinity) - (a.age ?? Infinity));
+
+  return [
+    "# Stale Decisions",
+    "",
+    `As of: ${asOf}`,
+    `Stale after days: ${days}`,
+    "",
+    stale.length
+      ? table(["File", "Type", "Title", "Status", "Updated", "Age Days"], stale.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        item.decision.status || "draft",
+        item.date || "unknown",
+        item.age === null ? "unknown" : String(item.age)
+      ]))
+      : "No stale decisions found."
+  ].join("\n") + "\n";
+}
+
 function normalizeEvidence(evidence) {
   const normalized = {
     claim: requireText(evidence.claim, "claim"),
