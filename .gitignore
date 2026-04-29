@@ -12,6 +12,7 @@ outputs/briefs/*
 !outputs/prompts/
 outputs/prompts/*
 !outputs/prompts/.gitkeep
+outputs/packs/*
 outputs/dashboard.html
 outputs/*.csv
 outputs/*.json

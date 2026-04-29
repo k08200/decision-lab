@@ -15,13 +15,13 @@ Decision Lab is intentionally small, local-first, and dependency-free.
 
 ```text
 rough question
-  -> ask/pipeline
+  -> ask/inbox/pipeline
   -> decision.json
   -> validate/audit/compare
   -> prompts for role review
   -> evidence/patch/set updates
   -> source notes/search/due reviews/portfolio registers/monthly review
-  -> memo/brief/review-plan/dashboard/export
+  -> memo/brief/review-plan/dashboard/export/operating pack
   -> close
   -> calibration
 ```

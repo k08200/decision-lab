@@ -12,6 +12,7 @@ Creates local folders for decisions, research, and outputs.
 
 ```bash
 node bin/decision-lab.js ask "Should I buy AAPL now?"
+node bin/decision-lab.js inbox inbox.txt --out-dir decisions/drafts
 node bin/decision-lab.js new investment
 ```
 
@@ -73,6 +74,7 @@ node bin/decision-lab.js risks decisions
 node bin/decision-lab.js assumptions decisions
 node bin/decision-lab.js sources decisions
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01
+node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 node bin/decision-lab.js due decisions --as-of 2026-08-01
 node bin/decision-lab.js search decisions --query pricing
 node bin/decision-lab.js doctor

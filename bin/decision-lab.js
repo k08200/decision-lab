@@ -18,6 +18,7 @@ import {
 } from "../src/decision-core.js";
 import {
   closeDecision,
+  createDecisionsFromInbox,
   createDecisionFromQuestion,
   renderLedger,
   renderOptionComparison,
@@ -58,6 +59,7 @@ function printHelp() {
 Usage:
   decision-lab init [directory]
   decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
+  decision-lab inbox <questions.txt> [--type type] [--owner name] [--out-dir decisions/drafts]
   decision-lab run <file.json> [--out-dir directory]
   decision-lab pipeline [question...] [--type type] [--owner name] [--slug name] [--out-dir directory]
   decision-lab new <general|investment|business|finance> [--out file.json]
@@ -82,6 +84,7 @@ Usage:
   decision-lab assumptions [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
   decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab search [directory] --query text [--out report.md]
   decision-lab doctor [directory] [--out report.md]
@@ -199,6 +202,26 @@ function initWorkspace(directory = ".") {
   console.log(`Initialized Decision Lab workspace in ${root}`);
 }
 
+function writeOperatingPack(records, { outDir, asOf, root = "." }) {
+  fs.mkdirSync(outDir, { recursive: true });
+  const artifacts = {
+    "ledger.md": renderLedger(records),
+    "dashboard.html": renderDashboard(records),
+    "decisions.csv": renderExport(records, "csv"),
+    "decisions.json": renderExport(records, "json"),
+    "calibration.md": renderCalibration(records),
+    "due.md": renderDueReviews(records, asOf),
+    "risks.md": renderRiskRegister(records),
+    "assumptions.md": renderAssumptionReport(records),
+    "sources.md": renderSourceIndex(records),
+    "monthly.md": renderMonthlyReview(records, asOf),
+    "doctor.md": renderDoctor({ root, examples: readDecisionFiles(path.join(root, "examples")) })
+  };
+  for (const [name, content] of Object.entries(artifacts)) {
+    fs.writeFileSync(path.join(outDir, name), content);
+  }
+}
+
 function renderCompare(decision) {
   return renderOptionComparison(decision);
 }
@@ -225,6 +248,23 @@ try {
       owner: readFlag(args, "--owner") || null
     });
     writeOrPrint(`${JSON.stringify(decision, null, 2)}\n`, readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "inbox") {
+    const inboxPath = args[0];
+    if (!inboxPath) throw new Error("Usage: decision-lab inbox <questions.txt>");
+    const outDir = readFlag(args, "--out-dir") || path.join("decisions", "drafts");
+    const items = createDecisionsFromInbox(fs.readFileSync(path.resolve(inboxPath), "utf8"), {
+      type: readFlag(args, "--type") || null,
+      owner: readFlag(args, "--owner") || null
+    });
+    for (const item of items) {
+      const root = path.join(outDir, item.slug);
+      fs.mkdirSync(root, { recursive: true });
+      fs.writeFileSync(path.join(root, "decision.json"), `${JSON.stringify(item.decision, null, 2)}\n`);
+    }
+    console.log(`Wrote ${items.length} decision draft(s) to ${outDir}`);
     process.exit(0);
   }
 
@@ -440,6 +480,15 @@ try {
   if (command === "monthly") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderMonthlyReview(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "pack") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    const asOf = readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10);
+    const outDir = readFlag(args, "--out-dir") || path.join("outputs", "packs", asOf);
+    writeOperatingPack(readDecisionFiles(root), { outDir, asOf, root: "." });
+    console.log(`Wrote operating pack to ${outDir}`);
     process.exit(0);
   }
 

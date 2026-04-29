@@ -10,6 +10,12 @@ The bot layer is intentionally local-first. It does not require an API key to cr
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 ```
 
+`inbox` turns a plain text list of questions into multiple decision drafts.
+
+```bash
+node bin/decision-lab.js inbox inbox.txt --out-dir decisions/drafts
+```
+
 `run` takes an existing record and generates the full artifact set.
 
 ```bash
@@ -62,6 +68,12 @@ node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 ```
 
+`pack` writes the full operating report set in one directory.
+
+```bash
+node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
+```
+
 `doctor` checks repository wiring and example decision validity.
 
 ```bash
@@ -85,6 +97,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 
 - infers decision type from the question
 - creates a schema-valid decision record
+- creates batches of decision drafts from inbox files
 - chooses a staged default when uncertainty is material
 - generates option scores
 - creates role prompts for analyst, skeptic, CFO, CEO, operator, risk, and recorder
@@ -97,6 +110,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - produces review worksheets and status promotion updates
 - aggregates risk, assumption, and source registers
 - creates monthly operating review packs
+- writes full operating packs for recurring review
 - renders a standalone HTML dashboard
 - exports decision summaries to CSV or JSON
 

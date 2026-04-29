@@ -38,6 +38,7 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 ```bash
 decision-lab init [directory]
 decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
+decision-lab inbox <questions.txt> [--type type] [--owner name] [--out-dir decisions/drafts]
 decision-lab run <file.json> [--out-dir directory]
 decision-lab pipeline [question...] [--type type] [--owner name] [--slug name] [--out-dir directory]
 decision-lab new <general|investment|business|finance> [--out file.json]
@@ -62,6 +63,7 @@ decision-lab risks [directory] [--out report.md]
 decision-lab assumptions [directory] [--out report.md]
 decision-lab sources [directory] [--out report.md]
 decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
 decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab search [directory] --query text [--out report.md]
 decision-lab doctor [directory] [--out report.md]
@@ -146,6 +148,12 @@ Use `pipeline` to do both at once:
 node bin/decision-lab.js pipeline "Should we hire two engineers despite runway pressure?" --type finance --slug hiring-runway
 ```
 
+Use `inbox` when you have several rough questions:
+
+```bash
+node bin/decision-lab.js inbox inbox.txt --out-dir decisions/drafts
+```
+
 The pipeline writes:
 
 - `decision.json`
@@ -222,6 +230,7 @@ node bin/decision-lab.js risks decisions --out outputs/risks.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
+node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 ```
 
 ## Philosophy

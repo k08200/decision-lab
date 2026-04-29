@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+### Added
+
+- Inbox batch creation from plain text decision questions
+- Full operating pack generation with ledger, dashboard, exports, calibration, due reviews, risk register, assumption register, source index, monthly report, and doctor report
+
 ## 1.2.0
 
 ### Added

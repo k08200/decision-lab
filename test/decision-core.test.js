@@ -17,8 +17,10 @@ import {
 } from "../src/decision-core.js";
 import {
   closeDecision,
+  createDecisionsFromInbox,
   createDecisionFromQuestion,
   inferDecisionType,
+  parseInboxQuestions,
   renderLedger,
   runDecisionWorkflow
 } from "../src/decision-agent.js";
@@ -123,6 +125,18 @@ test("creates valid decision records from a rough question", () => {
   const result = validateDecision(decision);
   assert.equal(decision.decision_type, "investment");
   assert.equal(result.valid, true, JSON.stringify(result.issues, null, 2));
+});
+
+test("creates decision drafts from inbox text", () => {
+  const questions = parseInboxQuestions(`
+# ignored
+- Should I buy AAPL now?
+Should we change enterprise pricing?
+`);
+  assert.equal(questions.length, 2);
+  const decisions = createDecisionsFromInbox(questions.join("\n"), { now: "2026-04-29" });
+  assert.equal(decisions.length, 2);
+  assert.equal(decisions[0].decision.decision_type, "investment");
 });
 
 test("runs full decision workflow artifacts", () => {
@@ -255,6 +269,35 @@ test("cli creates decision from rough question", () => {
   const decision = JSON.parse(output);
   assert.equal(decision.decision_type, "investment");
   assert.match(decision.question, /AAPL/);
+});
+
+test("cli creates inbox drafts and operating packs", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-inbox-test-"));
+  const inboxPath = path.join(dir, "inbox.txt");
+  const draftsDir = path.join(dir, "drafts");
+  const packDir = path.join(dir, "pack");
+  writeFileSync(inboxPath, "Should I buy AAPL now?\nShould we change enterprise pricing?\n");
+
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "inbox",
+    inboxPath,
+    "--out-dir",
+    draftsDir
+  ], { encoding: "utf8" }), /Wrote 2 decision draft/);
+
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "pack",
+    draftsDir,
+    "--out-dir",
+    packDir,
+    "--as-of",
+    "2026-08-01"
+  ], { encoding: "utf8" }), /Wrote operating pack/);
+
+  assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
+  assert.match(readFileSync(path.join(packDir, "dashboard.html"), "utf8"), /Decision Lab Dashboard/);
 });
 
 test("cli applies evidence and patch commands", () => {

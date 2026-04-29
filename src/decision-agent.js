@@ -78,6 +78,22 @@ export function createDecisionFromQuestion(question, options = {}) {
   return decision;
 }
 
+export function parseInboxQuestions(text) {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
+    .map((line) => line.replace(/^[-*]\s+/, "").trim())
+    .filter(Boolean);
+}
+
+export function createDecisionsFromInbox(text, options = {}) {
+  return parseInboxQuestions(text).map((question) => ({
+    slug: slugify(question),
+    decision: createDecisionFromQuestion(question, options)
+  }));
+}
+
 export function runDecisionWorkflow(decision) {
   const validation = validateDecision(decision);
   const audit = auditDecision(decision);
