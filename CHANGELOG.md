@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.12.0
+
+### Added
+
+- Owner report command for active records, reviewed records, due reviews, and explicit actions by owner
+- Operating packs now include `owners.md`
+
 ## 2.11.0
 
 ### Added

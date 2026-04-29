@@ -96,6 +96,7 @@ node bin/decision-lab.js lessons decisions
 node bin/decision-lab.js risks decisions
 node bin/decision-lab.js assumptions decisions
 node bin/decision-lab.js sources decisions
+node bin/decision-lab.js owners decisions --as-of 2026-08-01
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01
 node bin/decision-lab.js next decisions --as-of 2026-08-01

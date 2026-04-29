@@ -540,6 +540,38 @@ export function renderSourceIndex(records) {
   ].join("\n") + "\n";
 }
 
+export function renderOwnerReport(records, asOf = new Date().toISOString().slice(0, 10)) {
+  const rows = Object.entries(groupBy(records, ({ decision }) => decision.owner || "unassigned"))
+    .map(([owner, items]) => {
+      const active = items.filter(({ decision }) => ["draft", "researching", "decided"].includes(decision.status || "draft"));
+      const reviewed = items.filter(({ decision }) => decision.status === "reviewed");
+      const due = items.filter(({ decision }) => {
+        const date = decision.recommendation?.review_date || decision.post_decision_review?.review_date || "";
+        return isIsoDate(date) && parseDate(date) <= parseDate(asOf);
+      });
+      const actions = items.reduce((sum, { decision }) => sum + (decision.next_actions || []).length, 0);
+      return { owner, count: items.length, active: active.length, reviewed: reviewed.length, due: due.length, actions };
+    })
+    .sort((a, b) => b.active - a.active || b.actions - a.actions || a.owner.localeCompare(b.owner));
+
+  return [
+    "# Owner Report",
+    "",
+    `As of: ${asOf}`,
+    "",
+    rows.length
+      ? table(["Owner", "Records", "Active", "Reviewed", "Due Reviews", "Explicit Actions"], rows.map((row) => [
+        row.owner,
+        String(row.count),
+        String(row.active),
+        String(row.reviewed),
+        String(row.due),
+        String(row.actions)
+      ]))
+      : "No decision records found."
+  ].join("\n") + "\n";
+}
+
 export function renderMonthlyReview(records, asOf = new Date().toISOString().slice(0, 10)) {
   const active = records.filter(({ decision }) => ["draft", "researching", "decided"].includes(decision.status || "draft"));
   const reviewed = records.filter(({ decision }) => decision.status === "reviewed");

@@ -52,6 +52,7 @@ import {
   renderIntegrityManifest,
   renderLessonsReport,
   renderMonthlyReview,
+  renderOwnerReport,
   renderPremortem,
   renderPortfolioBriefing,
   renderPriorityReview,
@@ -130,6 +131,7 @@ Usage:
   decision-lab risks [directory] [--out report.md]
   decision-lab assumptions [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
+  decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -294,6 +296,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "risks.md": renderRiskRegister(records),
     "assumptions.md": renderAssumptionReport(records),
     "sources.md": renderSourceIndex(records),
+    "owners.md": renderOwnerReport(records, asOf),
     "briefing.md": renderPortfolioBriefing(records, asOf),
     "monthly.md": renderMonthlyReview(records, asOf),
     "next.md": renderActionQueue(records, asOf),
@@ -649,6 +652,12 @@ try {
   if (command === "sources") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderSourceIndex(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "owners") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderOwnerReport(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
     process.exit(0);
   }
 
