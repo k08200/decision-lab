@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.35.0
+
+### Added
+
+- Executive summary command for one-page portfolio health, priorities, risks, and next moves
+- Operating packs and weekly packs now include `executive.md`
+
 ## 2.34.0
 
 ### Added

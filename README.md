@@ -102,6 +102,7 @@ decision-lab sensitivities [directory] [--out report.md]
 decision-lab guardrails [directory] [--out report.md]
 decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab executive [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
 decision-lab playbook [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
 decision-lab scorecard [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
 decision-lab triage [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
@@ -312,6 +313,7 @@ node bin/decision-lab.js sensitivities decisions --out outputs/sensitivities.md
 node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md
 node bin/decision-lab.js owners decisions --as-of 2026-08-01 --out outputs/owners.md
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md
+node bin/decision-lab.js executive decisions --as-of 2026-08-01 --out outputs/executive.md
 node bin/decision-lab.js playbook decisions --as-of 2026-08-01 --out outputs/playbook.md
 node bin/decision-lab.js scorecard decisions --as-of 2026-08-01 --out outputs/scorecard.md
 node bin/decision-lab.js triage decisions --as-of 2026-08-01 --out outputs/triage.md

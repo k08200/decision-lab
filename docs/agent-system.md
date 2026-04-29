@@ -109,7 +109,7 @@ node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memo
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 ```
 
-`risks`, `assumptions`, `sources`, `owners`, `briefing`, `monthly`, `next`, `prioritize`, and `timeline` turn individual records into portfolio-level operating reports.
+`risks`, `assumptions`, `sources`, `owners`, `briefing`, `executive`, `monthly`, `next`, `prioritize`, and `timeline` turn individual records into portfolio-level operating reports.
 
 ```bash
 node bin/decision-lab.js risks decisions --out outputs/risks.md
@@ -121,6 +121,7 @@ node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-sco
 node bin/decision-lab.js signals decisions --as-of 2026-08-01 --out outputs/signals.md
 node bin/decision-lab.js owners decisions --as-of 2026-08-01 --out outputs/owners.md
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md
+node bin/decision-lab.js executive decisions --as-of 2026-08-01 --out outputs/executive.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md
@@ -138,6 +139,12 @@ node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/w
 
 ```bash
 node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out outputs/agenda.md
+```
+
+`executive` writes a one-page summary of health, priorities, risks, and next moves.
+
+```bash
+node bin/decision-lab.js executive decisions --as-of 2026-08-01 --out outputs/executive.md
 ```
 
 `playbook` recommends the next operating commands from the current portfolio state.

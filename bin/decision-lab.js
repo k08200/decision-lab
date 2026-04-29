@@ -53,6 +53,7 @@ import {
   renderAssumptionTestQueue,
   evaluateGate,
   renderEvidenceScorecard,
+  renderExecutiveSummary,
   renderGateReport,
   renderGuardrailReport,
   renderHypothesisRegister,
@@ -164,6 +165,7 @@ Usage:
   decision-lab guardrails [directory] [--out report.md]
   decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab executive [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab playbook [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab scorecard [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab triage [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
@@ -356,6 +358,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "next.md": renderActionQueue(records, asOf),
     "priorities.md": renderPriorityReview(records, asOf),
     "agenda.md": renderDecisionAgenda(records, { asOf }),
+    "executive.md": renderExecutiveSummary(records, { asOf }),
     "timeline.md": renderTimeline(records),
     "doctor.md": renderDoctor({ root, examples: readDecisionFiles(path.join(root, "examples")) })
   };
@@ -368,6 +371,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
   fs.mkdirSync(outDir, { recursive: true });
   const artifacts = {
     "agenda.md": renderDecisionAgenda(records, { asOf }),
+    "executive.md": renderExecutiveSummary(records, { asOf }),
     "playbook.md": renderOperatingPlaybook(records, { asOf }),
     "scorecard.md": renderOperatingScorecard(records, { asOf }),
     "triage.md": renderTriageReport(records, { asOf }),
@@ -842,6 +846,16 @@ try {
   if (command === "briefing") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderPortfolioBriefing(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "executive") {
+    const config = loadWorkspaceConfig();
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderExecutiveSummary(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
+      staleDays: Number(readFlag(args, "--days") || config.stale_after_days)
+    }), readFlag(args, "--out"));
     process.exit(0);
   }
 

@@ -101,6 +101,7 @@ export function renderReportCatalog() {
     ["Single Record", "premortem", "Stress-test failure modes before acting.", "before commitment"],
     ["Single Record", "research-plan", "Convert weak evidence and open questions into research tasks.", "before commitment"],
     ["Portfolio", "agenda", "Build a near-term operating agenda from priorities, reviews, debt, and actions.", "daily or weekly"],
+    ["Portfolio", "executive", "Write a one-page executive summary of portfolio health, priorities, risks, and next moves.", "daily or weekly"],
     ["Portfolio", "playbook", "Recommend the next operating commands from portfolio state.", "daily or weekly"],
     ["Portfolio", "scorecard", "Summarize portfolio health, quality, debt, evidence, reviews, and ownership.", "weekly"],
     ["Portfolio", "triage", "Classify each decision into the next operating lane.", "daily or weekly"],
@@ -361,6 +362,78 @@ export function renderOperatingScorecard(records, { asOf = new Date().toISOStrin
           item.audit.maturity
         ]))
       : "No decision records found."
+  ].join("\n") + "\n";
+}
+
+export function renderExecutiveSummary(records, { asOf = new Date().toISOString().slice(0, 10), staleDays = 30 } = {}) {
+  const audits = records.map(({ filePath, decision }) => ({ filePath, decision, audit: auditDecision(decision) }));
+  const active = audits.filter((item) => (item.decision.status || "draft") !== "reviewed");
+  const reviewed = audits.filter((item) => item.decision.status === "reviewed");
+  const activeRecords = active.map(({ filePath, decision }) => ({ filePath, decision }));
+  const dueReviews = getDueReviewRecords(records, asOf);
+  const debtItems = records.flatMap(({ filePath, decision }) => decisionDebtItems(filePath, decision, { asOf, staleDays }));
+  const highRisks = activeRecords.flatMap(({ filePath, decision }) => (
+    (decision.risks || [])
+      .filter((risk) => risk.impact === "high")
+      .map((risk) => ({ filePath, decision, risk }))
+  ));
+  const weakEvidence = activeRecords.filter(({ decision }) => !(decision.evidence || []).some((item) => item.strength === "strong"));
+  const lessons = records.flatMap(({ decision }) => decision.post_decision_review?.lessons || []);
+  const priorities = active
+    .map((item) => ({ ...item, priority: priorityScore(item.decision, item.audit, asOf) }))
+    .sort((a, b) => b.priority.score - a.priority.score || a.filePath.localeCompare(b.filePath))
+    .slice(0, 5);
+
+  return [
+    "# Executive Decision Summary",
+    "",
+    `As of: ${asOf}`,
+    "",
+    "## Snapshot",
+    table(["Metric", "Value"], [
+      ["Decision records", String(records.length)],
+      ["Active decisions", String(active.length)],
+      ["Reviewed decisions", String(reviewed.length)],
+      ["Due reviews", String(dueReviews.length)],
+      ["Decision debt items", String(debtItems.length)],
+      ["High-impact risks", String(highRisks.length)],
+      ["Records without strong evidence", String(weakEvidence.length)],
+      ["Lessons captured", String(lessons.length)]
+    ]),
+    "",
+    "## Executive Readout",
+    executiveReadout({ records, active, reviewed, dueReviews, debtItems, highRisks, weakEvidence, lessons }),
+    "",
+    "## Top Priorities",
+    priorities.length
+      ? table(["Rank", "Priority", "File", "Status", "Decision", "Why Now", "Next Move"], priorities.map((item, index) => [
+        String(index + 1),
+        String(item.priority.score),
+        item.filePath,
+        item.decision.status || "draft",
+        item.decision.title,
+        item.priority.reasons.join("; "),
+        executiveNextMove(item.decision, item.audit, asOf, staleDays)
+      ]))
+      : "No priorities found.",
+    "",
+    "## Key Risks",
+    highRisks.length
+      ? table(["File", "Decision", "Risk", "Trigger", "Mitigation"], highRisks.slice(0, 8).map((item) => [
+        item.filePath,
+        item.decision.title,
+        item.risk.risk || "",
+        item.risk.trigger || "",
+        item.risk.mitigation || ""
+      ]))
+      : "No high-impact risks found.",
+    "",
+    "## Recommended Commands",
+    "```bash",
+    `node bin/decision-lab.js playbook decisions --as-of ${asOf}`,
+    `node bin/decision-lab.js triage decisions --as-of ${asOf}`,
+    `node bin/decision-lab.js agenda decisions --as-of ${asOf} --horizon 14`,
+    "```"
   ].join("\n") + "\n";
 }
 
@@ -2085,6 +2158,24 @@ function triageRank(lane) {
 
 function playbookStep(work, count, command) {
   return { work, count, command };
+}
+
+function executiveReadout({ records, active, reviewed, dueReviews, debtItems, highRisks, weakEvidence, lessons }) {
+  if (!records.length) return "- No decision records found.";
+  const lines = [];
+  lines.push(`- The system is tracking ${records.length} decision record(s), with ${active.length} active and ${reviewed.length} reviewed.`);
+  if (dueReviews.length) lines.push(`- ${dueReviews.length} review(s) are due; close the loop before hardening new conclusions.`);
+  if (debtItems.length) lines.push(`- ${debtItems.length} debt item(s) need cleanup across quality, evidence, ownership, or staleness.`);
+  if (highRisks.length) lines.push(`- ${highRisks.length} high-impact risk(s) need visible triggers and mitigations.`);
+  if (weakEvidence.length) lines.push(`- ${weakEvidence.length} record(s) still lack at least one strong evidence item.`);
+  if (lessons.length) lines.push(`- ${lessons.length} lesson(s) have been captured and can be fed back into future decisions.`);
+  if (lines.length === 1) lines.push("- No urgent operating issue is visible from the current records.");
+  return lines.join("\n");
+}
+
+function executiveNextMove(decision, audit, asOf, staleDays) {
+  const debt = decisionDebtItems("", decision, { asOf, staleDays });
+  return triageDecision(decision, audit, debt, asOf).nextMove;
 }
 
 function outcomeRow(filePath, decision) {

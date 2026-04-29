@@ -51,6 +51,7 @@ import {
   renderDoctor,
   renderDueReviews,
   renderEvidenceScorecard,
+  renderExecutiveSummary,
   renderGateReport,
   renderGuardrailReport,
   renderHypothesisRegister,
@@ -315,6 +316,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderScenarioReport(records), /Scenario Report/);
   assert.match(renderSensitivityReport(records), /Sensitivity Report/);
   assert.match(renderGuardrailReport(records), /Guardrail Report/);
+  assert.match(renderExecutiveSummary(records, { asOf: "2026-08-01", staleDays: 30 }), /Executive Decision Summary/);
   assert.match(renderOperatingPlaybook(records, { asOf: "2026-08-01", staleDays: 30, root: "examples" }), /Operating Playbook/);
   assert.match(renderOutcomeScorecard([{ filePath: "business.json", decision: closeDecision(business, { outcome: "Pilot worked.", lessons: ["Keep pilot scope explicit."] }) }]), /Complete reviews/);
   assert.match(renderOperatingScorecard(records, { asOf: "2026-08-01", staleDays: 30 }), /Operating Scorecard/);
@@ -553,6 +555,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "triage.md"), "utf8"), /Decision Triage/);
   assert.match(readFileSync(path.join(packDir, "owners.md"), "utf8"), /Owner Report/);
   assert.match(readFileSync(path.join(packDir, "briefing.md"), "utf8"), /Portfolio Briefing/);
+  assert.match(readFileSync(path.join(packDir, "executive.md"), "utf8"), /Executive Decision Summary/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
   assert.match(readFileSync(path.join(packDir, "priorities.md"), "utf8"), /Decision Priority Review/);
   assert.match(readFileSync(path.join(packDir, "agenda.md"), "utf8"), /Decision Agenda/);
@@ -569,6 +572,7 @@ test("cli creates inbox drafts and operating packs", () => {
     "2026-08-01"
   ], { encoding: "utf8" }), /Wrote weekly pack/);
   assert.match(readFileSync(path.join(weeklyDir, "agenda.md"), "utf8"), /Decision Agenda/);
+  assert.match(readFileSync(path.join(weeklyDir, "executive.md"), "utf8"), /Executive Decision Summary/);
   assert.match(readFileSync(path.join(weeklyDir, "playbook.md"), "utf8"), /Operating Playbook/);
   assert.match(readFileSync(path.join(weeklyDir, "triage.md"), "utf8"), /Decision Triage/);
   assert.match(readFileSync(path.join(weeklyDir, "scenarios.md"), "utf8"), /Scenario Report/);
@@ -753,6 +757,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "briefing", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Portfolio Briefing/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "executive", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Executive Decision Summary/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "monthly", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Monthly Decision Review/);

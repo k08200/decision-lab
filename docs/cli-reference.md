@@ -110,6 +110,7 @@ node bin/decision-lab.js sensitivities decisions
 node bin/decision-lab.js guardrails decisions
 node bin/decision-lab.js owners decisions --as-of 2026-08-01
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01
+node bin/decision-lab.js executive decisions --as-of 2026-08-01
 node bin/decision-lab.js playbook decisions --as-of 2026-08-01
 node bin/decision-lab.js scorecard decisions --as-of 2026-08-01
 node bin/decision-lab.js triage decisions --as-of 2026-08-01
