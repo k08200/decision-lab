@@ -31,7 +31,9 @@ node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrat
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js next examples --as-of 2026-08-01 --out outputs/next.md
+node bin/decision-lab.js timeline examples --out outputs/timeline.md
 node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
+node bin/decision-lab.js snapshot examples/business/enterprise_pricing_change.json --out-dir decisions/snapshots --label before-review
 node bin/decision-lab.js diff decisions/snapshots/pricing-before.json decisions/active/pricing.json --out outputs/diffs/pricing.md
 node bin/decision-lab.js graph examples/business/enterprise_pricing_change.json --out outputs/graphs/pricing.md
 node bin/decision-lab.js premortem examples/investment/nvidia_add_position.json --out outputs/premortems/nvda.md
@@ -63,6 +65,7 @@ decision-lab source-evidence <file.json> <source-file> --claim text [--strength 
 decision-lab patch <file.json> <patch.json> [--out file.json]
 decision-lab set <file.json> <path> <json-value> [--out file.json]
 decision-lab migrate <file.json> [--out file.json] [--report report.md]
+decision-lab snapshot <file.json> [--out-dir decisions/snapshots] [--label text]
 decision-lab render <file.json> [--out memo.md]
 decision-lab brief <file.json> [--out brief.md]
 decision-lab review-plan <file.json> [--out review.md]
@@ -75,6 +78,7 @@ decision-lab assumptions [directory] [--out report.md]
 decision-lab sources [directory] [--out report.md]
 decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab timeline [directory] [--out report.md]
 decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
 decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab search [directory] --query text [--out report.md]
@@ -252,6 +256,7 @@ node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
+node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 ```
 
@@ -271,6 +276,7 @@ node bin/decision-lab.js graph decisions/active/pricing.json --out outputs/graph
 Compare two versions of a record:
 
 ```bash
+node bin/decision-lab.js snapshot decisions/active/pricing.json --label before-change
 node bin/decision-lab.js diff decisions/snapshots/pricing-before.json decisions/active/pricing.json --out outputs/diffs/pricing.md
 ```
 

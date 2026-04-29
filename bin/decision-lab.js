@@ -54,6 +54,7 @@ import {
   renderSearchResults,
   renderSourceIndex,
   renderStaleReport,
+  renderTimeline,
   promoteDecision,
   setJsonPath,
   summarizeDecisionHealth
@@ -69,6 +70,7 @@ const DEFAULT_CONFIG = {
     drafts: "decisions/drafts",
     active: "decisions/active",
     reviewed: "decisions/reviewed",
+    snapshots: "decisions/snapshots",
     outputs: "outputs",
     sources: "research/sources"
   },
@@ -104,6 +106,7 @@ Usage:
   decision-lab patch <file.json> <patch.json> [--out file.json]
   decision-lab set <file.json> <path> <json-value> [--out file.json]
   decision-lab migrate <file.json> [--out file.json] [--report report.md]
+  decision-lab snapshot <file.json> [--out-dir decisions/snapshots] [--label text]
   decision-lab render <file.json> [--out memo.md]
   decision-lab brief <file.json> [--out brief.md]
   decision-lab review-plan <file.json> [--out review.md]
@@ -116,6 +119,7 @@ Usage:
   decision-lab sources [directory] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab timeline [directory] [--out report.md]
   decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
   decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab search [directory] --query text [--out report.md]
@@ -222,6 +226,7 @@ function initWorkspace(directory = ".") {
     "decisions/drafts",
     "decisions/active",
     "decisions/reviewed",
+    "decisions/snapshots",
     "outputs/memos",
     "outputs/briefs",
     "outputs/prompts",
@@ -272,6 +277,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "sources.md": renderSourceIndex(records),
     "monthly.md": renderMonthlyReview(records, asOf),
     "next.md": renderActionQueue(records, asOf),
+    "timeline.md": renderTimeline(records),
     "doctor.md": renderDoctor({ root, examples: readDecisionFiles(path.join(root, "examples")) })
   };
   for (const [name, content] of Object.entries(artifacts)) {
@@ -281,6 +287,15 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
 
 function renderCompare(decision) {
   return renderOptionComparison(decision);
+}
+
+function writeSnapshot(filePath, decision, { outDir, label, date }) {
+  const suffix = label ? `-${slugify(label)}` : "";
+  const name = `${date}-${slugify(decision.title || path.basename(filePath, ".json"))}${suffix}.json`;
+  const snapshotPath = path.join(outDir, name);
+  fs.mkdirSync(path.resolve(outDir), { recursive: true });
+  fs.writeFileSync(snapshotPath, `${JSON.stringify(decision, null, 2)}\n`);
+  return snapshotPath;
 }
 
 function escapeCell(value) {
@@ -377,6 +392,20 @@ try {
     const reportPath = readFlag(args, "--report");
     if (reportPath) writeOrPrint(renderMigrationReport(before, migrated), reportPath);
     process.exit(validateDecision(migrated).valid ? 0 : 1);
+  }
+
+  if (command === "snapshot") {
+    const config = loadWorkspaceConfig();
+    const filePath = args[0];
+    if (!filePath) throw new Error("Usage: decision-lab snapshot <file.json>");
+    const decision = requireFile(filePath);
+    const snapshotPath = writeSnapshot(filePath, decision, {
+      outDir: readFlag(args, "--out-dir") || config.directories.snapshots,
+      label: readFlag(args, "--label") || "",
+      date: readFlag(args, "--date") || new Date().toISOString().slice(0, 10)
+    });
+    console.log(`Wrote ${snapshotPath}`);
+    process.exit(0);
   }
 
   if (command === "validate") {
@@ -581,6 +610,12 @@ try {
   if (command === "next") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderActionQueue(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "timeline") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderTimeline(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

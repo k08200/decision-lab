@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0
+
+### Added
+
+- Snapshot command for saving point-in-time copies of decision records
+- Timeline report for created, updated, deadline, and review events
+- Operating packs now include `timeline.md`
+
 ## 2.0.0
 
 ### Added

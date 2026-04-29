@@ -480,6 +480,33 @@ export function renderActionQueue(records, asOf = new Date().toISOString().slice
   ].join("\n") + "\n";
 }
 
+export function renderTimeline(records) {
+  const events = records.flatMap(({ filePath, decision }) => [
+    timelineEvent(filePath, decision, "created", decision.created_at),
+    timelineEvent(filePath, decision, "updated", decision.updated_at),
+    timelineEvent(filePath, decision, "deadline", decision.recommendation?.decision_deadline),
+    timelineEvent(filePath, decision, "review", decision.recommendation?.review_date || decision.post_decision_review?.review_date)
+  ].filter(Boolean)).sort((a, b) => a.date.localeCompare(b.date) || a.filePath.localeCompare(b.filePath));
+
+  return [
+    "# Decision Timeline",
+    "",
+    `Events: ${events.length}`,
+    "",
+    events.length
+      ? table(["Date", "Event", "File", "Status", "Type", "Decision", "Recommendation"], events.map((event) => [
+        event.date,
+        event.kind,
+        event.filePath,
+        event.decision.status || "draft",
+        event.decision.decision_type,
+        event.decision.title,
+        event.decision.recommendation?.decision || ""
+      ]))
+      : "No timeline events found."
+  ].join("\n") + "\n";
+}
+
 export function evaluateGate(records, options = {}) {
   const minScore = typeof options.minScore === "number" ? options.minScore : 0.75;
   const requireOperational = Boolean(options.requireOperational);
@@ -674,6 +701,15 @@ export function renderPremortem(decision) {
     "- Assign an owner for the first review date.",
     "- Record the evidence that would make the opposite decision more attractive."
   ].join("\n") + "\n";
+}
+
+function timelineEvent(filePath, decision, kind, date) {
+  if (!date || !isIsoDate(date)) return null;
+  return { filePath, decision, kind, date };
+}
+
+function isIsoDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 function normalizeEvidence(evidence) {

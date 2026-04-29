@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
@@ -53,6 +53,7 @@ import {
   renderSearchResults,
   renderSourceIndex,
   renderStaleReport,
+  renderTimeline,
   setJsonPath,
   summarizeDecisionHealth
 } from "../src/decision-tools.js";
@@ -270,6 +271,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderSourceIndex(records), /Source Index/);
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
   assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
+  assert.match(renderTimeline(records), /Decision Timeline/);
 });
 
 test("renders decision graphs", () => {
@@ -384,6 +386,32 @@ test("cli writes config and uses default owner", () => {
   assert.equal(JSON.parse(output).owner, "personal operator");
 });
 
+test("cli snapshots decision records", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-snapshot-test-"));
+  const decisionPath = path.join(dir, "decision.json");
+  const outDir = path.join(dir, "snapshots");
+  writeFileSync(decisionPath, `${JSON.stringify(business, null, 2)}\n`);
+
+  const output = execFileSync("node", [
+    "bin/decision-lab.js",
+    "snapshot",
+    decisionPath,
+    "--out-dir",
+    outDir,
+    "--date",
+    "2026-04-29",
+    "--label",
+    "before pilot"
+  ], { encoding: "utf8" });
+
+  assert.match(output, /Wrote/);
+  assert.match(output, /before-pilot/);
+  const snapshots = readdirSync(outDir);
+  assert.equal(snapshots.length, 1);
+  assert.match(snapshots[0], /before-pilot/);
+  assert.match(readFileSync(path.join(outDir, snapshots[0]), "utf8"), /Move Enterprise Plan/);
+});
+
 test("cli creates inbox drafts and operating packs", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-inbox-test-"));
   const inboxPath = path.join(dir, "inbox.txt");
@@ -411,6 +439,7 @@ test("cli creates inbox drafts and operating packs", () => {
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
+  assert.match(readFileSync(path.join(packDir, "timeline.md"), "utf8"), /Decision Timeline/);
   assert.match(readFileSync(path.join(packDir, "dashboard.html"), "utf8"), /Decision Lab Dashboard/);
 });
 
@@ -530,6 +559,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "next", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Action Queue/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "timeline", "examples"], {
+    encoding: "utf8"
+  }), /Decision Timeline/);
 });
 
 test("cli evaluates gates and stale decisions", () => {

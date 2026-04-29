@@ -57,6 +57,7 @@ node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sou
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrations/aapl.md
+node bin/decision-lab.js snapshot decisions/active/aapl.json --label before-change
 ```
 
 `patch` accepts JSON patch operations with `add`, `replace`, and `remove`.
@@ -90,6 +91,7 @@ node bin/decision-lab.js assumptions decisions
 node bin/decision-lab.js sources decisions
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01
 node bin/decision-lab.js next decisions --as-of 2026-08-01
+node bin/decision-lab.js timeline decisions
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 node bin/decision-lab.js due decisions --as-of 2026-08-01
 node bin/decision-lab.js search decisions --query pricing

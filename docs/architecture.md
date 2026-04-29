@@ -10,7 +10,7 @@ Decision Lab is intentionally small, local-first, and dependency-free.
 - `src/templates.js`: blank schema-compatible record templates
 - `src/decision-core.js`: validation, scoring, audits, role prompts, and Markdown rendering
 - `src/decision-agent.js`: local bot workflow, schema migration, pipeline artifacts, ledger, and close-out review
-- `src/decision-tools.js`: source notes, evidence attachment, JSON patching, graph, diff, premortem, and action queue rendering, due reviews, search, portfolio registers, monthly review packs, calibration, doctor, and health summaries
+- `src/decision-tools.js`: source notes, evidence attachment, JSON patching, graph, diff, premortem, action queue, and timeline rendering, due reviews, search, portfolio registers, monthly review packs, calibration, doctor, and health summaries
 - `src/decision-export.js`: dashboard and CSV/JSON export
 
 ## Data Flow
@@ -27,6 +27,7 @@ rough question
   -> evidence/patch/set updates
   -> source notes/search/due reviews/portfolio registers/monthly review
   -> next action queue
+  -> snapshots/timeline
   -> memo/brief/review-plan/dashboard/export/operating pack
   -> close
   -> calibration
