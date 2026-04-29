@@ -101,6 +101,7 @@ export function renderReportCatalog() {
     ["Single Record", "premortem", "Stress-test failure modes before acting.", "before commitment"],
     ["Single Record", "research-plan", "Convert weak evidence and open questions into research tasks.", "before commitment"],
     ["Portfolio", "agenda", "Build a near-term operating agenda from priorities, reviews, debt, and actions.", "daily or weekly"],
+    ["Portfolio", "calendar", "Show dated deadlines, reviews, actions, kill checks, and success metric checks.", "daily or weekly"],
     ["Portfolio", "executive", "Write a one-page executive summary of portfolio health, priorities, risks, and next moves.", "daily or weekly"],
     ["Portfolio", "playbook", "Recommend the next operating commands from portfolio state.", "daily or weekly"],
     ["Portfolio", "scorecard", "Summarize portfolio health, quality, debt, evidence, reviews, and ownership.", "weekly"],
@@ -902,6 +903,59 @@ export function renderTaxonomyReport(records) {
         row.title
       ]))
       : "No decision records found."
+  ].join("\n") + "\n";
+}
+
+export function renderCalendarReport(records, { asOf = new Date().toISOString().slice(0, 10), horizonDays = 30 } = {}) {
+  const rows = records
+    .filter(({ decision }) => (decision.status || "draft") !== "reviewed")
+    .flatMap(({ filePath, decision }) => calendarRows(filePath, decision, asOf))
+    .filter((row) => row.date)
+    .sort((a, b) => calendarRank(a.days) - calendarRank(b.days) || a.date.localeCompare(b.date) || a.filePath.localeCompare(b.filePath));
+  const inHorizon = rows.filter((row) => isNumber(row.days) && row.days >= 0 && row.days <= horizonDays);
+  const overdue = rows.filter((row) => isNumber(row.days) && row.days < 0);
+  const byKind = groupBy(rows, (row) => row.kind);
+
+  return [
+    "# Decision Calendar",
+    "",
+    `As of: ${asOf}`,
+    `Events: ${rows.length}`,
+    `Overdue: ${overdue.length}`,
+    `Due within ${horizonDays} days: ${inHorizon.length}`,
+    "",
+    "## By Kind",
+    countTable(byKind),
+    "",
+    "## Near-Term Calendar",
+    [...overdue, ...inHorizon].length
+      ? table(["Date", "Days", "Kind", "File", "Status", "Type", "Owner", "Decision", "Item"], uniqueCalendarRows([...overdue, ...inHorizon]).map((row) => [
+        row.date,
+        row.days === null ? "" : String(row.days),
+        row.kind,
+        row.filePath,
+        row.status,
+        row.type,
+        row.owner,
+        row.title,
+        row.item
+      ]))
+      : "No overdue or near-term events found.",
+    "",
+    "## Full Calendar",
+    rows.length
+      ? table(["Date", "Days", "Kind", "File", "Status", "Type", "Owner", "Decision", "Item"], rows.map((row) => [
+        row.date,
+        row.days === null ? "" : String(row.days),
+        row.kind,
+        row.filePath,
+        row.status,
+        row.type,
+        row.owner,
+        row.title,
+        row.item
+      ]))
+      : "No dated decision events found."
   ].join("\n") + "\n";
 }
 
@@ -2722,6 +2776,51 @@ function titleCase(value) {
   return String(value || "")
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, (char) => char.toUpperCase());
+}
+
+function calendarRows(filePath, decision, asOf) {
+  const owner = decision.owner || "";
+  const review = decision.post_decision_review || {};
+  const execution = decision.execution_plan || {};
+  const deadline = decision.recommendation?.decision_deadline || "";
+  const reviewDate = decision.recommendation?.review_date || review.review_date || "";
+  return [
+    calendarRow(filePath, decision, "decision deadline", deadline, owner, decision.recommendation?.decision || decision.title, asOf),
+    calendarRow(filePath, decision, "review", reviewDate, review.review_owner || owner, `Review outcome for ${decision.title}`, asOf),
+    ...(decision.next_actions || []).map((action) => calendarRow(filePath, decision, "next action", deadline, owner, action, asOf)),
+    ...(execution.kill_criteria || []).map((criterion) => calendarRow(filePath, decision, "kill check", reviewDate, owner, criterion, asOf)),
+    ...(review.success_metrics || []).map((metric) => calendarRow(filePath, decision, "metric check", reviewDate, review.review_owner || owner, metric, asOf))
+  ].filter((row) => row.date);
+}
+
+function calendarRow(filePath, decision, kind, date, owner, item, asOf) {
+  return {
+    filePath,
+    kind,
+    date,
+    days: daysUntil(asOf, date),
+    status: decision.status || "draft",
+    type: decision.decision_type || "",
+    owner,
+    title: decision.title || "",
+    item: item || ""
+  };
+}
+
+function calendarRank(days) {
+  if (!isNumber(days)) return 10_000;
+  if (days < 0) return days;
+  return days + 1_000;
+}
+
+function uniqueCalendarRows(rows) {
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = [row.date, row.kind, row.filePath, row.item].join("\u0000");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function decisionScenarios(filePath, decision) {

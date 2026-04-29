@@ -133,7 +133,7 @@ node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memo
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 ```
 
-`risks`, `assumptions`, `sources`, `owners`, `briefing`, `executive`, `monthly`, `next`, `prioritize`, `taxonomy`, `commitments`, `dependencies`, and `timeline` turn individual records into portfolio-level operating reports.
+`risks`, `assumptions`, `sources`, `owners`, `briefing`, `executive`, `monthly`, `next`, `prioritize`, `calendar`, `taxonomy`, `commitments`, `dependencies`, and `timeline` turn individual records into portfolio-level operating reports.
 
 ```bash
 node bin/decision-lab.js risks decisions --out outputs/risks.md
@@ -152,8 +152,11 @@ node bin/decision-lab.js executive decisions --as-of 2026-08-01 --out outputs/ex
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md
+node bin/decision-lab.js calendar decisions --as-of 2026-08-01 --out outputs/calendar.md
 node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 ```
+
+`calendar` turns decision deadlines, review dates, actions, kill checks, and success metrics into a dated operating view.
 
 `pack` writes the full operating report set in one directory.
 

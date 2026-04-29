@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.45.0
+
+### Added
+
+- Calendar report command for dated decision deadlines, reviews, actions, kill checks, and success metric checks
+- Operating packs and weekly packs now include `calendar.md`
+
 ## 2.44.0
 
 ### Added

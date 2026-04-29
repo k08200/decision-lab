@@ -15,6 +15,7 @@ node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/statu
 node bin/decision-lab.js scorecard decisions --as-of 2026-08-01 --out outputs/scorecard.md
 node bin/decision-lab.js taxonomy decisions --out outputs/taxonomy.md
 node bin/decision-lab.js triage decisions --as-of 2026-08-01 --out outputs/triage.md
+node bin/decision-lab.js calendar decisions --as-of 2026-08-01 --horizon 30 --out outputs/calendar.md
 node bin/decision-lab.js commitments decisions --as-of 2026-08-01 --horizon 14 --out outputs/commitments.md
 node bin/decision-lab.js dependencies decisions --out outputs/dependencies.md
 node bin/decision-lab.js stale decisions --days 14 --as-of 2026-08-01 --out outputs/stale.md
@@ -33,6 +34,7 @@ Daily questions:
 - Which playbook command should run first?
 - Which triage lane has the most urgent work?
 - Which type, class, owner, or urgency bucket is overrepresented?
+- Which dated event needs attention before the next review?
 - Which decision has a deadline before the evidence is good enough?
 - Which commitment is overdue, near-term, or missing an owner?
 - Which dependency or blocker is stopping execution?
@@ -97,9 +99,9 @@ node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/pac
 node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/weekly/2026-08-01
 ```
 
-The pack includes `index.md`, ledger, dashboard, exports, taxonomy, calibration, outcomes, principles, themes, commitments, dependencies, lessons, due reviews, review-pack index, risks, assumptions, sources, red-team, scenarios, sensitivities, executive summary, scorecard, monthly review, next actions, priorities, timeline, and doctor checks.
+The pack includes `index.md`, ledger, dashboard, exports, taxonomy, calendar, calibration, outcomes, principles, themes, commitments, dependencies, lessons, due reviews, review-pack index, risks, assumptions, sources, red-team, scenarios, sensitivities, executive summary, scorecard, monthly review, next actions, priorities, timeline, and doctor checks.
 
-Use `weekly` when you want a smaller working folder for agenda, executive summary, scorecard, taxonomy, triage, debt, questions, hypotheses, themes, commitments, dependencies, red-team, scenarios, sensitivities, evidence, assumptions, risks, and due-review worksheets.
+Use `weekly` when you want a smaller working folder for agenda, executive summary, scorecard, taxonomy, triage, calendar, debt, questions, hypotheses, themes, commitments, dependencies, red-team, scenarios, sensitivities, evidence, assumptions, risks, and due-review worksheets.
 
 The GitHub Actions `Operating Pack` workflow runs weekly and can also be started manually. It verifies the repo, generates example operating and weekly packs, and uploads both as workflow artifacts.
 
