@@ -6,6 +6,7 @@
 
 - Scheduled and manual GitHub Actions workflow for generating an example operating pack artifact
 - `example:pack` npm script
+- Doctor check for the operating pack workflow
 
 ## 2.20.0
 

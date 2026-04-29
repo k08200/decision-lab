@@ -239,7 +239,8 @@ export function renderDoctor({ root = ".", examples = [] } = {}) {
     fileCheck("src/decision-export.js", fs.existsSync(`${root}/src/decision-export.js`)),
     fileCheck("src/decision-tools.js", fs.existsSync(`${root}/src/decision-tools.js`)),
     fileCheck("schemas/general_decision.schema.json", fs.existsSync(`${root}/schemas/general_decision.schema.json`)),
-    fileCheck(".github/workflows/ci.yml", fs.existsSync(`${root}/.github/workflows/ci.yml`))
+    fileCheck(".github/workflows/ci.yml", fs.existsSync(`${root}/.github/workflows/ci.yml`)),
+    fileCheck(".github/workflows/operating-pack.yml", fs.existsSync(`${root}/.github/workflows/operating-pack.yml`))
   ];
 
   const exampleChecks = examples.map(({ filePath, decision }) => {
