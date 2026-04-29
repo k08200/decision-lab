@@ -1,6 +1,6 @@
 {
   "name": "decision-lab",
-  "version": "2.37.0",
+  "version": "2.38.0",
   "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
   "type": "module",
   "private": true,
@@ -22,7 +22,8 @@
     "example:pipeline": "node bin/decision-lab.js pipeline \"Should we change enterprise pricing?\" --type business --slug pricing-example",
     "example:dashboard": "node bin/decision-lab.js dashboard examples --out outputs/dashboard.html",
     "example:export": "node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv",
-    "example:pack": "node bin/decision-lab.js pack examples --out-dir outputs/packs/example"
+    "example:pack": "node bin/decision-lab.js pack examples --out-dir outputs/packs/example",
+    "example:weekly": "node bin/decision-lab.js weekly examples --out-dir outputs/weekly/example"
   },
   "keywords": [
     "decision",

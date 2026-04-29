@@ -24,8 +24,17 @@ jobs:
       - name: Generate example operating pack
         run: node bin/decision-lab.js pack examples --as-of "$(date -u +%F)" --out-dir outputs/packs/example
 
+      - name: Generate example weekly pack
+        run: node bin/decision-lab.js weekly examples --as-of "$(date -u +%F)" --out-dir outputs/weekly/example
+
       - name: Upload operating pack
         uses: actions/upload-artifact@v4
         with:
           name: decision-lab-example-operating-pack
           path: outputs/packs/example
+
+      - name: Upload weekly pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision-lab-example-weekly-pack
+          path: outputs/weekly/example

@@ -20,6 +20,7 @@ It is not a prompt pile. It is a way to turn a vague question into a durable dec
 npm test
 npm run verify
 npm run example:pack
+npm run example:weekly
 node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing

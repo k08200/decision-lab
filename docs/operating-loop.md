@@ -93,7 +93,7 @@ The pack includes `index.md`, ledger, dashboard, exports, calibration, outcomes,
 
 Use `weekly` when you want a smaller working folder for agenda, executive summary, scorecard, triage, debt, questions, hypotheses, red-team, scenarios, sensitivities, evidence, assumptions, risks, and due-review worksheets.
 
-The GitHub Actions `Operating Pack` workflow runs weekly and can also be started manually. It verifies the repo, generates an example operating pack, and uploads it as a workflow artifact.
+The GitHub Actions `Operating Pack` workflow runs weekly and can also be started manually. It verifies the repo, generates example operating and weekly packs, and uploads both as workflow artifacts.
 
 ## After Outcome
 

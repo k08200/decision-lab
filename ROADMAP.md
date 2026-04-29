@@ -22,6 +22,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Review pack generation for all due post-decision reviews
 - Operating scorecard for quality, debt, evidence, reviews, and ownership
 - Scheduled GitHub Actions operating pack generation
+- Scheduled GitHub Actions weekly pack artifact generation
 - Decision triage lanes for repair, review, debt, framing, research, monitoring, and archive work
 - Hypothesis register for evidence, counterarguments, confidence, and disconfirming signals
 - Red-team report for counterarguments, disconfirming signals, downside cases, and high-impact risks

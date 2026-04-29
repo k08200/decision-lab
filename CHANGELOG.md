@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.38.0
+
+### Added
+
+- `example:weekly` npm script for generating the example weekly pack
+- Operating Pack GitHub Actions workflow now uploads both operating and weekly pack artifacts
+
 ## 2.37.0
 
 ### Added
