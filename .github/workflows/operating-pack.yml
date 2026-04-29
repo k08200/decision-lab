@@ -1,0 +1,31 @@
+name: Operating Pack
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 1"
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify
+        run: npm run verify
+
+      - name: Generate example operating pack
+        run: node bin/decision-lab.js pack examples --as-of "$(date -u +%F)" --out-dir outputs/packs/example
+
+      - name: Upload operating pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision-lab-example-operating-pack
+          path: outputs/packs/example

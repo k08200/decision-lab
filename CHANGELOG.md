@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.21.0
+
+### Added
+
+- Scheduled and manual GitHub Actions workflow for generating an example operating pack artifact
+- `example:pack` npm script
+
 ## 2.20.0
 
 ### Added
