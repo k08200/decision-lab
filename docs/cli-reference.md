@@ -5,6 +5,7 @@
 ```bash
 node bin/decision-lab.js init
 node bin/decision-lab.js config --out .decision-lab.json
+node bin/decision-lab.js catalog --out outputs/catalog.md
 ```
 
 Creates local folders for decisions, research, and outputs.

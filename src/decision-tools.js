@@ -91,6 +91,36 @@ export function renderCalibration(records) {
   ].join("\n") + "\n";
 }
 
+export function renderReportCatalog() {
+  const rows = [
+    ["Intake", "ask", "Turn a rough question into a schema-valid draft.", "as needed"],
+    ["Intake", "inbox", "Batch rough questions into decision drafts.", "as needed"],
+    ["Single Record", "run", "Write the full memo, audit, health, checklist, premortem, research, graph, review, and prompt packet.", "per active decision"],
+    ["Single Record", "audit", "Score maturity and list next quality actions.", "before commitment"],
+    ["Single Record", "checklist", "Show required type-specific fields that still need work.", "before commitment"],
+    ["Single Record", "premortem", "Stress-test failure modes before acting.", "before commitment"],
+    ["Single Record", "research-plan", "Convert weak evidence and open questions into research tasks.", "before commitment"],
+    ["Portfolio", "agenda", "Build a near-term operating agenda from priorities, reviews, debt, and actions.", "daily or weekly"],
+    ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
+    ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
+    ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
+    ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
+    ["Portfolio", "owners", "Show active records, due reviews, and actions by owner.", "weekly"],
+    ["Portfolio", "monthly", "Run a broader portfolio review with risks, lessons, and due reviews.", "monthly"],
+    ["Repository", "pack", "Write the full operating pack into one output directory.", "daily, weekly, or monthly"],
+    ["Repository", "doctor", "Check project wiring and example validity.", "after changes"],
+    ["Repository", "gate", "Fail the process when decisions are below quality thresholds.", "CI or release"]
+  ];
+
+  return [
+    "# Decision Lab Report Catalog",
+    "",
+    "Use this as the operating map for the repo.",
+    "",
+    table(["Area", "Command", "Purpose", "Cadence"], rows)
+  ].join("\n") + "\n";
+}
+
 export function renderLessonsReport(records) {
   const reviewed = records
     .map(({ filePath, decision }) => ({ filePath, decision, review: decision.post_decision_review || {} }))

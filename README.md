@@ -52,6 +52,7 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 ```bash
 decision-lab init [directory]
 decision-lab config [--out .decision-lab.json]
+decision-lab catalog [--out report.md]
 decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
 decision-lab inbox <questions.txt> [--type type] [--owner name] [--out-dir decisions/drafts]
 decision-lab run <file.json> [--out-dir directory]

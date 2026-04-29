@@ -61,6 +61,7 @@ import {
   renderPriorityReview,
   renderQuestionRegister,
   renderResearchPlan,
+  renderReportCatalog,
   renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
@@ -100,6 +101,7 @@ function printHelp() {
 Usage:
   decision-lab init [directory]
   decision-lab config [--out .decision-lab.json]
+  decision-lab catalog [--out report.md]
   decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
   decision-lab inbox <questions.txt> [--type type] [--owner name] [--out-dir decisions/drafts]
   decision-lab run <file.json> [--out-dir directory]
@@ -351,6 +353,11 @@ try {
 
   if (command === "config") {
     writeOrPrint(`${JSON.stringify(DEFAULT_CONFIG, null, 2)}\n`, readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "catalog") {
+    writeOrPrint(renderReportCatalog(), readFlag(args, "--out"));
     process.exit(0);
   }
 

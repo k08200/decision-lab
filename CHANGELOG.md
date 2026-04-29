@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.18.0
+
+### Added
+
+- Report catalog command for mapping commands to purpose and cadence
+
 ## 2.17.0
 
 ### Added

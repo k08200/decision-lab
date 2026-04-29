@@ -60,6 +60,7 @@ import {
   renderPriorityReview,
   renderQuestionRegister,
   renderResearchPlan,
+  renderReportCatalog,
   renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
@@ -246,6 +247,7 @@ test("renders calibration and doctor reports", () => {
     examples: [{ filePath: "examples/finance/hiring_runway_tradeoff.json", decision: finance }]
   });
   assert.match(doctor, /All doctor checks passed/);
+  assert.match(renderReportCatalog(), /Decision Lab Report Catalog/);
 });
 
 test("summarizes decision health", () => {
@@ -361,6 +363,9 @@ test("exports decision rows and dashboard", () => {
 });
 
 test("cli validates example", () => {
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "catalog"], {
+    encoding: "utf8"
+  }), /Decision Lab Report Catalog/);
   const output = execFileSync("node", ["bin/decision-lab.js", "validate", "examples/business/enterprise_pricing_change.json"], {
     encoding: "utf8"
   });
