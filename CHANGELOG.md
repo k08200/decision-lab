@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.9.0
+
+### Added
+
+- Lessons report command for reviewed outcomes, lessons, and lesson themes
+- Operating packs now include `lessons.md`
+
 ## 2.8.0
 
 ### Added

@@ -48,6 +48,7 @@ import {
   renderDueReviews,
   renderGateReport,
   renderIntegrityManifest,
+  renderLessonsReport,
   renderMonthlyReview,
   renderPremortem,
   renderPortfolioBriefing,
@@ -226,6 +227,7 @@ test("renders calibration and doctor reports", () => {
   const closed = closeDecision(finance, { outcome: "Outcome logged." });
   const calibration = renderCalibration([{ filePath: "finance.json", decision: closed }]);
   assert.match(calibration, /Reviewed decisions: 1/);
+  assert.match(renderLessonsReport([{ filePath: "finance.json", decision: closed }]), /Lessons Report/);
 
   const doctor = renderDoctor({
     root: ".",
@@ -480,6 +482,7 @@ test("cli creates inbox drafts and operating packs", () => {
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
+  assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
   assert.match(readFileSync(path.join(packDir, "briefing.md"), "utf8"), /Portfolio Briefing/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
   assert.match(readFileSync(path.join(packDir, "priorities.md"), "utf8"), /Decision Priority Review/);
@@ -591,6 +594,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "risks", "examples"], {
     encoding: "utf8"
   }), /Risk Register/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "lessons", "examples"], {
+    encoding: "utf8"
+  }), /Lessons Report/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "assumptions", "examples"], {
     encoding: "utf8"
   }), /Assumption Register/);

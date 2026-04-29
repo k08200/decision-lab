@@ -161,6 +161,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - attaches evidence without breaking the record shape
 - normalizes source notes and links them as evidence
 - tracks calibration across reviewed decisions
+- reports outcomes and lessons from reviewed decisions
 - lists due reviews and searches the decision ledger
 - produces review worksheets and status promotion updates
 - aggregates risk, assumption, and source registers

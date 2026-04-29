@@ -91,6 +91,7 @@ node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md
 node bin/decision-lab.js calibration decisions
+node bin/decision-lab.js lessons decisions
 node bin/decision-lab.js risks decisions
 node bin/decision-lab.js assumptions decisions
 node bin/decision-lab.js sources decisions

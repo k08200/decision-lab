@@ -91,6 +91,51 @@ export function renderCalibration(records) {
   ].join("\n") + "\n";
 }
 
+export function renderLessonsReport(records) {
+  const reviewed = records
+    .map(({ filePath, decision }) => ({ filePath, decision, review: decision.post_decision_review || {} }))
+    .filter((item) => item.decision.status === "reviewed" || item.review.actual_outcome || (item.review.lessons || []).length);
+  const lessons = reviewed.flatMap((item) => (item.review.lessons || []).map((lesson) => ({
+    filePath: item.filePath,
+    type: item.decision.decision_type,
+    title: item.decision.title,
+    confidence: item.decision.recommendation?.confidence,
+    outcome: item.review.actual_outcome || "",
+    lesson
+  })));
+
+  return [
+    "# Lessons Report",
+    "",
+    `Reviewed records: ${reviewed.length}`,
+    `Lessons: ${lessons.length}`,
+    "",
+    "## Outcomes",
+    reviewed.length
+      ? table(["File", "Type", "Decision", "Confidence", "Outcome"], reviewed.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        percent(item.decision.recommendation?.confidence),
+        item.review.actual_outcome || ""
+      ]))
+      : "No reviewed outcomes found.",
+    "",
+    "## Lessons",
+    lessons.length
+      ? table(["File", "Type", "Decision", "Lesson"], lessons.map((item) => [
+        item.filePath,
+        item.type,
+        item.title,
+        item.lesson
+      ]))
+      : "No lessons recorded yet.",
+    "",
+    "## Lesson Themes",
+    summarizeThemes(lessons.map((item) => item.lesson))
+  ].join("\n") + "\n";
+}
+
 export function renderDoctor({ root = ".", examples = [] } = {}) {
   const checks = [
     fileCheck("package.json", fs.existsSync(`${root}/package.json`)),
