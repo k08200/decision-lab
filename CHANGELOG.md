@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.28.0
+
+### Added
+
+- Signal watchlist command for expected signals, failure signals, disconfirming signals, change-my-mind conditions, risk triggers, owners, and review dates
+- Operating packs and weekly packs now include `signals.md`
+
 ## 2.27.0
 
 ### Added

@@ -92,6 +92,7 @@ decision-lab assumptions [directory] [--out report.md]
 decision-lab assumption-tests [directory] [--out report.md]
 decision-lab sources [directory] [--out report.md]
 decision-lab evidence-scorecard [directory] [--out report.md]
+decision-lab signals [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab questions [directory] [--out report.md]
 decision-lab hypotheses [directory] [--out report.md]
 decision-lab guardrails [directory] [--out report.md]
@@ -296,6 +297,7 @@ node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js assumption-tests decisions --out outputs/assumption-tests.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-scorecard.md
+node bin/decision-lab.js signals decisions --as-of 2026-08-01 --out outputs/signals.md
 node bin/decision-lab.js questions decisions --out outputs/questions.md
 node bin/decision-lab.js hypotheses decisions --out outputs/hypotheses.md
 node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md

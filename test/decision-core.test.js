@@ -70,6 +70,7 @@ import {
   renderReviewPackIndex,
   renderReviewWorksheet,
   renderSearchResults,
+  renderSignalWatchlist,
   renderSourceIndex,
   renderStaleReport,
   renderRepositoryStatus,
@@ -301,6 +302,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderAssumptionTestQueue(records), /Assumption Test Queue/);
   assert.match(renderSourceIndex(records), /Source Index/);
   assert.match(renderEvidenceScorecard(records), /Evidence Scorecard/);
+  assert.match(renderSignalWatchlist(records, { asOf: "2026-08-01" }), /Signal Watchlist/);
   assert.match(renderQuestionRegister(records), /Question Register/);
   assert.match(renderHypothesisRegister(records), /Hypothesis Register/);
   assert.match(renderGuardrailReport(records), /Guardrail Report/);
@@ -527,6 +529,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "risk-heatmap.md"), "utf8"), /Risk Heatmap/);
   assert.match(readFileSync(path.join(packDir, "assumption-tests.md"), "utf8"), /Assumption Test Queue/);
   assert.match(readFileSync(path.join(packDir, "evidence-scorecard.md"), "utf8"), /Evidence Scorecard/);
+  assert.match(readFileSync(path.join(packDir, "signals.md"), "utf8"), /Signal Watchlist/);
   assert.match(readFileSync(path.join(packDir, "questions.md"), "utf8"), /Question Register/);
   assert.match(readFileSync(path.join(packDir, "hypotheses.md"), "utf8"), /Hypothesis Register/);
   assert.match(readFileSync(path.join(packDir, "guardrails.md"), "utf8"), /Guardrail Report/);
@@ -551,6 +554,7 @@ test("cli creates inbox drafts and operating packs", () => {
   ], { encoding: "utf8" }), /Wrote weekly pack/);
   assert.match(readFileSync(path.join(weeklyDir, "agenda.md"), "utf8"), /Decision Agenda/);
   assert.match(readFileSync(path.join(weeklyDir, "triage.md"), "utf8"), /Decision Triage/);
+  assert.match(readFileSync(path.join(weeklyDir, "signals.md"), "utf8"), /Signal Watchlist/);
   assert.match(readFileSync(path.join(weeklyDir, "review-pack.md"), "utf8"), /Review Pack/);
 });
 
@@ -688,6 +692,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "evidence-scorecard", "examples"], {
     encoding: "utf8"
   }), /Evidence Scorecard/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "signals", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Signal Watchlist/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "questions", "examples"], {
     encoding: "utf8"
   }), /Question Register/);

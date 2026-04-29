@@ -106,6 +106,7 @@ node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js assumption-tests decisions --out outputs/assumption-tests.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-scorecard.md
+node bin/decision-lab.js signals decisions --as-of 2026-08-01 --out outputs/signals.md
 node bin/decision-lab.js owners decisions --as-of 2026-08-01 --out outputs/owners.md
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md

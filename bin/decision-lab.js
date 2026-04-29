@@ -72,6 +72,7 @@ import {
   renderReviewWorksheet,
   renderReviewPackIndex,
   renderSearchResults,
+  renderSignalWatchlist,
   renderSourceIndex,
   renderStaleReport,
   renderRepositoryStatus,
@@ -148,6 +149,7 @@ Usage:
   decision-lab assumption-tests [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
   decision-lab evidence-scorecard [directory] [--out report.md]
+  decision-lab signals [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab questions [directory] [--out report.md]
   decision-lab hypotheses [directory] [--out report.md]
   decision-lab guardrails [directory] [--out report.md]
@@ -327,6 +329,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "assumption-tests.md": renderAssumptionTestQueue(records),
     "sources.md": renderSourceIndex(records),
     "evidence-scorecard.md": renderEvidenceScorecard(records),
+    "signals.md": renderSignalWatchlist(records, { asOf }),
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
     "guardrails.md": renderGuardrailReport(records),
@@ -355,6 +358,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "debt.md": renderDecisionDebt(records, { asOf }),
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
+    "signals.md": renderSignalWatchlist(records, { asOf }),
     "evidence-scorecard.md": renderEvidenceScorecard(records),
     "assumption-tests.md": renderAssumptionTestQueue(records),
     "risk-heatmap.md": renderRiskHeatmap(records),
@@ -758,6 +762,14 @@ try {
   if (command === "evidence-scorecard") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderEvidenceScorecard(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "signals") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderSignalWatchlist(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
+    }), readFlag(args, "--out"));
     process.exit(0);
   }
 

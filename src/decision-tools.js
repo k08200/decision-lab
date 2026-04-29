@@ -105,6 +105,7 @@ export function renderReportCatalog() {
     ["Portfolio", "triage", "Classify each decision into the next operating lane.", "daily or weekly"],
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
+    ["Portfolio", "signals", "Collect expected signals, failure signals, disconfirming signals, risk triggers, and review dates.", "weekly"],
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
     ["Portfolio", "evidence-scorecard", "Summarize evidence strength and source coverage.", "weekly"],
     ["Portfolio", "hypotheses", "Collect hypotheses, evidence, counterarguments, and disconfirming signals.", "weekly"],
@@ -163,6 +164,61 @@ export function renderHypothesisRegister(records) {
         item.disconfirming.join("; ")
       ]))
       : "No hypotheses found."
+  ].join("\n") + "\n";
+}
+
+export function renderSignalWatchlist(records, { asOf = new Date().toISOString().slice(0, 10) } = {}) {
+  const signals = records.flatMap(({ filePath, decision }) => {
+    const review = decision.post_decision_review || {};
+    const reviewDate = decision.recommendation?.review_date || review.review_date || "";
+    return [
+      ...signalRows(filePath, decision, "expected", review.expected_signals || [], reviewDate, asOf),
+      ...signalRows(filePath, decision, "failure", review.failure_signals || [], reviewDate, asOf),
+      ...signalRows(filePath, decision, "change-my-mind", decision.what_would_change_my_mind || [], reviewDate, asOf),
+      ...(decision.hypotheses || []).flatMap((hypothesis) => signalRows(
+        filePath,
+        decision,
+        `disconfirming ${hypothesis.id || ""}`.trim(),
+        hypothesis.disconfirming_signals || [],
+        reviewDate,
+        asOf
+      )),
+      ...(decision.risks || []).map((risk) => ({
+        filePath,
+        type: decision.decision_type,
+        title: decision.title,
+        kind: "risk trigger",
+        signal: risk.trigger || risk.risk || "",
+        reviewDate,
+        daysToReview: daysUntil(asOf, reviewDate),
+        owner: decision.owner || ""
+      })).filter((item) => item.signal)
+    ];
+  });
+  const byKind = groupBy(signals, (item) => item.kind);
+
+  return [
+    "# Signal Watchlist",
+    "",
+    `As of: ${asOf}`,
+    `Signals: ${signals.length}`,
+    "",
+    "## By Kind",
+    countTable(byKind),
+    "",
+    "## Watchlist",
+    signals.length
+      ? table(["Kind", "File", "Type", "Decision", "Owner", "Review Date", "Days To Review", "Signal"], signals.map((item) => [
+        item.kind,
+        item.filePath,
+        item.type,
+        item.title,
+        item.owner,
+        item.reviewDate,
+        item.daysToReview === null ? "" : String(item.daysToReview),
+        item.signal
+      ]))
+      : "No signals found."
   ].join("\n") + "\n";
 }
 
@@ -1868,6 +1924,19 @@ function guardrailRows(filePath, decision, kind, items) {
     type: decision.decision_type,
     title: decision.title,
     text
+  }));
+}
+
+function signalRows(filePath, decision, kind, items, reviewDate, asOf) {
+  return items.map((signal) => ({
+    filePath,
+    type: decision.decision_type,
+    title: decision.title,
+    kind,
+    signal,
+    reviewDate,
+    daysToReview: daysUntil(asOf, reviewDate),
+    owner: decision.owner || ""
   }));
 }
 

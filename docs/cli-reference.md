@@ -100,6 +100,7 @@ node bin/decision-lab.js assumptions decisions
 node bin/decision-lab.js assumption-tests decisions
 node bin/decision-lab.js sources decisions
 node bin/decision-lab.js evidence-scorecard decisions
+node bin/decision-lab.js signals decisions --as-of 2026-08-01
 node bin/decision-lab.js questions decisions
 node bin/decision-lab.js hypotheses decisions
 node bin/decision-lab.js guardrails decisions

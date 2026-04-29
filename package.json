@@ -1,6 +1,6 @@
 {
   "name": "decision-lab",
-  "version": "2.27.0",
+  "version": "2.28.0",
   "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
   "type": "module",
   "private": true,
