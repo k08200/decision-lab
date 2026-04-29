@@ -26,6 +26,7 @@ node bin/decision-lab.js validate examples/investment/nvidia_add_position.json
 node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js evidence examples/business/enterprise_pricing_change.json --claim "Pipeline data refreshed" --source "CRM export" --strength strong --out /tmp/pricing.json
 node bin/decision-lab.js doctor
+node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migration-aapl.md
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
@@ -52,6 +53,7 @@ decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
 decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
 decision-lab patch <file.json> <patch.json> [--out file.json]
 decision-lab set <file.json> <path> <json-value> [--out file.json]
+decision-lab migrate <file.json> [--out file.json] [--report report.md]
 decision-lab render <file.json> [--out memo.md]
 decision-lab brief <file.json> [--out brief.md]
 decision-lab review-plan <file.json> [--out review.md]
@@ -240,6 +242,13 @@ Enforce quality and find neglected records:
 ```bash
 node bin/decision-lab.js gate decisions --min-score 0.85 --operational
 node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
+```
+
+Upgrade older records into the current operating schema:
+
+```bash
+node bin/decision-lab.js migrate decisions/old/pricing.json --report outputs/migrations/pricing.md
+node bin/decision-lab.js migrate decisions/old/pricing.json --out decisions/active/pricing.json --date 2026-04-29
 ```
 
 ## Philosophy

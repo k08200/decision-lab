@@ -20,8 +20,10 @@ import {
   createDecisionsFromInbox,
   createDecisionFromQuestion,
   inferDecisionType,
+  migrateDecision,
   parseInboxQuestions,
   renderLedger,
+  renderMigrationReport,
   runDecisionWorkflow
 } from "../src/decision-agent.js";
 import {
@@ -152,6 +154,29 @@ test("runs full decision workflow artifacts", () => {
   assert.ok(workflow.artifacts["audit.json"]);
   assert.ok(workflow.artifacts["memo.md"]);
   assert.ok(workflow.artifacts["prompts/skeptic.md"]);
+});
+
+test("migrates legacy decision records into the current schema", () => {
+  const legacy = {
+    schema_version: "0.1.0",
+    decision_type: "business_strategy",
+    title: "Legacy pricing decision",
+    question: "Should we change enterprise pricing?",
+    context: "Legacy note from an older prompt-only workflow.",
+    recommendation: {
+      decision: "pilot",
+      summary: "Try a controlled pricing change.",
+      confidence: 0.6
+    }
+  };
+
+  const migrated = migrateDecision(legacy, { now: "2026-04-29" });
+  const validation = validateDecision(migrated);
+  assert.equal(migrated.schema_version, "0.2.0");
+  assert.equal(migrated.decision_type, "business");
+  assert.equal(migrated.recommendation.decision, "pilot");
+  assert.equal(validation.valid, true, JSON.stringify(validation.issues, null, 2));
+  assert.match(renderMigrationReport(legacy, migrated), /After valid: yes/);
 });
 
 test("renders ledger and closes decisions", () => {
@@ -337,6 +362,38 @@ test("cli applies evidence and patch commands", () => {
   execFileSync("node", ["bin/decision-lab.js", "patch", decisionPath, patchPath]);
   const patched = JSON.parse(readFileSync(decisionPath, "utf8"));
   assert.equal(patched.recommendation.confidence, 0.62);
+});
+
+test("cli migrates legacy records and writes a report", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-migrate-test-"));
+  const decisionPath = path.join(dir, "legacy.json");
+  const reportPath = path.join(dir, "migration.md");
+  writeFileSync(decisionPath, `${JSON.stringify({
+    schema_version: "0.1.0",
+    decision_type: "investment_decision",
+    question: "Should I buy AAPL now?",
+    owner: "personal portfolio",
+    recommendation: {
+      decision: "stage entry",
+      confidence: 0.52
+    }
+  }, null, 2)}\n`);
+
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "migrate",
+    decisionPath,
+    "--date",
+    "2026-04-29",
+    "--report",
+    reportPath
+  ]);
+
+  const migrated = JSON.parse(readFileSync(decisionPath, "utf8"));
+  assert.equal(migrated.schema_version, "0.2.0");
+  assert.equal(migrated.decision_type, "investment");
+  assert.equal(validateDecision(migrated).valid, true);
+  assert.match(readFileSync(reportPath, "utf8"), /Migration Report/);
 });
 
 test("cli imports source, links source evidence, and renders due/search/review", () => {

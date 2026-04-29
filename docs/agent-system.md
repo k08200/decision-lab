@@ -50,6 +50,12 @@ node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
 ```
 
+`migrate` upgrades older records into the current schema and can write a migration report.
+
+```bash
+node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrations/aapl.md
+```
+
 `due`, `search`, `review`, and `promote` keep the system operational as records accumulate.
 
 ```bash
@@ -110,6 +116,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - creates role prompts for analyst, skeptic, CFO, CEO, operator, risk, and recorder
 - creates audit, memo, brief, comparison, review plan, and agent report
 - applies JSON patch edits safely
+- migrates older records into the current schema
 - attaches evidence without breaking the record shape
 - normalizes source notes and links them as evidence
 - tracks calibration across reviewed decisions

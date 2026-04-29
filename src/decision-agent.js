@@ -12,6 +12,8 @@ import {
 } from "./decision-core.js";
 import { createTemplate } from "./templates.js";
 
+export const CURRENT_SCHEMA_VERSION = "0.2.0";
+
 export function inferDecisionType(question) {
   const text = question.toLowerCase();
   if (matches(text, ["stock", "ticker", "shares", "buy", "sell", "hold", "portfolio", "valuation", "asset", "주식", "매수", "매도", "투자", "포트폴리오"])) {
@@ -76,6 +78,45 @@ export function createDecisionFromQuestion(question, options = {}) {
   if (type === "finance") fillFinance(decision);
 
   return decision;
+}
+
+export function migrateDecision(decision, options = {}) {
+  const type = normalizeDecisionType(decision.decision_type);
+  const question = decision.question || decision.title || "Migrated decision";
+  const base = createDecisionFromQuestion(question, {
+    type,
+    owner: decision.owner || "decision owner",
+    now: options.now || new Date().toISOString().slice(0, 10)
+  });
+  const migrated = mergeMeaningful(base, decision);
+  migrated.decision_type = type;
+  migrated.schema_version = CURRENT_SCHEMA_VERSION;
+  migrated.updated_at = options.now || new Date().toISOString().slice(0, 10);
+  migrated.status = migrated.status || "researching";
+  return migrated;
+}
+
+export function renderMigrationReport(before, after) {
+  const beforeValidation = validateDecision(before);
+  const afterValidation = validateDecision(after);
+  return [
+    "# Migration Report",
+    "",
+    `Before schema: ${before.schema_version || "unknown"}`,
+    `After schema: ${after.schema_version || "unknown"}`,
+    `Before valid: ${beforeValidation.valid ? "yes" : "no"}`,
+    `After valid: ${afterValidation.valid ? "yes" : "no"}`,
+    "",
+    "## Decision",
+    `- Title: ${after.title}`,
+    `- Type: ${after.decision_type}`,
+    `- Status: ${after.status}`,
+    "",
+    "## Remaining Issues",
+    afterValidation.valid
+      ? "- None"
+      : afterValidation.issues.map((item) => `- ${item.path}: ${item.message}`).join("\n")
+  ].join("\n") + "\n";
 }
 
 export function parseInboxQuestions(text) {
@@ -346,6 +387,40 @@ function option(id, name, description, upside, downside, cost, reversibility) {
     cost,
     reversibility
   };
+}
+
+function normalizeDecisionType(value) {
+  if (["general", "investment", "business", "finance"].includes(value)) return value;
+  if (value === "business_strategy" || value === "management") return "business";
+  if (value === "financial_hypothesis" || value === "financial") return "finance";
+  if (value === "investment_decision" || value === "portfolio") return "investment";
+  return "general";
+}
+
+function mergeMeaningful(target, source) {
+  if (!source || typeof source !== "object") return target;
+  const output = structuredClone(target);
+  for (const [key, value] of Object.entries(source)) {
+    if (!isMeaningful(value)) continue;
+    if (isPlainObject(value) && isPlainObject(output[key])) {
+      output[key] = mergeMeaningful(output[key], value);
+    } else {
+      output[key] = value;
+    }
+  }
+  return output;
+}
+
+function isMeaningful(value) {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value).length > 0;
+  return true;
+}
+
+function isPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
 }
 
 function evidenceFor(question) {

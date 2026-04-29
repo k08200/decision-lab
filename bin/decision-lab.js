@@ -20,6 +20,8 @@ import {
   closeDecision,
   createDecisionsFromInbox,
   createDecisionFromQuestion,
+  migrateDecision,
+  renderMigrationReport,
   renderLedger,
   renderOptionComparison,
   slugify,
@@ -76,6 +78,7 @@ Usage:
   decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
   decision-lab patch <file.json> <patch.json> [--out file.json]
   decision-lab set <file.json> <path> <json-value> [--out file.json]
+  decision-lab migrate <file.json> [--out file.json] [--report report.md]
   decision-lab render <file.json> [--out memo.md]
   decision-lab brief <file.json> [--out brief.md]
   decision-lab review-plan <file.json> [--out review.md]
@@ -304,6 +307,19 @@ try {
     const type = args[0] ?? "general";
     writeOrPrint(`${JSON.stringify(createTemplate(type), null, 2)}\n`, readFlag(args, "--out"));
     process.exit(0);
+  }
+
+  if (command === "migrate") {
+    const filePath = args[0];
+    if (!filePath) throw new Error("Usage: decision-lab migrate <file.json>");
+    const before = requireFile(filePath);
+    const migrated = migrateDecision(before, {
+      now: readFlag(args, "--date") || null
+    });
+    writeDecisionUpdate(filePath, migrated, readFlag(args, "--out"));
+    const reportPath = readFlag(args, "--report");
+    if (reportPath) writeOrPrint(renderMigrationReport(before, migrated), reportPath);
+    process.exit(validateDecision(migrated).valid ? 0 : 1);
   }
 
   if (command === "validate") {

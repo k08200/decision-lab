@@ -44,9 +44,12 @@ node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR"
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
+node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrations/aapl.md
 ```
 
 `patch` accepts JSON patch operations with `add`, `replace`, and `remove`.
+
+`migrate` upgrades older or partial decision records into the current schema while preserving meaningful existing fields.
 
 ## Render
 

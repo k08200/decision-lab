@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0
+
+### Added
+
+- Schema migration command for older or partial decision records
+- Migration reports that compare pre-upgrade and post-upgrade validity
+- Legacy decision type aliases for investment, business, and finance records
+
 ## 1.4.0
 
 ### Added
