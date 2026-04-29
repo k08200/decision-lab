@@ -42,6 +42,7 @@ import {
   renderDoctor,
   renderDueReviews,
   renderActionQueue,
+  renderDecisionChecklist,
   renderDecisionDiff,
   renderDecisionGraph,
   renderAssumptionReport,
@@ -98,6 +99,7 @@ Usage:
   decision-lab score <file.json>
   decision-lab audit <file.json>
   decision-lab health <file.json>
+  decision-lab checklist <file.json> [--out checklist.md]
   decision-lab compare <file.json>
   decision-lab diff <before.json> <after.json> [--out diff.md]
   decision-lab graph <file.json> [--out graph.md]
@@ -441,6 +443,11 @@ try {
 
   if (command === "health") {
     console.log(JSON.stringify(summarizeDecisionHealth(requireFile(args[0])), null, 2));
+    process.exit(0);
+  }
+
+  if (command === "checklist") {
+    writeOrPrint(renderDecisionChecklist(requireFile(args[0])), readFlag(args, "--out"));
     process.exit(0);
   }
 

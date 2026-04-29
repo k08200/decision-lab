@@ -23,6 +23,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Research plans for missing evidence
 - Priority review for decision portfolios
 - Dashboard triage fields
+- Type-specific decision checklists
 - Standalone dashboard and CSV/JSON export
 - CI for syntax and test coverage
 

@@ -25,6 +25,7 @@ node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type 
 node bin/decision-lab.js new investment --out decisions/drafts/nvda.json
 node bin/decision-lab.js validate examples/investment/nvidia_add_position.json
 node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json
+node bin/decision-lab.js checklist examples/business/enterprise_pricing_change.json --out outputs/checklists/pricing.md
 node bin/decision-lab.js evidence examples/business/enterprise_pricing_change.json --claim "Pipeline data refreshed" --source "CRM export" --strength strong --out /tmp/pricing.json
 node bin/decision-lab.js doctor
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migration-aapl.md
@@ -57,6 +58,7 @@ decision-lab validate <file.json>
 decision-lab score <file.json>
 decision-lab audit <file.json>
 decision-lab health <file.json>
+decision-lab checklist <file.json> [--out checklist.md]
 decision-lab compare <file.json>
 decision-lab diff <before.json> <after.json> [--out diff.md]
 decision-lab graph <file.json> [--out graph.md]

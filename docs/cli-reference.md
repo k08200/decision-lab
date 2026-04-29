@@ -36,6 +36,7 @@ node bin/decision-lab.js pipeline "Should we change pricing?" --type business --
 node bin/decision-lab.js validate examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js health examples/business/enterprise_pricing_change.json
+node bin/decision-lab.js checklist examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js compare examples/business/enterprise_pricing_change.json
 node bin/decision-lab.js diff decisions/snapshots/pricing-before.json decisions/active/pricing.json
 node bin/decision-lab.js graph examples/business/enterprise_pricing_change.json --out outputs/graphs/pricing.md

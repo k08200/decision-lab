@@ -41,6 +41,7 @@ import {
   renderActionQueue,
   renderAssumptionReport,
   renderCalibration,
+  renderDecisionChecklist,
   renderDecisionDiff,
   renderDecisionGraph,
   renderDoctor,
@@ -294,6 +295,13 @@ test("renders decision diffs", () => {
   assert.match(diff, /Changed Fields/);
 });
 
+test("renders type-specific decision checklists", () => {
+  const checklist = renderDecisionChecklist(investment);
+  assert.match(checklist, /Decision Checklist/);
+  assert.match(checklist, /Asset and thesis are named/);
+  assert.match(checklist, /Remaining Work/);
+});
+
 test("renders premortem reports", () => {
   const report = renderPremortem(investment);
   assert.match(report, /Premortem/);
@@ -340,6 +348,14 @@ test("cli compares options", () => {
     encoding: "utf8"
   });
   assert.match(output, /Controlled pilot/);
+});
+
+test("cli renders decision checklist", () => {
+  const output = execFileSync("node", ["bin/decision-lab.js", "checklist", "examples/business/enterprise_pricing_change.json"], {
+    encoding: "utf8"
+  });
+  assert.match(output, /Decision Checklist/);
+  assert.match(output, /Strategic goal is explicit/);
 });
 
 test("cli renders decision graph", () => {

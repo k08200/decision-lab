@@ -777,6 +777,34 @@ export function renderResearchPlan(decision) {
   ].join("\n") + "\n";
 }
 
+export function renderDecisionChecklist(decision) {
+  const common = [
+    ["Question is specific", Boolean(decision.question)],
+    ["Options are explicit", (decision.options || []).length >= 2],
+    ["Decision criteria are weighted", (decision.decision_criteria || []).some((item) => Number(item.weight) > 0)],
+    ["Evidence includes sources", (decision.evidence || []).some((item) => item.source)],
+    ["Counterarguments are recorded", (decision.hypotheses || []).some((item) => (item.counterarguments || []).length)],
+    ["Risks have mitigations", (decision.risks || []).some((item) => item.mitigation)],
+    ["Change-my-mind conditions exist", (decision.what_would_change_my_mind || []).length > 0],
+    ["Review loop is scheduled", Boolean(decision.recommendation?.review_date || decision.post_decision_review?.review_date)]
+  ];
+  const specific = checklistForType(decision);
+  return [
+    `# Decision Checklist: ${decision.title || "Untitled decision"}`,
+    "",
+    `Type: ${decision.decision_type || "unknown"}`,
+    "",
+    "## Common Checks",
+    checklistTable(common),
+    "",
+    "## Type-Specific Checks",
+    checklistTable(specific),
+    "",
+    "## Remaining Work",
+    list([...common, ...specific].filter(([, passed]) => !passed).map(([name]) => name))
+  ].join("\n") + "\n";
+}
+
 function priorityScore(decision, audit, asOf) {
   const reasons = [];
   let score = 0;
@@ -809,6 +837,44 @@ function priorityScore(decision, audit, asOf) {
     reasons.push("review due");
   }
   return { score, reasons: reasons.length ? reasons : ["no urgent signal"] };
+}
+
+function checklistForType(decision) {
+  if (decision.decision_type === "investment") {
+    return [
+      ["Asset and thesis are named", Boolean(decision.asset && decision.investment_thesis)],
+      ["Valuation view is recorded", Boolean(decision.valuation_view)],
+      ["Portfolio role is explicit", Boolean(decision.portfolio_context)],
+      ["Position sizing is constrained", Boolean(decision.risk_controls)]
+    ];
+  }
+  if (decision.decision_type === "business") {
+    return [
+      ["Strategic goal is explicit", Boolean(decision.strategic_goal)],
+      ["Stakeholders are named", (decision.stakeholders || []).length > 0],
+      ["Financial impact is stated", Boolean(decision.financial_impact)],
+      ["Execution plan exists", Boolean(decision.execution_plan)]
+    ];
+  }
+  if (decision.decision_type === "finance") {
+    return [
+      ["Financial hypothesis is stated", Boolean(decision.financial_hypothesis)],
+      ["Model driver is stated", Boolean(decision.model_driver)],
+      ["Sensitivity checks exist", (decision.sensitivity_checks || []).length > 0],
+      ["Guardrails exist", (decision.financial_guardrails || []).length > 0]
+    ];
+  }
+  return [
+    ["Owner is assigned", Boolean(decision.owner)],
+    ["Next actions exist", (decision.next_actions || []).length > 0]
+  ];
+}
+
+function checklistTable(items) {
+  return table(["Check", "Status"], items.map(([name, passed]) => [
+    name,
+    passed ? "PASS" : "TODO"
+  ]));
 }
 
 function daysUntil(asOf, date) {

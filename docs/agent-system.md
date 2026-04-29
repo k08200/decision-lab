@@ -150,6 +150,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - generates option scores
 - creates role prompts for analyst, skeptic, CFO, CEO, operator, risk, and recorder
 - creates audit, memo, brief, comparison, review plan, and agent report
+- renders type-specific decision checklists
 - renders Mermaid decision maps for visual inspection
 - compares record versions for review and change tracking
 - generates premortem reports before commitment

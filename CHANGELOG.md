@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.0
+
+### Added
+
+- Type-specific decision checklist command for investment, business, finance, and general records
+
 ## 2.4.0
 
 ### Added
