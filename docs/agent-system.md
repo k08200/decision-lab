@@ -168,6 +168,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - creates portfolio-level action queues
 - ranks decisions by priority signals
 - creates one-page portfolio briefings
+- creates integrity manifests with validation status and file hashes
 - creates timeline reports and point-in-time snapshots
 - writes full operating packs for recurring review
 - enforces quality gates and highlights stale decisions

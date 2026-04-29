@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import crypto from "node:crypto";
 import {
   auditDecision,
   formatIssues,
@@ -127,6 +128,30 @@ export function renderDoctor({ root = ".", examples = [] } = {}) {
   ].join("\n") + "\n";
 }
 
+export function renderIntegrityManifest(records) {
+  return [
+    "# Integrity Manifest",
+    "",
+    `Records: ${records.length}`,
+    "",
+    records.length
+      ? table(["File", "Valid", "Type", "Status", "Title", "Score", "SHA256"], records.map(({ filePath, decision }) => {
+        const validation = validateDecision(decision);
+        const audit = auditDecision(decision);
+        return [
+          filePath,
+          validation.valid ? "yes" : "no",
+          decision.decision_type || "",
+          decision.status || "draft",
+          decision.title || "",
+          `${audit.score.score}/${audit.score.max_score}`,
+          fileHash(filePath)
+        ];
+      }))
+      : "No decision records found."
+  ].join("\n") + "\n";
+}
+
 export function summarizeDecisionHealth(decision) {
   const audit = auditDecision(decision);
   return {
@@ -137,6 +162,14 @@ export function summarizeDecisionHealth(decision) {
     warnings: audit.warnings,
     next_actions: audit.next_actions
   };
+}
+
+function fileHash(filePath) {
+  try {
+    return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+  } catch {
+    return "unreadable";
+  }
 }
 
 export function createSourceNote({ title, kind = "note", sourcePath = "", content = "", tags = "", notes = "", date = null }) {

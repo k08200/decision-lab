@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.8.0
+
+### Added
+
+- Integrity manifest command with validation status, quality score, and SHA-256 hash for each decision record
+- Operating packs now include `manifest.md`
+
 ## 2.7.0
 
 ### Added

@@ -47,6 +47,7 @@ import {
   renderDoctor,
   renderDueReviews,
   renderGateReport,
+  renderIntegrityManifest,
   renderMonthlyReview,
   renderPremortem,
   renderPortfolioBriefing,
@@ -273,6 +274,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderRiskRegister(records), /Risk Register/);
   assert.match(renderAssumptionReport(records), /Assumption Register/);
   assert.match(renderSourceIndex(records), /Source Index/);
+  assert.match(renderIntegrityManifest([{ filePath: "examples/business/enterprise_pricing_change.json", decision: business }]), /SHA256/);
   assert.match(renderPortfolioBriefing(records, "2026-08-01"), /Portfolio Briefing/);
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
   assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
@@ -477,6 +479,7 @@ test("cli creates inbox drafts and operating packs", () => {
   ], { encoding: "utf8" }), /Wrote operating pack/);
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
+  assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
   assert.match(readFileSync(path.join(packDir, "briefing.md"), "utf8"), /Portfolio Briefing/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
   assert.match(readFileSync(path.join(packDir, "priorities.md"), "utf8"), /Decision Priority Review/);
@@ -644,6 +647,10 @@ test("cli exports dashboard and csv", () => {
     encoding: "utf8"
   });
   assert.match(output, /enterprise_pricing_change/);
+
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "manifest", "examples"], {
+    encoding: "utf8"
+  }), /Integrity Manifest/);
 
   const dashboard = execFileSync("node", ["bin/decision-lab.js", "dashboard", "examples"], {
     encoding: "utf8"

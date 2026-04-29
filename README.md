@@ -31,6 +31,7 @@ node bin/decision-lab.js doctor
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migration-aapl.md
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
+node bin/decision-lab.js manifest examples --out outputs/manifest.md
 node bin/decision-lab.js briefing examples --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js next examples --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize examples --as-of 2026-08-01 --out outputs/priorities.md
@@ -78,6 +79,7 @@ decision-lab review-plan <file.json> [--out review.md]
 decision-lab ledger [directory] [--out ledger.md]
 decision-lab dashboard [directory] [--out dashboard.html]
 decision-lab export [directory] [--format json|csv] [--out file]
+decision-lab manifest [directory] [--out manifest.md]
 decision-lab calibration [directory] [--out report.md]
 decision-lab risks [directory] [--out report.md]
 decision-lab assumptions [directory] [--out report.md]
@@ -247,6 +249,7 @@ Generate a local dashboard or export:
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js export decisions --format json --out outputs/decisions.json
+node bin/decision-lab.js manifest decisions --out outputs/manifest.md
 ```
 
 Find due reviews and search the ledger:

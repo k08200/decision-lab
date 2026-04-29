@@ -48,6 +48,7 @@ import {
   renderAssumptionReport,
   evaluateGate,
   renderGateReport,
+  renderIntegrityManifest,
   renderMonthlyReview,
   renderPremortem,
   renderPortfolioBriefing,
@@ -119,6 +120,7 @@ Usage:
   decision-lab ledger [directory] [--out ledger.md]
   decision-lab dashboard [directory] [--out dashboard.html]
   decision-lab export [directory] [--format json|csv] [--out file]
+  decision-lab manifest [directory] [--out manifest.md]
   decision-lab calibration [directory] [--out report.md]
   decision-lab risks [directory] [--out report.md]
   decision-lab assumptions [directory] [--out report.md]
@@ -278,6 +280,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "dashboard.html": renderDashboard(records),
     "decisions.csv": renderExport(records, "csv"),
     "decisions.json": renderExport(records, "json"),
+    "manifest.md": renderIntegrityManifest(records),
     "calibration.md": renderCalibration(records),
     "due.md": renderDueReviews(records, asOf),
     "risks.md": renderRiskRegister(records),
@@ -594,6 +597,12 @@ try {
   if (command === "export") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderExport(readDecisionFiles(root), readFlag(args, "--format") || "json"), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "manifest") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderIntegrityManifest(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 
