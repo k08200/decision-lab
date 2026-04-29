@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.39.0
+
+### Added
+
+- Agent guide with repo-specific rules for future coding agents and decision-bot work
+
 ## 2.38.0
 
 ### Added

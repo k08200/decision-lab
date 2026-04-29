@@ -141,6 +141,7 @@ schemas/              JSON schemas for decision records
 prompts/              reusable role prompts
 examples/             complete investment, business, finance, and reviewed outcome records
 docs/                 operating system, playbooks, and framework notes
+AGENTS.md             working rules for future coding agents
 decisions/            local decision records created by `init`
 research/             sources and financial/model artifacts created by `init`
 outputs/              rendered memos, briefs, reviews, and prompts
