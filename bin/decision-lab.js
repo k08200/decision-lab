@@ -83,6 +83,7 @@ import {
   renderSourceIndex,
   renderStaleReport,
   renderRepositoryStatus,
+  renderThemeReport,
   renderTimeline,
   renderTriageReport,
   promoteDecision,
@@ -151,6 +152,7 @@ Usage:
   decision-lab calibration [directory] [--out report.md]
   decision-lab outcomes [directory] [--out report.md]
   decision-lab principles [directory] [--out report.md]
+  decision-lab themes [directory] [--out report.md]
   decision-lab lessons [directory] [--out report.md]
   decision-lab risks [directory] [--out report.md]
   decision-lab risk-heatmap [directory] [--out report.md]
@@ -348,6 +350,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "signals.md": renderSignalWatchlist(records, { asOf }),
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
+    "themes.md": renderThemeReport(records),
     "red-team.md": renderRedTeamReport(records),
     "scenarios.md": renderScenarioReport(records),
     "sensitivities.md": renderSensitivityReport(records),
@@ -382,6 +385,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "debt.md": renderDecisionDebt(records, { asOf }),
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
+    "themes.md": renderThemeReport(records),
     "red-team.md": renderRedTeamReport(records),
     "scenarios.md": renderScenarioReport(records),
     "sensitivities.md": renderSensitivityReport(records),
@@ -440,6 +444,7 @@ function artifactPurpose(name) {
     "red-team.md": "Counterarguments, disconfirming signals, downside cases, and high-impact risks.",
     "outcomes.md": "Reviewed outcomes, completeness, lessons, and calibration cues.",
     "principles.md": "Reusable judgment principles and anti-patterns.",
+    "themes.md": "Recurring themes across hypotheses, assumptions, risks, evidence, questions, and lessons.",
     "dashboard.html": "Local HTML dashboard.",
     "decisions.csv": "CSV export of decision rows.",
     "decisions.json": "JSON export of decision rows.",
@@ -842,6 +847,12 @@ try {
   if (command === "principles") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderPrinciplesReport(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "themes") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderThemeReport(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

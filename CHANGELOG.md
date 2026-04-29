@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.41.0
+
+### Added
+
+- Theme report command for recurring hypotheses, assumptions, risks, evidence, questions, and lessons
+- Operating packs and weekly packs now include `themes.md`
+
 ## 2.40.0
 
 ### Added

@@ -84,6 +84,12 @@ node bin/decision-lab.js outcomes decisions --out outputs/outcomes.md
 node bin/decision-lab.js principles decisions --out outputs/principles.md
 ```
 
+`themes` extracts recurring themes across hypotheses, assumptions, risks, evidence, questions, and lessons.
+
+```bash
+node bin/decision-lab.js themes decisions --out outputs/themes.md
+```
+
 `evidence`, `patch`, and `set` improve existing records without rewriting them by hand.
 
 ```bash

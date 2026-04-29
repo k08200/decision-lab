@@ -118,6 +118,7 @@ export function renderReportCatalog() {
     ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
     ["Portfolio", "outcomes", "Summarize reviewed outcomes, review completeness, lessons, and calibration cues.", "monthly"],
     ["Portfolio", "principles", "Distill reusable judgment principles from lessons, guardrails, risks, and reversals.", "monthly"],
+    ["Portfolio", "themes", "Extract recurring themes from hypotheses, assumptions, risks, evidence, questions, and lessons.", "monthly"],
     ["Portfolio", "owners", "Show active records, due reviews, and actions by owner.", "weekly"],
     ["Portfolio", "monthly", "Run a broader portfolio review with risks, lessons, and due reviews.", "monthly"],
     ["Portfolio", "risk-heatmap", "Map risks by probability and impact.", "weekly or monthly"],
@@ -682,6 +683,55 @@ export function renderPrinciplesReport(records) {
       ...guardrails.map((item) => item.text),
       ...antiPatterns.map((item) => item.pattern)
     ])
+  ].join("\n") + "\n";
+}
+
+export function renderThemeReport(records) {
+  const sources = records.flatMap(({ filePath, decision }) => [
+    ...themeSources(filePath, decision, "hypothesis", (decision.hypotheses || []).map((item) => item.statement || item.thesis || "")),
+    ...themeSources(filePath, decision, "assumption", (decision.assumption_register || []).map((item) => item.assumption || "")),
+    ...themeSources(filePath, decision, "risk", (decision.risks || []).map((item) => item.risk || "")),
+    ...themeSources(filePath, decision, "evidence", (decision.evidence || []).map((item) => item.claim || "")),
+    ...themeSources(filePath, decision, "open question", decision.open_questions || []),
+    ...themeSources(filePath, decision, "lesson", decision.post_decision_review?.lessons || [])
+  ]).filter((item) => item.text);
+  const words = themeWordRows(sources);
+  const byKind = groupBy(sources, (item) => item.kind);
+  const byType = groupBy(sources, (item) => item.type || "unknown");
+
+  return [
+    "# Theme Report",
+    "",
+    `Records: ${records.length}`,
+    `Source fragments: ${sources.length}`,
+    `Top themes: ${words.length}`,
+    "",
+    "## By Source Kind",
+    countTable(byKind),
+    "",
+    "## By Decision Type",
+    countTable(byType),
+    "",
+    "## Top Themes",
+    words.length
+      ? table(["Theme", "Count", "Kinds", "Files"], words.map((row) => [
+        row.word,
+        String(row.count),
+        row.kinds.join(", "),
+        row.files.join(", ")
+      ]))
+      : "No themes found.",
+    "",
+    "## Source Register",
+    sources.length
+      ? table(["Kind", "File", "Type", "Decision", "Text"], sources.map((item) => [
+        item.kind,
+        item.filePath,
+        item.type,
+        item.title,
+        item.text
+      ]))
+      : "No source fragments found."
   ].join("\n") + "\n";
 }
 
@@ -2301,6 +2351,51 @@ function principleFromLesson(lesson) {
   return `When facing a similar decision, ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 }
 
+function themeSources(filePath, decision, kind, items) {
+  return items.map((text) => ({
+    filePath,
+    kind,
+    type: decision.decision_type,
+    title: decision.title,
+    text
+  })).filter((item) => item.text);
+}
+
+function themeWordRows(sources) {
+  const rows = new Map();
+  for (const source of sources) {
+    for (const word of themeWords(source.text)) {
+      const row = rows.get(word) || {
+        word,
+        count: 0,
+        kinds: new Set(),
+        files: new Set()
+      };
+      row.count += 1;
+      row.kinds.add(source.kind);
+      row.files.add(source.filePath);
+      rows.set(word, row);
+    }
+  }
+  return Array.from(rows.values())
+    .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word))
+    .slice(0, 20)
+    .map((row) => ({
+      word: row.word,
+      count: row.count,
+      kinds: Array.from(row.kinds).sort(),
+      files: Array.from(row.files).sort()
+    }));
+}
+
+function themeWords(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣\s-]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 3 && !STOP_WORDS.has(word));
+}
+
 function decisionScenarios(filePath, decision) {
   const selected = selectedOption(decision);
   const topHypothesis = strongestHypothesis(decision);
@@ -2704,7 +2799,17 @@ const STOP_WORDS = new Set([
   "while",
   "could",
   "would",
-  "should"
+  "should",
+  "than",
+  "what",
+  "when",
+  "where",
+  "which",
+  "enough",
+  "more",
+  "most",
+  "less",
+  "still"
 ]);
 
 function applyOperation(document, operation) {

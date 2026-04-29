@@ -81,6 +81,7 @@ import {
   renderSourceIndex,
   renderStaleReport,
   renderRepositoryStatus,
+  renderThemeReport,
   renderTimeline,
   renderTriageReport,
   setJsonPath,
@@ -257,6 +258,7 @@ test("renders calibration and doctor reports", () => {
   assert.match(calibration, /Reviewed decisions: 1/);
   assert.match(renderOutcomeScorecard([{ filePath: "finance.json", decision: closed }]), /Outcome Scorecard/);
   assert.match(renderPrinciplesReport([{ filePath: "finance.json", decision: closed }]), /Decision Principles/);
+  assert.match(renderThemeReport([{ filePath: "finance.json", decision: closed }]), /Theme Report/);
   assert.match(renderLessonsReport([{ filePath: "finance.json", decision: closed }]), /Lessons Report/);
 
   const doctor = renderDoctor({
@@ -542,6 +544,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
   assert.match(readFileSync(path.join(packDir, "outcomes.md"), "utf8"), /Outcome Scorecard/);
   assert.match(readFileSync(path.join(packDir, "principles.md"), "utf8"), /Decision Principles/);
+  assert.match(readFileSync(path.join(packDir, "themes.md"), "utf8"), /Theme Report/);
   assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
   assert.match(readFileSync(path.join(packDir, "review-pack.md"), "utf8"), /Review Pack/);
   assert.match(readFileSync(path.join(packDir, "risk-heatmap.md"), "utf8"), /Risk Heatmap/);
@@ -581,6 +584,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(weeklyDir, "playbook.md"), "utf8"), /Operating Playbook/);
   assert.match(readFileSync(path.join(weeklyDir, "triage.md"), "utf8"), /Decision Triage/);
   assert.match(readFileSync(path.join(weeklyDir, "red-team.md"), "utf8"), /Red Team Report/);
+  assert.match(readFileSync(path.join(weeklyDir, "themes.md"), "utf8"), /Theme Report/);
   assert.match(readFileSync(path.join(weeklyDir, "scenarios.md"), "utf8"), /Scenario Report/);
   assert.match(readFileSync(path.join(weeklyDir, "sensitivities.md"), "utf8"), /Sensitivity Report/);
   assert.match(readFileSync(path.join(weeklyDir, "signals.md"), "utf8"), /Signal Watchlist/);
@@ -715,6 +719,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "principles", "examples"], {
     encoding: "utf8"
   }), /Decision Principles/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "themes", "examples"], {
+    encoding: "utf8"
+  }), /Theme Report/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "assumptions", "examples"], {
     encoding: "utf8"
   }), /Assumption Register/);
