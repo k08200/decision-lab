@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.24.0
+
+### Added
+
+- Risk heatmap command for probability/impact concentration and critical risk review
+- Operating packs now include `risk-heatmap.md`
+
 ## 2.23.0
 
 ### Added

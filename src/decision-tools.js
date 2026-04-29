@@ -111,6 +111,7 @@ export function renderReportCatalog() {
     ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
     ["Portfolio", "owners", "Show active records, due reviews, and actions by owner.", "weekly"],
     ["Portfolio", "monthly", "Run a broader portfolio review with risks, lessons, and due reviews.", "monthly"],
+    ["Portfolio", "risk-heatmap", "Map risks by probability and impact.", "weekly or monthly"],
     ["Repository", "pack", "Write the full operating pack into one output directory.", "daily, weekly, or monthly"],
     ["Repository", "doctor", "Check project wiring and example validity.", "after changes"],
     ["Repository", "gate", "Fail the process when decisions are below quality thresholds.", "CI or release"]
@@ -673,6 +674,54 @@ export function renderRiskRegister(records) {
         risk.mitigation
       ]))
       : "No risks found."
+  ].join("\n") + "\n";
+}
+
+export function renderRiskHeatmap(records) {
+  const risks = records.flatMap(({ filePath, decision }) => (
+    (decision.risks || []).map((risk) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      risk: risk.risk || "",
+      probability: risk.probability || "unknown",
+      impact: risk.impact || "unknown",
+      trigger: risk.trigger || "",
+      mitigation: risk.mitigation || ""
+    }))
+  ));
+  const levels = ["high", "medium", "low"];
+  const critical = risks
+    .filter((risk) => riskWeight(risk.probability) * riskWeight(risk.impact) >= 6)
+    .sort((a, b) => (riskWeight(b.probability) * riskWeight(b.impact)) - (riskWeight(a.probability) * riskWeight(a.impact)));
+
+  return [
+    "# Risk Heatmap",
+    "",
+    `Risks: ${risks.length}`,
+    `Critical risks: ${critical.length}`,
+    "",
+    "## Matrix",
+    table(["Impact \\ Probability", "High", "Medium", "Low"], levels.map((impact) => [
+      impact,
+      String(risks.filter((risk) => risk.impact === impact && risk.probability === "high").length),
+      String(risks.filter((risk) => risk.impact === impact && risk.probability === "medium").length),
+      String(risks.filter((risk) => risk.impact === impact && risk.probability === "low").length)
+    ])),
+    "",
+    "## Critical Risks",
+    critical.length
+      ? table(["File", "Type", "Decision", "Probability", "Impact", "Risk", "Trigger", "Mitigation"], critical.map((risk) => [
+        risk.filePath,
+        risk.type,
+        risk.title,
+        risk.probability,
+        risk.impact,
+        risk.risk,
+        risk.trigger,
+        risk.mitigation
+      ]))
+      : "No critical risks found."
   ].join("\n") + "\n";
 }
 
@@ -1699,6 +1748,10 @@ function debt(filePath, decision, type, severity, fix) {
 
 function debtSeverityRank(severity) {
   return { high: 0, medium: 1, low: 2 }[severity] ?? 3;
+}
+
+function riskWeight(level) {
+  return { low: 1, medium: 2, high: 3 }[level] || 0;
 }
 
 function guardrailRows(filePath, decision, kind, items) {

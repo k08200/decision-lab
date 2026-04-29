@@ -59,6 +59,7 @@ Use this to operate the whole decision portfolio.
 ```bash
 node bin/decision-lab.js ledger decisions --out outputs/ledger.md
 node bin/decision-lab.js risks decisions --out outputs/risks.md
+node bin/decision-lab.js risk-heatmap decisions --out outputs/risk-heatmap.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html

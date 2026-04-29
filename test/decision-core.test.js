@@ -63,6 +63,7 @@ import {
   renderQuestionRegister,
   renderResearchPlan,
   renderReportCatalog,
+  renderRiskHeatmap,
   renderRiskRegister,
   renderReviewPackIndex,
   renderReviewWorksheet,
@@ -293,6 +294,7 @@ test("renders portfolio-level operating reports", () => {
     { filePath: "investment.json", decision: investment }
   ];
   assert.match(renderRiskRegister(records), /Risk Register/);
+  assert.match(renderRiskHeatmap(records), /Risk Heatmap/);
   assert.match(renderAssumptionReport(records), /Assumption Register/);
   assert.match(renderSourceIndex(records), /Source Index/);
   assert.match(renderQuestionRegister(records), /Question Register/);
@@ -517,6 +519,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
   assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
   assert.match(readFileSync(path.join(packDir, "review-pack.md"), "utf8"), /Review Pack/);
+  assert.match(readFileSync(path.join(packDir, "risk-heatmap.md"), "utf8"), /Risk Heatmap/);
   assert.match(readFileSync(path.join(packDir, "questions.md"), "utf8"), /Question Register/);
   assert.match(readFileSync(path.join(packDir, "hypotheses.md"), "utf8"), /Hypothesis Register/);
   assert.match(readFileSync(path.join(packDir, "guardrails.md"), "utf8"), /Guardrail Report/);
@@ -647,6 +650,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "risks", "examples"], {
     encoding: "utf8"
   }), /Risk Register/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "risk-heatmap", "examples"], {
+    encoding: "utf8"
+  }), /Risk Heatmap/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "lessons", "examples"], {
     encoding: "utf8"
   }), /Lessons Report/);

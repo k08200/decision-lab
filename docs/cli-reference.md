@@ -95,6 +95,7 @@ node bin/decision-lab.js manifest decisions --out outputs/manifest.md
 node bin/decision-lab.js calibration decisions
 node bin/decision-lab.js lessons decisions
 node bin/decision-lab.js risks decisions
+node bin/decision-lab.js risk-heatmap decisions
 node bin/decision-lab.js assumptions decisions
 node bin/decision-lab.js sources decisions
 node bin/decision-lab.js questions decisions

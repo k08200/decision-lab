@@ -65,6 +65,7 @@ import {
   renderQuestionRegister,
   renderResearchPlan,
   renderReportCatalog,
+  renderRiskHeatmap,
   renderRiskRegister,
   renderReviewWorksheet,
   renderReviewPackIndex,
@@ -140,6 +141,7 @@ Usage:
   decision-lab calibration [directory] [--out report.md]
   decision-lab lessons [directory] [--out report.md]
   decision-lab risks [directory] [--out report.md]
+  decision-lab risk-heatmap [directory] [--out report.md]
   decision-lab assumptions [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
   decision-lab questions [directory] [--out report.md]
@@ -315,6 +317,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "due.md": renderDueReviews(records, asOf),
     "review-pack.md": renderReviewPackIndex(records, asOf),
     "risks.md": renderRiskRegister(records),
+    "risk-heatmap.md": renderRiskHeatmap(records),
     "assumptions.md": renderAssumptionReport(records),
     "sources.md": renderSourceIndex(records),
     "questions.md": renderQuestionRegister(records),
@@ -699,6 +702,12 @@ try {
   if (command === "risks") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderRiskRegister(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "risk-heatmap") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderRiskHeatmap(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 
