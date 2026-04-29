@@ -10,7 +10,7 @@ Decision Lab is intentionally small, local-first, and dependency-free.
 - `src/templates.js`: blank schema-compatible record templates
 - `src/decision-core.js`: validation, scoring, audits, role prompts, and Markdown rendering
 - `src/decision-agent.js`: local bot workflow, schema migration, pipeline artifacts, ledger, and close-out review
-- `src/decision-tools.js`: source notes, evidence attachment, JSON patching, checklist, graph, diff, premortem, research plan, portfolio briefing, integrity manifest, lessons, owner reporting, repository status, operating scorecards, decision triage, decision debt, decision agenda, question registers, guardrail reports, review packs, report catalog, archive planning, action queue, priority, and timeline rendering, due reviews, search, portfolio registers, monthly review packs, calibration, doctor, and health summaries
+- `src/decision-tools.js`: source notes, evidence attachment, JSON patching, checklist, graph, diff, premortem, research plan, portfolio briefing, integrity manifest, lessons, owner reporting, repository status, operating scorecards, decision triage, decision debt, decision agenda, hypothesis registers, question registers, guardrail reports, review packs, report catalog, archive planning, action queue, priority, and timeline rendering, due reviews, search, portfolio registers, monthly review packs, calibration, doctor, and health summaries
 - `src/decision-export.js`: dashboard triage and CSV/JSON export
 - `.github/workflows/ci.yml`: syntax and test verification
 - `.github/workflows/operating-pack.yml`: scheduled and manual example operating pack generation

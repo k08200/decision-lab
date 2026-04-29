@@ -53,6 +53,7 @@ import {
   evaluateGate,
   renderGateReport,
   renderGuardrailReport,
+  renderHypothesisRegister,
   renderIntegrityManifest,
   renderLessonsReport,
   renderMonthlyReview,
@@ -142,6 +143,7 @@ Usage:
   decision-lab assumptions [directory] [--out report.md]
   decision-lab sources [directory] [--out report.md]
   decision-lab questions [directory] [--out report.md]
+  decision-lab hypotheses [directory] [--out report.md]
   decision-lab guardrails [directory] [--out report.md]
   decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -316,6 +318,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "assumptions.md": renderAssumptionReport(records),
     "sources.md": renderSourceIndex(records),
     "questions.md": renderQuestionRegister(records),
+    "hypotheses.md": renderHypothesisRegister(records),
     "guardrails.md": renderGuardrailReport(records),
     "scorecard.md": renderOperatingScorecard(records, { asOf }),
     "triage.md": renderTriageReport(records, { asOf }),
@@ -714,6 +717,12 @@ try {
   if (command === "questions") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderQuestionRegister(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "hypotheses") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderHypothesisRegister(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

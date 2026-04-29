@@ -129,6 +129,12 @@ node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out 
 node bin/decision-lab.js questions decisions --out outputs/questions.md
 ```
 
+`hypotheses` collects thesis statements, supporting evidence, counterarguments, and disconfirming signals.
+
+```bash
+node bin/decision-lab.js hypotheses decisions --out outputs/hypotheses.md
+```
+
 `review-pack` writes worksheets for every due review into one folder.
 
 ```bash

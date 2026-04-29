@@ -51,6 +51,7 @@ import {
   renderDueReviews,
   renderGateReport,
   renderGuardrailReport,
+  renderHypothesisRegister,
   renderIntegrityManifest,
   renderLessonsReport,
   renderMonthlyReview,
@@ -295,6 +296,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderAssumptionReport(records), /Assumption Register/);
   assert.match(renderSourceIndex(records), /Source Index/);
   assert.match(renderQuestionRegister(records), /Question Register/);
+  assert.match(renderHypothesisRegister(records), /Hypothesis Register/);
   assert.match(renderGuardrailReport(records), /Guardrail Report/);
   assert.match(renderOperatingScorecard(records, { asOf: "2026-08-01", staleDays: 30 }), /Operating Scorecard/);
   assert.match(renderTriageReport(records, { asOf: "2026-08-01", staleDays: 30 }), /Decision Triage/);
@@ -516,6 +518,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
   assert.match(readFileSync(path.join(packDir, "review-pack.md"), "utf8"), /Review Pack/);
   assert.match(readFileSync(path.join(packDir, "questions.md"), "utf8"), /Question Register/);
+  assert.match(readFileSync(path.join(packDir, "hypotheses.md"), "utf8"), /Hypothesis Register/);
   assert.match(readFileSync(path.join(packDir, "guardrails.md"), "utf8"), /Guardrail Report/);
   assert.match(readFileSync(path.join(packDir, "scorecard.md"), "utf8"), /Operating Scorecard/);
   assert.match(readFileSync(path.join(packDir, "triage.md"), "utf8"), /Decision Triage/);
@@ -656,6 +659,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "questions", "examples"], {
     encoding: "utf8"
   }), /Question Register/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "hypotheses", "examples"], {
+    encoding: "utf8"
+  }), /Hypothesis Register/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "guardrails", "examples"], {
     encoding: "utf8"
   }), /Guardrail Report/);

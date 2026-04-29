@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.23.0
+
+### Added
+
+- Hypothesis register command for thesis statements, supporting evidence, counterarguments, confidence, and disconfirming signals
+- Operating packs now include `hypotheses.md`
+
 ## 2.22.0
 
 ### Added

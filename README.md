@@ -90,6 +90,7 @@ decision-lab risks [directory] [--out report.md]
 decision-lab assumptions [directory] [--out report.md]
 decision-lab sources [directory] [--out report.md]
 decision-lab questions [directory] [--out report.md]
+decision-lab hypotheses [directory] [--out report.md]
 decision-lab guardrails [directory] [--out report.md]
 decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -289,6 +290,7 @@ node bin/decision-lab.js risks decisions --out outputs/risks.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
 node bin/decision-lab.js questions decisions --out outputs/questions.md
+node bin/decision-lab.js hypotheses decisions --out outputs/hypotheses.md
 node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md
 node bin/decision-lab.js owners decisions --as-of 2026-08-01 --out outputs/owners.md
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md

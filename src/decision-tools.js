@@ -106,6 +106,7 @@ export function renderReportCatalog() {
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
+    ["Portfolio", "hypotheses", "Collect hypotheses, evidence, counterarguments, and disconfirming signals.", "weekly"],
     ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
     ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
     ["Portfolio", "owners", "Show active records, due reviews, and actions by owner.", "weekly"],
@@ -121,6 +122,44 @@ export function renderReportCatalog() {
     "Use this as the operating map for the repo.",
     "",
     table(["Area", "Command", "Purpose", "Cadence"], rows)
+  ].join("\n") + "\n";
+}
+
+export function renderHypothesisRegister(records) {
+  const hypotheses = records.flatMap(({ filePath, decision }) => (
+    (decision.hypotheses || []).map((hypothesis) => ({
+      filePath,
+      type: decision.decision_type,
+      title: decision.title,
+      id: hypothesis.id || "",
+      statement: hypothesis.statement || hypothesis.thesis || "",
+      confidence: hypothesis.confidence,
+      evidence: hypothesis.evidence || [],
+      counterarguments: hypothesis.counterarguments || [],
+      disconfirming: hypothesis.disconfirming_signals || []
+    }))
+  ));
+  const confidenceValues = hypotheses.map((item) => item.confidence).filter(isNumber);
+
+  return [
+    "# Hypothesis Register",
+    "",
+    `Hypotheses: ${hypotheses.length}`,
+    `Average confidence: ${percent(avg(confidenceValues))}`,
+    `Disconfirming signals: ${hypotheses.reduce((total, item) => total + item.disconfirming.length, 0)}`,
+    "",
+    hypotheses.length
+      ? table(["File", "Type", "Decision", "Hypothesis", "Confidence", "Evidence", "Counterarguments", "Disconfirming Signals"], hypotheses.map((item) => [
+        item.filePath,
+        item.type,
+        item.title,
+        `${item.id}: ${item.statement}`,
+        percent(item.confidence),
+        item.evidence.join("; "),
+        item.counterarguments.join("; "),
+        item.disconfirming.join("; ")
+      ]))
+      : "No hypotheses found."
   ].join("\n") + "\n";
 }
 

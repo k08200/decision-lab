@@ -98,6 +98,7 @@ node bin/decision-lab.js risks decisions
 node bin/decision-lab.js assumptions decisions
 node bin/decision-lab.js sources decisions
 node bin/decision-lab.js questions decisions
+node bin/decision-lab.js hypotheses decisions
 node bin/decision-lab.js guardrails decisions
 node bin/decision-lab.js owners decisions --as-of 2026-08-01
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01
