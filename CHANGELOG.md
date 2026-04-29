@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.44.0
+
+### Added
+
+- Taxonomy report command for type, status, class, reversibility, urgency, and owner mix
+- Operating packs and weekly packs now include `taxonomy.md`
+
 ## 2.43.0
 
 ### Added

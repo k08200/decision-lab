@@ -92,6 +92,7 @@ node bin/decision-lab.js status decisions --as-of 2026-08-01
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md
+node bin/decision-lab.js taxonomy decisions --out outputs/taxonomy.md
 node bin/decision-lab.js calibration decisions
 node bin/decision-lab.js outcomes decisions
 node bin/decision-lab.js principles decisions

@@ -39,6 +39,7 @@ node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrat
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest examples --out outputs/manifest.md
+node bin/decision-lab.js taxonomy examples --out outputs/taxonomy.md
 node bin/decision-lab.js status examples --as-of 2026-08-01 --out outputs/status.md
 node bin/decision-lab.js briefing examples --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js next examples --as-of 2026-08-01 --out outputs/next.md
@@ -91,6 +92,7 @@ decision-lab dashboard [directory] [--out dashboard.html]
 decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab manifest [directory] [--out manifest.md]
 decision-lab calibration [directory] [--out report.md]
+decision-lab taxonomy [directory] [--out report.md]
 decision-lab outcomes [directory] [--out report.md]
 decision-lab principles [directory] [--out report.md]
 decision-lab themes [directory] [--out report.md]

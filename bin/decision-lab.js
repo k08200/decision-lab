@@ -85,6 +85,7 @@ import {
   renderSourceIndex,
   renderStaleReport,
   renderRepositoryStatus,
+  renderTaxonomyReport,
   renderThemeReport,
   renderTimeline,
   renderTriageReport,
@@ -152,6 +153,7 @@ Usage:
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab manifest [directory] [--out manifest.md]
   decision-lab calibration [directory] [--out report.md]
+  decision-lab taxonomy [directory] [--out report.md]
   decision-lab outcomes [directory] [--out report.md]
   decision-lab principles [directory] [--out report.md]
   decision-lab themes [directory] [--out report.md]
@@ -339,6 +341,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "decisions.csv": renderExport(records, "csv"),
     "decisions.json": renderExport(records, "json"),
     "manifest.md": renderIntegrityManifest(records),
+    "taxonomy.md": renderTaxonomyReport(records),
     "calibration.md": renderCalibration(records),
     "outcomes.md": renderOutcomeScorecard(records),
     "principles.md": renderPrinciplesReport(records),
@@ -387,6 +390,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "executive.md": renderExecutiveSummary(records, { asOf }),
     "playbook.md": renderOperatingPlaybook(records, { asOf }),
     "scorecard.md": renderOperatingScorecard(records, { asOf }),
+    "taxonomy.md": renderTaxonomyReport(records),
     "triage.md": renderTriageReport(records, { asOf }),
     "debt.md": renderDecisionDebt(records, { asOf }),
     "questions.md": renderQuestionRegister(records),
@@ -432,6 +436,7 @@ function artifactRank(name) {
     "executive.md",
     "playbook.md",
     "scorecard.md",
+    "taxonomy.md",
     "triage.md",
     "agenda.md",
     "commitments.md",
@@ -460,6 +465,7 @@ function artifactPurpose(name) {
     "dashboard.html": "Local HTML dashboard.",
     "decisions.csv": "CSV export of decision rows.",
     "decisions.json": "JSON export of decision rows.",
+    "taxonomy.md": "Portfolio classification by type, status, class, reversibility, urgency, and owner.",
     "assumption-tests.md": "Assumptions converted into owner/test queues.",
     "assumptions.md": "Assumption register across decisions.",
     "briefing.md": "Portfolio snapshot, top priorities, risks, and due reviews.",
@@ -847,6 +853,12 @@ try {
   if (command === "calibration") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderCalibration(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "taxonomy") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderTaxonomyReport(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

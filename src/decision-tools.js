@@ -106,6 +106,7 @@ export function renderReportCatalog() {
     ["Portfolio", "scorecard", "Summarize portfolio health, quality, debt, evidence, reviews, and ownership.", "weekly"],
     ["Portfolio", "triage", "Classify each decision into the next operating lane.", "daily or weekly"],
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
+    ["Portfolio", "taxonomy", "Map the portfolio by type, status, class, reversibility, urgency, and owner.", "weekly or monthly"],
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
     ["Portfolio", "commitments", "Collect owners, deadlines, reviews, next actions, kill criteria, and success metrics.", "weekly"],
     ["Portfolio", "dependencies", "Collect execution dependencies, open questions, weak evidence, and assumption tests.", "weekly"],
@@ -844,6 +845,63 @@ export function renderDependencyReport(records) {
         row.resolution
       ]))
       : "No dependency items found."
+  ].join("\n") + "\n";
+}
+
+export function renderTaxonomyReport(records) {
+  const rows = records.map(({ filePath, decision }) => ({
+    filePath,
+    type: decision.decision_type || "unknown",
+    status: decision.status || "draft",
+    owner: decision.owner || "unassigned",
+    decisionClass: decision.decision_frame?.decision_class || "unclassified",
+    reversibility: decision.decision_frame?.reversibility || "unknown",
+    urgency: decision.decision_frame?.urgency || "unknown",
+    title: decision.title || ""
+  }));
+
+  return [
+    "# Taxonomy Report",
+    "",
+    `Records: ${rows.length}`,
+    "",
+    "## By Type",
+    countTable(groupBy(rows, (row) => row.type)),
+    "",
+    "## By Status",
+    countTable(groupBy(rows, (row) => row.status)),
+    "",
+    "## By Decision Class",
+    countTable(groupBy(rows, (row) => row.decisionClass)),
+    "",
+    "## By Reversibility",
+    countTable(groupBy(rows, (row) => row.reversibility)),
+    "",
+    "## By Urgency",
+    countTable(groupBy(rows, (row) => row.urgency)),
+    "",
+    "## By Owner",
+    countTable(groupBy(rows, (row) => row.owner)),
+    "",
+    "## Type And Status Matrix",
+    taxonomyMatrix(rows, "type", "status"),
+    "",
+    "## Urgency And Reversibility Matrix",
+    taxonomyMatrix(rows, "urgency", "reversibility"),
+    "",
+    "## Record Register",
+    rows.length
+      ? table(["File", "Type", "Status", "Class", "Reversibility", "Urgency", "Owner", "Decision"], rows.map((row) => [
+        row.filePath,
+        row.type,
+        row.status,
+        row.decisionClass,
+        row.reversibility,
+        row.urgency,
+        row.owner,
+        row.title
+      ]))
+      : "No decision records found."
   ].join("\n") + "\n";
 }
 
@@ -2648,6 +2706,22 @@ function dependencyRank(kind, importance, strength) {
   if (kind === "execution dependency") return 3;
   if (kind === "high-impact risk") return 4;
   return 5;
+}
+
+function taxonomyMatrix(rows, rowKey, columnKey) {
+  const rowValues = Array.from(new Set(rows.map((row) => row[rowKey]))).sort();
+  const columnValues = Array.from(new Set(rows.map((row) => row[columnKey]))).sort();
+  if (!rowValues.length || !columnValues.length) return "No records found.";
+  return table([titleCase(rowKey), ...columnValues], rowValues.map((rowValue) => [
+    rowValue,
+    ...columnValues.map((columnValue) => String(rows.filter((row) => row[rowKey] === rowValue && row[columnKey] === columnValue).length))
+  ]));
+}
+
+function titleCase(value) {
+  return String(value || "")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (char) => char.toUpperCase());
 }
 
 function decisionScenarios(filePath, decision) {

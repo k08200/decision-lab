@@ -72,6 +72,12 @@ node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/statu
 node bin/decision-lab.js calibration decisions --out outputs/calibration.md
 ```
 
+`taxonomy` maps the portfolio by type, status, decision class, reversibility, urgency, and owner.
+
+```bash
+node bin/decision-lab.js taxonomy decisions --out outputs/taxonomy.md
+```
+
 `outcomes` summarizes reviewed outcomes, review completeness, lessons, and calibration cues.
 
 ```bash
@@ -127,7 +133,7 @@ node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memo
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 ```
 
-`risks`, `assumptions`, `sources`, `owners`, `briefing`, `executive`, `monthly`, `next`, `prioritize`, `commitments`, `dependencies`, and `timeline` turn individual records into portfolio-level operating reports.
+`risks`, `assumptions`, `sources`, `owners`, `briefing`, `executive`, `monthly`, `next`, `prioritize`, `taxonomy`, `commitments`, `dependencies`, and `timeline` turn individual records into portfolio-level operating reports.
 
 ```bash
 node bin/decision-lab.js risks decisions --out outputs/risks.md
@@ -135,6 +141,7 @@ node bin/decision-lab.js risk-heatmap decisions --out outputs/risk-heatmap.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js assumption-tests decisions --out outputs/assumption-tests.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
+node bin/decision-lab.js taxonomy decisions --out outputs/taxonomy.md
 node bin/decision-lab.js evidence-scorecard decisions --out outputs/evidence-scorecard.md
 node bin/decision-lab.js signals decisions --as-of 2026-08-01 --out outputs/signals.md
 node bin/decision-lab.js commitments decisions --as-of 2026-08-01 --out outputs/commitments.md

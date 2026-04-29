@@ -83,6 +83,7 @@ import {
   renderSourceIndex,
   renderStaleReport,
   renderRepositoryStatus,
+  renderTaxonomyReport,
   renderThemeReport,
   renderTimeline,
   renderTriageReport,
@@ -335,6 +336,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
   assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
   assert.match(renderPriorityReview(records, "2026-08-01"), /Decision Priority Review/);
+  assert.match(renderTaxonomyReport(records), /Taxonomy Report/);
   assert.match(renderDecisionAgenda(records, { asOf: "2026-08-01", horizonDays: 14 }), /Decision Agenda/);
   assert.match(renderRepositoryStatus(records, { asOf: "2026-08-01" }), /Repository Status/);
   assert.match(renderDecisionDebt(records, { asOf: "2026-08-01", staleDays: 30 }), /Decision Debt/);
@@ -546,6 +548,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "status.md"), "utf8"), /Repository Status/);
   assert.match(readFileSync(path.join(packDir, "debt.md"), "utf8"), /Decision Debt/);
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
+  assert.match(readFileSync(path.join(packDir, "taxonomy.md"), "utf8"), /Taxonomy Report/);
   assert.match(readFileSync(path.join(packDir, "outcomes.md"), "utf8"), /Outcome Scorecard/);
   assert.match(readFileSync(path.join(packDir, "principles.md"), "utf8"), /Decision Principles/);
   assert.match(readFileSync(path.join(packDir, "themes.md"), "utf8"), /Theme Report/);
@@ -588,6 +591,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(weeklyDir, "index.md"), "utf8"), /Weekly Pack Index/);
   assert.match(readFileSync(path.join(weeklyDir, "executive.md"), "utf8"), /Executive Decision Summary/);
   assert.match(readFileSync(path.join(weeklyDir, "playbook.md"), "utf8"), /Operating Playbook/);
+  assert.match(readFileSync(path.join(weeklyDir, "taxonomy.md"), "utf8"), /Taxonomy Report/);
   assert.match(readFileSync(path.join(weeklyDir, "triage.md"), "utf8"), /Decision Triage/);
   assert.match(readFileSync(path.join(weeklyDir, "red-team.md"), "utf8"), /Red Team Report/);
   assert.match(readFileSync(path.join(weeklyDir, "themes.md"), "utf8"), /Theme Report/);
@@ -727,6 +731,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "principles", "examples"], {
     encoding: "utf8"
   }), /Decision Principles/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "taxonomy", "examples"], {
+    encoding: "utf8"
+  }), /Taxonomy Report/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "themes", "examples"], {
     encoding: "utf8"
   }), /Theme Report/);

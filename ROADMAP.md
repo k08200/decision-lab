@@ -24,6 +24,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Scheduled GitHub Actions operating pack generation
 - Scheduled GitHub Actions weekly pack artifact generation
 - Decision triage lanes for repair, review, debt, framing, research, monitoring, and archive work
+- Taxonomy report for type, status, class, reversibility, urgency, and owner mix
 - Hypothesis register for evidence, counterarguments, confidence, and disconfirming signals
 - Red-team report for counterarguments, disconfirming signals, downside cases, and high-impact risks
 - Risk heatmap for probability and impact concentration
