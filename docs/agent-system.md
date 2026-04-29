@@ -152,6 +152,12 @@ node bin/decision-lab.js questions decisions --out outputs/questions.md
 node bin/decision-lab.js hypotheses decisions --out outputs/hypotheses.md
 ```
 
+`scenarios` makes base, upside, and downside views explicit for active decisions.
+
+```bash
+node bin/decision-lab.js scenarios decisions --out outputs/scenarios.md
+```
+
 `review-pack` writes worksheets for every due review into one folder.
 
 ```bash

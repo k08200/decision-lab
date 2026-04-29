@@ -31,6 +31,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Signal watchlist for expected, failure, disconfirming, change-my-mind, and risk-trigger signals
 - Operating playbook recommendations for the next command sequence
 - Outcome scorecard for review completeness, lessons, and calibration cues
+- Scenario report for base, upside, and downside views across active decisions
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports

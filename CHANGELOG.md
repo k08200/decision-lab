@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.31.0
+
+### Added
+
+- Scenario report command for base, upside, and downside views across active decisions
+- Operating packs and weekly packs now include `scenarios.md`
+
 ## 2.30.0
 
 ### Added

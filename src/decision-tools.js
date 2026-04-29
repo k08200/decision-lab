@@ -110,6 +110,7 @@ export function renderReportCatalog() {
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
     ["Portfolio", "evidence-scorecard", "Summarize evidence strength and source coverage.", "weekly"],
     ["Portfolio", "hypotheses", "Collect hypotheses, evidence, counterarguments, and disconfirming signals.", "weekly"],
+    ["Portfolio", "scenarios", "Create base, upside, and downside scenario views for active decisions.", "weekly"],
     ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
     ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
     ["Portfolio", "outcomes", "Summarize reviewed outcomes, review completeness, lessons, and calibration cues.", "monthly"],
@@ -1124,6 +1125,54 @@ export function renderQuestionRegister(records) {
   ].join("\n") + "\n";
 }
 
+export function renderScenarioReport(records) {
+  const active = records.filter(({ decision }) => (decision.status || "draft") !== "reviewed");
+  const scenarioRows = active.flatMap(({ filePath, decision }) => decisionScenarios(filePath, decision));
+  const byType = groupBy(active, ({ decision }) => decision.decision_type || "unknown");
+  const highRiskCount = active.reduce((sum, { decision }) => (
+    sum + (decision.risks || []).filter((risk) => risk.impact === "high").length
+  ), 0);
+  const strongHypotheses = active.reduce((sum, { decision }) => (
+    sum + (decision.hypotheses || []).filter((hypothesis) => isNumber(hypothesis.confidence) && hypothesis.confidence >= 0.75).length
+  ), 0);
+
+  return [
+    "# Scenario Report",
+    "",
+    `Active records: ${active.length}`,
+    `Scenario rows: ${scenarioRows.length}`,
+    `High-impact risks: ${highRiskCount}`,
+    `High-confidence hypotheses: ${strongHypotheses}`,
+    "",
+    "## By Type",
+    countTable(byType),
+    "",
+    "## Scenario Matrix",
+    scenarioRows.length
+      ? table(["Scenario", "File", "Type", "Decision", "Confidence", "Narrative", "Watch"], scenarioRows.map((row) => [
+        row.scenario,
+        row.filePath,
+        row.type,
+        row.title,
+        row.confidence,
+        row.narrative,
+        row.watch
+      ]))
+      : "No active decisions found.",
+    "",
+    "## Stress Points",
+    active.length
+      ? table(["File", "Decision", "Fragile Assumption", "Highest Risk", "Change-My-Mind"], active.map(({ filePath, decision }) => [
+        filePath,
+        decision.title,
+        strongestAssumption(decision),
+        highestRisk(decision)?.risk || "",
+        (decision.what_would_change_my_mind || [])[0] || ""
+      ]))
+      : "No active decisions found."
+  ].join("\n") + "\n";
+}
+
 export function renderGuardrailReport(records) {
   const guardrails = records.flatMap(({ filePath, decision }) => {
     const frame = decision.decision_frame || {};
@@ -1938,6 +1987,70 @@ function calibrationCue(row) {
   if (row.confidence >= 0.8) return "High-confidence decision; check whether the outcome justified that certainty.";
   if (row.confidence <= 0.4) return "Low-confidence decision; check whether action was still warranted by downside control.";
   return "Compare actual signals against the original expected and failure signals.";
+}
+
+function decisionScenarios(filePath, decision) {
+  const selected = selectedOption(decision);
+  const topHypothesis = strongestHypothesis(decision);
+  const risk = highestRisk(decision);
+  const review = decision.post_decision_review || {};
+  const expectedSignal = (review.expected_signals || [])[0] || "";
+  const failureSignal = (review.failure_signals || [])[0] || "";
+  const changeMind = (decision.what_would_change_my_mind || [])[0] || "";
+
+  return [
+    {
+      scenario: "base",
+      filePath,
+      type: decision.decision_type || "",
+      title: decision.title || "",
+      confidence: percent(decision.recommendation?.confidence),
+      narrative: decision.recommendation?.summary || decision.recommendation?.decision || "",
+      watch: expectedSignal || changeMind
+    },
+    {
+      scenario: "upside",
+      filePath,
+      type: decision.decision_type || "",
+      title: decision.title || "",
+      confidence: percent(topHypothesis?.confidence),
+      narrative: topHypothesis?.statement || topHypothesis?.thesis || selected?.upside || selected?.expected_value || "",
+      watch: (topHypothesis?.evidence || [])[0] || expectedSignal
+    },
+    {
+      scenario: "downside",
+      filePath,
+      type: decision.decision_type || "",
+      title: decision.title || "",
+      confidence: risk ? `${risk.probability || "unknown"} probability / ${risk.impact || "unknown"} impact` : "N/A",
+      narrative: risk?.risk || selected?.downside || "No downside scenario recorded.",
+      watch: risk?.trigger || failureSignal || changeMind
+    }
+  ];
+}
+
+function selectedOption(decision) {
+  const selectedId = decision.recommendation?.selected_option;
+  return (decision.options || []).find((option) => option.id === selectedId) || (decision.options || [])[0] || null;
+}
+
+function strongestHypothesis(decision) {
+  return (decision.hypotheses || [])
+    .slice()
+    .sort((a, b) => (b.confidence ?? -1) - (a.confidence ?? -1))[0] || null;
+}
+
+function strongestAssumption(decision) {
+  const assumption = (decision.assumption_register || [])
+    .slice()
+    .sort((a, b) => assumptionRank(a.importance) - assumptionRank(b.importance))[0];
+  return assumption?.assumption || "";
+}
+
+function highestRisk(decision) {
+  return (decision.risks || [])
+    .slice()
+    .sort((a, b) => (riskWeight(b.probability) * riskWeight(b.impact)) - (riskWeight(a.probability) * riskWeight(a.impact)))[0] || null;
 }
 
 function checklistForType(decision) {
