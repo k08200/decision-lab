@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.13.0
+
+### Added
+
+- Decision debt report for invalid records, weak quality, overdue reviews, stale active records, high-impact risks, weak evidence, missing owners, and missing next actions
+- Operating packs now include `debt.md`
+
 ## 2.12.0
 
 ### Added

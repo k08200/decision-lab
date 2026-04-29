@@ -117,11 +117,12 @@ node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 ```
 
-`gate` and `stale` enforce quality and surface neglected records.
+`gate`, `stale`, and `debt` enforce quality, surface neglected records, and show accumulated decision debt.
 
 ```bash
 node bin/decision-lab.js gate decisions --min-score 0.85 --operational
 node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
+node bin/decision-lab.js debt decisions --days 30 --as-of 2026-08-01 --out outputs/debt.md
 node bin/decision-lab.js archive-plan decisions --destination decisions/archive --out outputs/archive-plan.md
 ```
 

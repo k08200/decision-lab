@@ -43,6 +43,7 @@ import {
   renderAssumptionReport,
   renderCalibration,
   renderDecisionChecklist,
+  renderDecisionDebt,
   renderDecisionDiff,
   renderDecisionGraph,
   renderDoctor,
@@ -286,6 +287,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
   assert.match(renderPriorityReview(records, "2026-08-01"), /Decision Priority Review/);
   assert.match(renderRepositoryStatus(records, { asOf: "2026-08-01" }), /Repository Status/);
+  assert.match(renderDecisionDebt(records, { asOf: "2026-08-01", staleDays: 30 }), /Decision Debt/);
   assert.match(renderTimeline(records), /Decision Timeline/);
 });
 
@@ -487,6 +489,7 @@ test("cli creates inbox drafts and operating packs", () => {
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
   assert.match(readFileSync(path.join(packDir, "status.md"), "utf8"), /Repository Status/);
+  assert.match(readFileSync(path.join(packDir, "debt.md"), "utf8"), /Decision Debt/);
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
   assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
   assert.match(readFileSync(path.join(packDir, "owners.md"), "utf8"), /Owner Report/);
@@ -651,6 +654,15 @@ test("cli evaluates gates and stale decisions", () => {
     "--days",
     "30"
   ], { encoding: "utf8" }), /Stale Decisions/);
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "debt",
+    "examples",
+    "--as-of",
+    "2026-08-01",
+    "--days",
+    "30"
+  ], { encoding: "utf8" }), /Decision Debt/);
 });
 
 test("renders archive plans", () => {

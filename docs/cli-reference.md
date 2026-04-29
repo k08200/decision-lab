@@ -108,6 +108,7 @@ node bin/decision-lab.js search decisions --query pricing
 node bin/decision-lab.js doctor
 node bin/decision-lab.js gate decisions --min-score 0.85 --operational
 node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
+node bin/decision-lab.js debt decisions --days 30 --as-of 2026-08-01
 node bin/decision-lab.js archive-plan decisions --destination decisions/archive
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review.md

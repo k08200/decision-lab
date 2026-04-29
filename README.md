@@ -99,6 +99,7 @@ decision-lab search [directory] --query text [--out report.md]
 decision-lab doctor [directory] [--out report.md]
 decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
 decision-lab stale [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab debt [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab archive-plan [directory] [--destination decisions/archive] [--out report.md]
 decision-lab promote <file.json> <draft|researching|decided|reviewed> [--out file.json]
 decision-lab review <file.json> [--out worksheet.md]
@@ -111,7 +112,7 @@ decision-lab list-prompts
 ## Repository Shape
 
 ```text
-.decision-lab.json    optional local defaults for owner, directories, quality gates, and stale reports
+.decision-lab.json    optional local defaults for owner, directories, quality gates, stale reports, and debt reports
 bin/                  CLI entrypoint
 src/                  validation, scoring, audits, bot workflow, rendering, prompt generation
 schemas/              JSON schemas for decision records
@@ -290,6 +291,7 @@ Enforce quality and find neglected records:
 ```bash
 node bin/decision-lab.js gate decisions --min-score 0.85 --operational
 node bin/decision-lab.js stale decisions --days 30 --as-of 2026-08-01
+node bin/decision-lab.js debt decisions --days 30 --as-of 2026-08-01 --out outputs/debt.md
 node bin/decision-lab.js archive-plan decisions --destination decisions/archive --out outputs/archive-plan.md
 ```
 

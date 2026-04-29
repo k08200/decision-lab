@@ -2,7 +2,7 @@
 
 Decision Lab is intentionally small, local-first, and dependency-free.
 
-`.decision-lab.json` is optional. When present, the CLI uses it for default owner, workspace directories, quality gate thresholds, and stale decision age.
+`.decision-lab.json` is optional. When present, the CLI uses it for default owner, workspace directories, quality gate thresholds, stale decision age, and decision debt age.
 
 ## Modules
 
@@ -10,7 +10,7 @@ Decision Lab is intentionally small, local-first, and dependency-free.
 - `src/templates.js`: blank schema-compatible record templates
 - `src/decision-core.js`: validation, scoring, audits, role prompts, and Markdown rendering
 - `src/decision-agent.js`: local bot workflow, schema migration, pipeline artifacts, ledger, and close-out review
-- `src/decision-tools.js`: source notes, evidence attachment, JSON patching, checklist, graph, diff, premortem, research plan, portfolio briefing, integrity manifest, lessons, owner reporting, repository status, archive planning, action queue, priority, and timeline rendering, due reviews, search, portfolio registers, monthly review packs, calibration, doctor, and health summaries
+- `src/decision-tools.js`: source notes, evidence attachment, JSON patching, checklist, graph, diff, premortem, research plan, portfolio briefing, integrity manifest, lessons, owner reporting, repository status, decision debt, archive planning, action queue, priority, and timeline rendering, due reviews, search, portfolio registers, monthly review packs, calibration, doctor, and health summaries
 - `src/decision-export.js`: dashboard triage and CSV/JSON export
 
 ## Data Flow

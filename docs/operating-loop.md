@@ -11,6 +11,7 @@ node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md
 node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
 node bin/decision-lab.js stale decisions --days 14 --as-of 2026-08-01 --out outputs/stale.md
+node bin/decision-lab.js debt decisions --days 14 --as-of 2026-08-01 --out outputs/debt.md
 ```
 
 Daily questions:
@@ -19,6 +20,7 @@ Daily questions:
 - Which decision has a deadline before the evidence is good enough?
 - Which high-impact risk has no owner?
 - Which stale record needs to be promoted, closed, or deleted from active attention?
+- Which debt item would compound fastest if ignored for another week?
 
 ## Before Committing
 

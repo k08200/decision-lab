@@ -863,6 +863,41 @@ export function renderStaleReport(records, { asOf = new Date().toISOString().sli
   ].join("\n") + "\n";
 }
 
+export function renderDecisionDebt(records, { asOf = new Date().toISOString().slice(0, 10), staleDays = 30 } = {}) {
+  const debt = records
+    .flatMap(({ filePath, decision }) => decisionDebtItems(filePath, decision, { asOf, staleDays }))
+    .sort((a, b) => debtSeverityRank(a.severity) - debtSeverityRank(b.severity) || a.filePath.localeCompare(b.filePath));
+  const bySeverity = groupBy(debt, (item) => item.severity);
+  const byType = groupBy(debt, (item) => item.type);
+
+  return [
+    "# Decision Debt",
+    "",
+    `As of: ${asOf}`,
+    `Stale after days: ${staleDays}`,
+    `Debt items: ${debt.length}`,
+    "",
+    "## By Severity",
+    countTable(bySeverity),
+    "",
+    "## By Type",
+    countTable(byType),
+    "",
+    "## Debt Register",
+    debt.length
+      ? table(["File", "Decision Type", "Status", "Title", "Debt", "Severity", "Suggested Fix"], debt.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.status || "draft",
+        item.decision.title,
+        item.type,
+        item.severity,
+        item.fix
+      ]))
+      : "No decision debt found."
+  ].join("\n") + "\n";
+}
+
 export function renderDecisionGraph(decision) {
   const lines = [
     `# Decision Graph: ${decision.title || "Untitled decision"}`,
@@ -1131,6 +1166,65 @@ function daysUntil(asOf, date) {
 function timelineEvent(filePath, decision, kind, date) {
   if (!date || !isIsoDate(date)) return null;
   return { filePath, decision, kind, date };
+}
+
+function decisionDebtItems(filePath, decision, { asOf, staleDays }) {
+  const audit = auditDecision(decision);
+  const items = [];
+  const status = decision.status || "draft";
+  const reviewDate = decision.recommendation?.review_date || decision.post_decision_review?.review_date || "";
+  const lastTouched = decision.updated_at || decision.created_at || "";
+  const highRiskCount = (decision.risks || []).filter((risk) => risk.impact === "high").length;
+  const hasStrongEvidence = (decision.evidence || []).some((evidence) => evidence.strength === "strong");
+  const hasOwner = Boolean(decision.owner && decision.owner !== "decision owner");
+  const hasNextActions = Array.isArray(decision.next_actions) && decision.next_actions.length > 0;
+
+  if (!audit.validation.valid) {
+    items.push(debt(filePath, decision, "invalid record", "high", formatIssues(audit.validation.errors).replaceAll("\n", "; ")));
+  }
+
+  if (audit.score.ratio < 0.75) {
+    items.push(debt(filePath, decision, "below quality target", "high", audit.next_actions.join("; ") || "Raise the record to the minimum audit score."));
+  }
+
+  if (isIsoDate(reviewDate) && parseDate(reviewDate) <= parseDate(asOf) && status !== "reviewed") {
+    items.push(debt(filePath, decision, "overdue review", "high", "Run the scheduled review or move the decision into reviewed status."));
+  }
+
+  if (highRiskCount > 0 && status !== "reviewed") {
+    items.push(debt(filePath, decision, "high-impact risk exposure", "medium", "Add mitigations, triggers, owners, and explicit kill criteria for high-impact risks."));
+  }
+
+  if (!hasStrongEvidence) {
+    items.push(debt(filePath, decision, "no strong evidence", "medium", "Upgrade at least one key evidence item to strong or mark what research would change the decision."));
+  }
+
+  if (!hasOwner) {
+    items.push(debt(filePath, decision, "missing accountable owner", "medium", "Assign a named decision owner instead of leaving ownership generic."));
+  }
+
+  if (!hasNextActions && status !== "reviewed") {
+    items.push(debt(filePath, decision, "no explicit next actions", "medium", "Add dated next actions with owners so the decision can move forward."));
+  }
+
+  if (!isIsoDate(lastTouched)) {
+    items.push(debt(filePath, decision, "unknown last touch", "low", "Add created_at or updated_at so the operating loop can age the record."));
+  } else {
+    const age = Math.floor((parseDate(asOf) - parseDate(lastTouched)) / 86_400_000);
+    if (age >= staleDays && status !== "reviewed") {
+      items.push(debt(filePath, decision, "stale active record", "low", `Refresh the record or close it; last touched ${age} days ago.`));
+    }
+  }
+
+  return items;
+}
+
+function debt(filePath, decision, type, severity, fix) {
+  return { filePath, decision, type, severity, fix };
+}
+
+function debtSeverityRank(severity) {
+  return { high: 0, medium: 1, low: 2 }[severity] ?? 3;
 }
 
 function isIsoDate(value) {

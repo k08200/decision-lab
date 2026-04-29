@@ -44,6 +44,7 @@ import {
   renderDueReviews,
   renderActionQueue,
   renderDecisionChecklist,
+  renderDecisionDebt,
   renderDecisionDiff,
   renderDecisionGraph,
   renderAssumptionReport,
@@ -143,6 +144,7 @@ Usage:
   decision-lab doctor [directory] [--out report.md]
   decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
   decision-lab stale [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab debt [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab archive-plan [directory] [--destination decisions/archive] [--out report.md]
   decision-lab promote <file.json> <draft|researching|decided|reviewed> [--out file.json]
   decision-lab review <file.json> [--out worksheet.md]
@@ -286,6 +288,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
   const artifacts = {
     "ledger.md": renderLedger(records),
     "status.md": renderRepositoryStatus(records, { asOf }),
+    "debt.md": renderDecisionDebt(records, { asOf }),
     "dashboard.html": renderDashboard(records),
     "decisions.csv": renderExport(records, "csv"),
     "decisions.json": renderExport(records, "json"),
@@ -735,6 +738,16 @@ try {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderStaleReport(readDecisionFiles(root), {
       days: Number(readFlag(args, "--days") || config.stale_after_days),
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
+    }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "debt") {
+    const config = loadWorkspaceConfig();
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderDecisionDebt(readDecisionFiles(root), {
+      staleDays: Number(readFlag(args, "--days") || config.stale_after_days),
       asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
     }), readFlag(args, "--out"));
     process.exit(0);
