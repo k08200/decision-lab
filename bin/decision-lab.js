@@ -61,6 +61,7 @@ import {
   renderMonthlyReview,
   renderOperatingScorecard,
   renderOperatingPlaybook,
+  renderOutcomeScorecard,
   renderOwnerReport,
   renderPremortem,
   renderPortfolioBriefing,
@@ -143,6 +144,7 @@ Usage:
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab manifest [directory] [--out manifest.md]
   decision-lab calibration [directory] [--out report.md]
+  decision-lab outcomes [directory] [--out report.md]
   decision-lab lessons [directory] [--out report.md]
   decision-lab risks [directory] [--out report.md]
   decision-lab risk-heatmap [directory] [--out report.md]
@@ -322,6 +324,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "decisions.json": renderExport(records, "json"),
     "manifest.md": renderIntegrityManifest(records),
     "calibration.md": renderCalibration(records),
+    "outcomes.md": renderOutcomeScorecard(records),
     "lessons.md": renderLessonsReport(records),
     "due.md": renderDueReviews(records, asOf),
     "review-pack.md": renderReviewPackIndex(records, asOf),
@@ -724,6 +727,12 @@ try {
   if (command === "calibration") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderCalibration(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "outcomes") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderOutcomeScorecard(readDecisionFiles(root)), readFlag(args, "--out"));
     process.exit(0);
   }
 

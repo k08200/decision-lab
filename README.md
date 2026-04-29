@@ -85,6 +85,7 @@ decision-lab dashboard [directory] [--out dashboard.html]
 decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab manifest [directory] [--out manifest.md]
 decision-lab calibration [directory] [--out report.md]
+decision-lab outcomes [directory] [--out report.md]
 decision-lab lessons [directory] [--out report.md]
 decision-lab risks [directory] [--out report.md]
 decision-lab risk-heatmap [directory] [--out report.md]
@@ -265,6 +266,7 @@ Track judgment over time:
 
 ```bash
 node bin/decision-lab.js calibration decisions --out outputs/calibration.md
+node bin/decision-lab.js outcomes decisions --out outputs/outcomes.md
 node bin/decision-lab.js lessons decisions --out outputs/lessons.md
 node bin/decision-lab.js doctor
 ```

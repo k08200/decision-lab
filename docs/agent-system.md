@@ -72,6 +72,12 @@ node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/statu
 node bin/decision-lab.js calibration decisions --out outputs/calibration.md
 ```
 
+`outcomes` summarizes reviewed outcomes, review completeness, lessons, and calibration cues.
+
+```bash
+node bin/decision-lab.js outcomes decisions --out outputs/outcomes.md
+```
+
 `evidence`, `patch`, and `set` improve existing records without rewriting them by hand.
 
 ```bash

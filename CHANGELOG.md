@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.30.0
+
+### Added
+
+- Outcome scorecard command for reviewed outcomes, review completeness, lessons, and calibration cues
+- Operating packs now include `outcomes.md`
+
 ## 2.29.0
 
 ### Added

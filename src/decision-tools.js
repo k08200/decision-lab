@@ -112,6 +112,7 @@ export function renderReportCatalog() {
     ["Portfolio", "hypotheses", "Collect hypotheses, evidence, counterarguments, and disconfirming signals.", "weekly"],
     ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
     ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
+    ["Portfolio", "outcomes", "Summarize reviewed outcomes, review completeness, lessons, and calibration cues.", "monthly"],
     ["Portfolio", "owners", "Show active records, due reviews, and actions by owner.", "weekly"],
     ["Portfolio", "monthly", "Run a broader portfolio review with risks, lessons, and due reviews.", "monthly"],
     ["Portfolio", "risk-heatmap", "Map risks by probability and impact.", "weekly or monthly"],
@@ -402,6 +403,62 @@ export function renderLessonsReport(records) {
     "",
     "## Lesson Themes",
     summarizeThemes(lessons.map((item) => item.lesson))
+  ].join("\n") + "\n";
+}
+
+export function renderOutcomeScorecard(records) {
+  const rows = records
+    .map(({ filePath, decision }) => outcomeRow(filePath, decision))
+    .filter((row) => row.reviewed || row.hasOutcome || row.lessons > 0);
+  const byType = groupBy(rows, (row) => row.type || "unknown");
+  const complete = rows.filter((row) => row.complete).length;
+  const withLessons = rows.filter((row) => row.lessons > 0).length;
+  const confidenceValues = rows.map((row) => row.confidence).filter(isNumber);
+
+  return [
+    "# Outcome Scorecard",
+    "",
+    `Reviewed/outcome records: ${rows.length}`,
+    `Complete reviews: ${complete}/${rows.length}`,
+    `Records with lessons: ${withLessons}/${rows.length}`,
+    `Average original confidence: ${percent(avg(confidenceValues))}`,
+    "",
+    "## By Type",
+    rows.length
+      ? table(["Type", "Records", "Complete", "Average Confidence", "Lessons"], Object.entries(byType).map(([type, items]) => [
+        type,
+        String(items.length),
+        `${items.filter((item) => item.complete).length}/${items.length}`,
+        percent(avg(items.map((item) => item.confidence).filter(isNumber))),
+        String(items.reduce((sum, item) => sum + item.lessons, 0))
+      ]))
+      : "No reviewed outcomes found.",
+    "",
+    "## Outcome Register",
+    rows.length
+      ? table(["File", "Type", "Decision", "Original Confidence", "Outcome", "Lessons", "Completeness", "Missing"], rows.map((row) => [
+        row.filePath,
+        row.type,
+        row.title,
+        percent(row.confidence),
+        row.outcome,
+        String(row.lessons),
+        row.complete ? "complete" : "incomplete",
+        row.missing.join("; ")
+      ]))
+      : "No reviewed outcomes found.",
+    "",
+    "## Calibration Cues",
+    rows.length
+      ? table(["File", "Confidence Bucket", "Cue"], rows.map((row) => [
+        row.filePath,
+        confidenceBucket(row.confidence),
+        calibrationCue(row)
+      ]))
+      : "No calibration cues found.",
+    "",
+    "## Lesson Themes",
+    summarizeThemes(rows.flatMap((row) => row.lessonItems))
   ].join("\n") + "\n";
 }
 
@@ -1846,6 +1903,41 @@ function triageRank(lane) {
 
 function playbookStep(work, count, command) {
   return { work, count, command };
+}
+
+function outcomeRow(filePath, decision) {
+  const review = decision.post_decision_review || {};
+  const lessonItems = review.lessons || [];
+  const missing = [
+    review.actual_outcome ? "" : "actual outcome",
+    (review.success_metrics || []).length ? "" : "success metrics",
+    (review.expected_signals || []).length ? "" : "expected signals",
+    (review.failure_signals || []).length ? "" : "failure signals",
+    lessonItems.length ? "" : "lessons"
+  ].filter(Boolean);
+
+  return {
+    filePath,
+    type: decision.decision_type || "",
+    title: decision.title || "",
+    reviewed: decision.status === "reviewed",
+    hasOutcome: Boolean(review.actual_outcome),
+    outcome: review.actual_outcome || "",
+    confidence: decision.recommendation?.confidence,
+    lessons: lessonItems.length,
+    lessonItems,
+    complete: missing.length === 0,
+    missing
+  };
+}
+
+function calibrationCue(row) {
+  if (!row.hasOutcome) return "Outcome not recorded yet.";
+  if (!row.lessons) return "Outcome exists, but no lesson was captured.";
+  if (!isNumber(row.confidence)) return "Record the original confidence to calibrate future decisions.";
+  if (row.confidence >= 0.8) return "High-confidence decision; check whether the outcome justified that certainty.";
+  if (row.confidence <= 0.4) return "Low-confidence decision; check whether action was still warranted by downside control.";
+  return "Compare actual signals against the original expected and failure signals.";
 }
 
 function checklistForType(decision) {
