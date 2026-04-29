@@ -19,6 +19,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Guardrail report for constraints, non-goals, kill criteria, success metrics, and failure signals
 - Full single-record run packets with health, checklist, premortem, research plan, graph, and prompts
 - Command catalog for report purpose and cadence
+- Review pack generation for all due post-decision reviews
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports

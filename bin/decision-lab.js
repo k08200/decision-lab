@@ -37,6 +37,7 @@ import {
   attachSourceEvidence,
   attachEvidence,
   createSourceNote,
+  getDueReviewRecords,
   parseJsonish,
   renderArchivePlan,
   renderCalibration,
@@ -64,6 +65,7 @@ import {
   renderReportCatalog,
   renderRiskRegister,
   renderReviewWorksheet,
+  renderReviewPackIndex,
   renderSearchResults,
   renderSourceIndex,
   renderStaleReport,
@@ -148,6 +150,7 @@ Usage:
   decision-lab timeline [directory] [--out report.md]
   decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
   decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab review-pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/reviews/YYYY-MM-DD]
   decision-lab search [directory] --query text [--out report.md]
   decision-lab doctor [directory] [--out report.md]
   decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
@@ -304,6 +307,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "calibration.md": renderCalibration(records),
     "lessons.md": renderLessonsReport(records),
     "due.md": renderDueReviews(records, asOf),
+    "review-pack.md": renderReviewPackIndex(records, asOf),
     "risks.md": renderRiskRegister(records),
     "assumptions.md": renderAssumptionReport(records),
     "sources.md": renderSourceIndex(records),
@@ -321,6 +325,33 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
   for (const [name, content] of Object.entries(artifacts)) {
     fs.writeFileSync(path.join(outDir, name), content);
   }
+}
+
+function writeReviewPack(records, { outDir, asOf }) {
+  fs.mkdirSync(outDir, { recursive: true });
+  const due = getDueReviewRecords(records, asOf);
+  fs.writeFileSync(path.join(outDir, "index.md"), renderReviewPackIndex(records, asOf));
+  const usedNames = new Set(["index.md"]);
+  for (const item of due) {
+    const baseName = `${slugify(item.decision.title || path.basename(item.filePath, ".json"))}.md`;
+    const fileName = uniqueFileName(baseName, usedNames);
+    fs.writeFileSync(path.join(outDir, fileName), renderReviewWorksheet(item.decision));
+  }
+  return due.length;
+}
+
+function uniqueFileName(fileName, usedNames) {
+  if (!usedNames.has(fileName)) {
+    usedNames.add(fileName);
+    return fileName;
+  }
+  const extension = path.extname(fileName);
+  const base = path.basename(fileName, extension);
+  let counter = 2;
+  while (usedNames.has(`${base}-${counter}${extension}`)) counter += 1;
+  const next = `${base}-${counter}${extension}`;
+  usedNames.add(next);
+  return next;
 }
 
 function renderCompare(decision) {
@@ -745,6 +776,15 @@ try {
   if (command === "due") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderDueReviews(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "review-pack") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    const asOf = readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10);
+    const outDir = readFlag(args, "--out-dir") || path.join("outputs", "reviews", asOf);
+    const count = writeReviewPack(readDecisionFiles(root), { outDir, asOf });
+    console.log(`Wrote ${count} review worksheet(s) to ${outDir}`);
     process.exit(0);
   }
 

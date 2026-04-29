@@ -129,6 +129,12 @@ node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out 
 node bin/decision-lab.js questions decisions --out outputs/questions.md
 ```
 
+`review-pack` writes worksheets for every due review into one folder.
+
+```bash
+node bin/decision-lab.js review-pack decisions --as-of 2026-08-01 --out-dir outputs/reviews/2026-08-01
+```
+
 `guardrails` keeps stop conditions, success metrics, failure signals, constraints, and change-my-mind conditions visible.
 
 ```bash

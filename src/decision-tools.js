@@ -105,6 +105,7 @@ export function renderReportCatalog() {
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
     ["Portfolio", "guardrails", "Collect constraints, non-goals, kill criteria, success metrics, and failure signals.", "weekly"],
+    ["Portfolio", "review-pack", "Write worksheets for every due post-decision review.", "weekly or monthly"],
     ["Portfolio", "owners", "Show active records, due reviews, and actions by owner.", "weekly"],
     ["Portfolio", "monthly", "Run a broader portfolio review with risks, lessons, and due reviews.", "monthly"],
     ["Repository", "pack", "Write the full operating pack into one output directory.", "daily, weekly, or monthly"],
@@ -319,6 +320,15 @@ function fileName(filePath) {
   return String(filePath).split(/[\\/]/).at(-1) || "decision.json";
 }
 
+function slugFileName(value) {
+  const slug = String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
+  return slug || "decision";
+}
+
 function fileHash(filePath) {
   try {
     return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
@@ -368,15 +378,7 @@ export function promoteDecision(decision, status, options = {}) {
 }
 
 export function renderDueReviews(records, asOf = new Date().toISOString().slice(0, 10)) {
-  const asOfDate = parseDate(asOf);
-  const due = records
-    .map(({ filePath, decision }) => ({
-      filePath,
-      decision,
-      reviewDate: decision.recommendation?.review_date || decision.post_decision_review?.review_date || ""
-    }))
-    .filter((item) => item.reviewDate && parseDate(item.reviewDate) <= asOfDate)
-    .sort((a, b) => a.reviewDate.localeCompare(b.reviewDate));
+  const due = getDueReviewRecords(records, asOf);
 
   return [
     "# Due Reviews",
@@ -385,6 +387,40 @@ export function renderDueReviews(records, asOf = new Date().toISOString().slice(
     "",
     due.length
       ? table(["File", "Type", "Title", "Decision", "Review Date"], due.map((item) => [
+        item.filePath,
+        item.decision.decision_type,
+        item.decision.title,
+        item.decision.recommendation?.decision || "",
+        item.reviewDate
+      ]))
+      : "No reviews are due."
+  ].join("\n") + "\n";
+}
+
+export function getDueReviewRecords(records, asOf = new Date().toISOString().slice(0, 10)) {
+  const asOfDate = parseDate(asOf);
+  return records
+    .map(({ filePath, decision }) => ({
+      filePath,
+      decision,
+      reviewDate: decision.recommendation?.review_date || decision.post_decision_review?.review_date || ""
+    }))
+    .filter((item) => isIsoDate(item.reviewDate) && parseDate(item.reviewDate) <= asOfDate)
+    .sort((a, b) => a.reviewDate.localeCompare(b.reviewDate) || a.filePath.localeCompare(b.filePath));
+}
+
+export function renderReviewPackIndex(records, asOf = new Date().toISOString().slice(0, 10)) {
+  const due = getDueReviewRecords(records, asOf);
+
+  return [
+    "# Review Pack",
+    "",
+    `As of: ${asOf}`,
+    `Due reviews: ${due.length}`,
+    "",
+    due.length
+      ? table(["Worksheet", "File", "Type", "Title", "Decision", "Review Date"], due.map((item) => [
+        `${slugFileName(item.decision.title || item.filePath)}.md`,
         item.filePath,
         item.decision.decision_type,
         item.decision.title,

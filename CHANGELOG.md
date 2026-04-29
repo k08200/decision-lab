@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.19.0
+
+### Added
+
+- Review pack command for writing due-review worksheet folders
+- Operating packs now include `review-pack.md`
+
 ## 2.18.0
 
 ### Added

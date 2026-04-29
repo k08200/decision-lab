@@ -62,6 +62,7 @@ import {
   renderResearchPlan,
   renderReportCatalog,
   renderRiskRegister,
+  renderReviewPackIndex,
   renderReviewWorksheet,
   renderSearchResults,
   renderSourceIndex,
@@ -276,6 +277,7 @@ test("creates source notes and links source evidence", () => {
 
 test("renders due reviews, search results, promotion, and review worksheets", () => {
   assert.match(renderDueReviews([{ filePath: "pricing.json", decision: business }], "2026-08-01"), /pricing.json/);
+  assert.match(renderReviewPackIndex([{ filePath: "pricing.json", decision: business }], "2026-08-01"), /Review Pack/);
   assert.match(renderSearchResults([{ filePath: "pricing.json", decision: business }], "platform"), /pricing.json/);
   assert.equal(promoteDecision(business, "reviewed", { now: "2026-04-29" }).status, "reviewed");
   assert.match(renderReviewWorksheet(business), /Review Worksheet/);
@@ -508,6 +510,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "debt.md"), "utf8"), /Decision Debt/);
   assert.match(readFileSync(path.join(packDir, "manifest.md"), "utf8"), /Integrity Manifest/);
   assert.match(readFileSync(path.join(packDir, "lessons.md"), "utf8"), /Lessons Report/);
+  assert.match(readFileSync(path.join(packDir, "review-pack.md"), "utf8"), /Review Pack/);
   assert.match(readFileSync(path.join(packDir, "questions.md"), "utf8"), /Question Register/);
   assert.match(readFileSync(path.join(packDir, "guardrails.md"), "utf8"), /Guardrail Report/);
   assert.match(readFileSync(path.join(packDir, "owners.md"), "utf8"), /Owner Report/);
@@ -611,6 +614,18 @@ test("cli imports source, links source evidence, and renders due/search/review",
   assert.match(execFileSync("node", ["bin/decision-lab.js", "due", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /enterprise_pricing_change/);
+  const reviewPackDir = path.join(mkdtempSync(path.join(tmpdir(), "decision-lab-review-pack-test-")), "reviews");
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "review-pack",
+    "examples",
+    "--as-of",
+    "2026-08-01",
+    "--out-dir",
+    reviewPackDir
+  ], { encoding: "utf8" }), /Wrote 2 review worksheet/);
+  assert.match(readFileSync(path.join(reviewPackDir, "index.md"), "utf8"), /Review Pack/);
+  assert.equal(readdirSync(reviewPackDir).filter((name) => name.endsWith(".md")).length, 3);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "search", "examples", "--query", "platform"], {
     encoding: "utf8"
   }), /enterprise_pricing_change/);

@@ -99,6 +99,7 @@ decision-lab agenda [directory] [--as-of YYYY-MM-DD] [--horizon 7] [--days 30] [
 decision-lab timeline [directory] [--out report.md]
 decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
 decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab review-pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/reviews/YYYY-MM-DD]
 decision-lab search [directory] --query text [--out report.md]
 decision-lab doctor [directory] [--out report.md]
 decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
@@ -272,6 +273,7 @@ Find due reviews and search the ledger:
 
 ```bash
 node bin/decision-lab.js due decisions --as-of 2026-08-01
+node bin/decision-lab.js review-pack decisions --as-of 2026-08-01 --out-dir outputs/reviews/2026-08-01
 node bin/decision-lab.js search decisions --query platform
 node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review-worksheet.md
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided

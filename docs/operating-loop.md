@@ -15,6 +15,7 @@ node bin/decision-lab.js debt decisions --days 14 --as-of 2026-08-01 --out outpu
 node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out outputs/agenda.md
 node bin/decision-lab.js questions decisions --out outputs/questions.md
 node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md
+node bin/decision-lab.js review-pack decisions --as-of 2026-08-01 --out-dir outputs/reviews/2026-08-01
 ```
 
 Daily questions:
