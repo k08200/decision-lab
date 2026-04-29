@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.0
+
+### Added
+
+- Premortem command that turns risks, fragile assumptions, counterarguments, and change-my-mind conditions into a pre-commit failure review
+
 ## 1.7.0
 
 ### Added

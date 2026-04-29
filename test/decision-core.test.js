@@ -46,6 +46,7 @@ import {
   renderDueReviews,
   renderGateReport,
   renderMonthlyReview,
+  renderPremortem,
   renderRiskRegister,
   renderReviewWorksheet,
   renderSearchResults,
@@ -286,6 +287,13 @@ test("renders decision diffs", () => {
   assert.match(diff, /Changed Fields/);
 });
 
+test("renders premortem reports", () => {
+  const report = renderPremortem(investment);
+  assert.match(report, /Premortem/);
+  assert.match(report, /Likely Failure Modes/);
+  assert.match(report, /Pre-Commit Checklist/);
+});
+
 test("evaluates quality gates and stale decisions", () => {
   const records = [{ filePath: "business.json", decision: business }];
   const gate = evaluateGate(records, { minScore: 0.9, requireOperational: true });
@@ -338,6 +346,14 @@ test("cli renders decision diff", () => {
   });
   assert.match(output, /Decision Diff/);
   assert.match(output, /Status/);
+});
+
+test("cli renders premortem report", () => {
+  const output = execFileSync("node", ["bin/decision-lab.js", "premortem", "examples/investment/nvidia_add_position.json"], {
+    encoding: "utf8"
+  });
+  assert.match(output, /Premortem/);
+  assert.match(output, /Strongest Counterarguments/);
 });
 
 test("cli creates decision from rough question", () => {

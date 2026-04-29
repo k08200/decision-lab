@@ -34,6 +34,12 @@ node bin/decision-lab.js graph decisions/drafts/aapl.json --out outputs/graphs/a
 node bin/decision-lab.js diff decisions/snapshots/aapl-before.json decisions/active/aapl.json --out outputs/diffs/aapl.md
 ```
 
+`premortem` converts risks, fragile assumptions, and counterarguments into a pre-commit failure review.
+
+```bash
+node bin/decision-lab.js premortem decisions/active/aapl.json --out outputs/premortems/aapl.md
+```
+
 `pipeline` creates the record and runs the full workflow in one command.
 
 ```bash
@@ -129,6 +135,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - creates audit, memo, brief, comparison, review plan, and agent report
 - renders Mermaid decision maps for visual inspection
 - compares record versions for review and change tracking
+- generates premortem reports before commitment
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape

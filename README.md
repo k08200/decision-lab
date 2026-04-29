@@ -32,6 +32,7 @@ node bin/decision-lab.js export examples --format csv --out outputs/decisions.cs
 node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
 node bin/decision-lab.js diff decisions/snapshots/pricing-before.json decisions/active/pricing.json --out outputs/diffs/pricing.md
 node bin/decision-lab.js graph examples/business/enterprise_pricing_change.json --out outputs/graphs/pricing.md
+node bin/decision-lab.js premortem examples/investment/nvidia_add_position.json --out outputs/premortems/nvda.md
 node bin/decision-lab.js render examples/business/enterprise_pricing_change.json --out outputs/memos/pricing.md
 node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.json --out-dir outputs/prompts/pricing
 ```
@@ -52,6 +53,7 @@ decision-lab health <file.json>
 decision-lab compare <file.json>
 decision-lab diff <before.json> <after.json> [--out diff.md]
 decision-lab graph <file.json> [--out graph.md]
+decision-lab premortem <file.json> [--out premortem.md]
 decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
 decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
 decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
@@ -258,6 +260,12 @@ Compare two versions of a record:
 
 ```bash
 node bin/decision-lab.js diff decisions/snapshots/pricing-before.json decisions/active/pricing.json --out outputs/diffs/pricing.md
+```
+
+Run a pre-commit failure review:
+
+```bash
+node bin/decision-lab.js premortem decisions/active/pricing.json --out outputs/premortems/pricing.md
 ```
 
 Upgrade older records into the current operating schema:

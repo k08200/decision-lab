@@ -574,6 +574,54 @@ export function renderDecisionDiff(before, after) {
   ].join("\n") + "\n";
 }
 
+export function renderPremortem(decision) {
+  const risks = decision.risks || [];
+  const assumptions = decision.assumption_register || [];
+  const counterarguments = (decision.hypotheses || [])
+    .flatMap((hypothesis) => hypothesis.counterarguments || [])
+    .filter(Boolean);
+
+  return [
+    `# Premortem: ${decision.title || "Untitled decision"}`,
+    "",
+    "## Failure Narrative",
+    `Assume the decision "${decision.recommendation?.decision || "undecided"}" was wrong. The most likely explanation is that a high-leverage assumption failed, weak evidence was overweighted, or an early warning signal was ignored.`,
+    "",
+    "## Likely Failure Modes",
+    risks.length
+      ? table(["Risk", "Probability", "Impact", "Trigger", "Mitigation"], risks.map((risk) => [
+        risk.risk || "",
+        risk.probability || "",
+        risk.impact || "",
+        risk.trigger || "",
+        risk.mitigation || ""
+      ]))
+      : "No risks recorded.",
+    "",
+    "## Fragile Assumptions",
+    assumptions.length
+      ? table(["Assumption", "Importance", "Test", "Owner"], assumptions.map((assumption) => [
+        assumption.assumption || "",
+        assumption.importance || "",
+        assumption.test || "",
+        assumption.owner || ""
+      ]))
+      : "No assumptions recorded.",
+    "",
+    "## Strongest Counterarguments",
+    list(counterarguments),
+    "",
+    "## What Would Change The Decision",
+    list(decision.what_would_change_my_mind || []),
+    "",
+    "## Pre-Commit Checklist",
+    "- Name the single assumption most likely to invalidate the decision.",
+    "- Confirm the trigger that will force a pause, rollback, or position reduction.",
+    "- Assign an owner for the first review date.",
+    "- Record the evidence that would make the opposite decision more attractive."
+  ].join("\n") + "\n";
+}
+
 function normalizeEvidence(evidence) {
   const normalized = {
     claim: requireText(evidence.claim, "claim"),

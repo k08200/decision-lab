@@ -16,6 +16,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports
+- Premortem failure reviews
 - Standalone dashboard and CSV/JSON export
 - CI for syntax and test coverage
 
