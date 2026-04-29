@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.40.0
+
+### Added
+
+- Example npm scripts for executive summary, operating playbook, and red-team reports
+
 ## 2.39.0
 
 ### Added

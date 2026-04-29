@@ -53,6 +53,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Executive summary report for health, priorities, risks, and next moves
 - Pack index generation for operating and weekly report folders
 - Agent guide for future coding agents and decision-bot work
+- Example npm shortcuts for executive, playbook, and red-team reports
 - Integrity manifest with file hashes
 - Lessons report for reviewed decisions
 - Repository status and archive planning

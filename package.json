@@ -1,6 +1,6 @@
 {
   "name": "decision-lab",
-  "version": "2.39.0",
+  "version": "2.40.0",
   "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
   "type": "module",
   "private": true,
@@ -23,7 +23,10 @@
     "example:dashboard": "node bin/decision-lab.js dashboard examples --out outputs/dashboard.html",
     "example:export": "node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv",
     "example:pack": "node bin/decision-lab.js pack examples --out-dir outputs/packs/example",
-    "example:weekly": "node bin/decision-lab.js weekly examples --out-dir outputs/weekly/example"
+    "example:weekly": "node bin/decision-lab.js weekly examples --out-dir outputs/weekly/example",
+    "example:executive": "node bin/decision-lab.js executive examples --as-of 2026-08-01",
+    "example:playbook": "node bin/decision-lab.js playbook examples --as-of 2026-08-01",
+    "example:red-team": "node bin/decision-lab.js red-team examples"
   },
   "keywords": [
     "decision",

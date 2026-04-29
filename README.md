@@ -21,6 +21,9 @@ npm test
 npm run verify
 npm run example:pack
 npm run example:weekly
+npm run example:executive
+npm run example:playbook
+npm run example:red-team
 node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing
