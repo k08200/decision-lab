@@ -22,7 +22,7 @@ node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aap
 node bin/decision-lab.js inbox inbox.txt --out-dir decisions/drafts
 ```
 
-`run` takes an existing record and generates the full artifact set.
+`run` takes an existing record and generates memo, brief, audit, health, option comparison, checklist, premortem, research plan, graph, review plan, agent report, and role prompts.
 
 ```bash
 node bin/decision-lab.js run decisions/drafts/aapl.json --out-dir outputs/runs/aapl

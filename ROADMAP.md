@@ -17,6 +17,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Near-term decision agenda for priorities, reviews, debt, and next actions
 - Question register for open questions, change-my-mind conditions, and evidence upgrades
 - Guardrail report for constraints, non-goals, kill criteria, success metrics, and failure signals
+- Full single-record run packets with health, checklist, premortem, research plan, graph, and prompts
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports

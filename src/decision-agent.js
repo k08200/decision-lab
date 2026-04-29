@@ -10,6 +10,13 @@ import {
   scoreOptions,
   validateDecision
 } from "./decision-core.js";
+import {
+  renderDecisionChecklist,
+  renderDecisionGraph,
+  renderPremortem,
+  renderResearchPlan,
+  summarizeDecisionHealth
+} from "./decision-tools.js";
 import { createTemplate } from "./templates.js";
 
 export const CURRENT_SCHEMA_VERSION = "0.2.0";
@@ -149,6 +156,11 @@ export function runDecisionWorkflow(decision) {
       "memo.md": validation.valid ? renderDecisionMemo(decision) : renderInvalidMemo(decision, validation),
       "brief.md": renderDecisionBrief(decision),
       "review-plan.md": renderReviewPlan(decision),
+      "checklist.md": renderDecisionChecklist(decision),
+      "premortem.md": renderPremortem(decision),
+      "research-plan.md": renderResearchPlan(decision),
+      "graph.md": renderDecisionGraph(decision),
+      "health.json": `${JSON.stringify(summarizeDecisionHealth(decision), null, 2)}\n`,
       "agent-report.md": renderAgentReport(decision, audit, prompts),
       ...Object.fromEntries(prompts.map((item) => [`prompts/${item.role}.md`, item.prompt]))
     }

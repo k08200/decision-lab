@@ -28,7 +28,7 @@ node bin/decision-lab.js run decisions/drafts/aapl.json --out-dir outputs/runs/a
 node bin/decision-lab.js pipeline "Should we change pricing?" --type business --slug pricing
 ```
 
-`run` generates artifacts from an existing record. `pipeline` creates the record and generates artifacts in one step.
+`run` generates memo, brief, audit, health, option comparison, checklist, premortem, research plan, graph, review plan, agent report, and role prompts from an existing record. `pipeline` creates the record and generates artifacts in one step.
 
 ## Inspect
 

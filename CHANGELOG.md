@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.17.0
+
+### Added
+
+- Single-record workflow runs now include checklist, premortem, research plan, decision graph, and health summary artifacts
+
 ## 2.16.0
 
 ### Added

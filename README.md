@@ -190,6 +190,8 @@ Use `run` when a decision JSON already exists:
 node bin/decision-lab.js run decisions/drafts/aapl.json --out-dir outputs/runs/aapl
 ```
 
+This writes memo, brief, audit, health, option comparison, checklist, premortem, research plan, graph, review plan, agent report, and role prompts.
+
 Use `pipeline` to do both at once:
 
 ```bash

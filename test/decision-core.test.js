@@ -171,6 +171,11 @@ test("runs full decision workflow artifacts", () => {
   assert.equal(workflow.validation.valid, true);
   assert.ok(workflow.artifacts["audit.json"]);
   assert.ok(workflow.artifacts["memo.md"]);
+  assert.ok(workflow.artifacts["checklist.md"]);
+  assert.ok(workflow.artifacts["premortem.md"]);
+  assert.ok(workflow.artifacts["research-plan.md"]);
+  assert.ok(workflow.artifacts["graph.md"]);
+  assert.ok(workflow.artifacts["health.json"]);
   assert.ok(workflow.artifacts["prompts/skeptic.md"]);
 });
 
