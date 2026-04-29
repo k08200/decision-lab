@@ -497,6 +497,7 @@ test("cli creates inbox drafts and operating packs", () => {
   const inboxPath = path.join(dir, "inbox.txt");
   const draftsDir = path.join(dir, "drafts");
   const packDir = path.join(dir, "pack");
+  const weeklyDir = path.join(dir, "weekly");
   writeFileSync(inboxPath, "Should I buy AAPL now?\nShould we change enterprise pricing?\n");
 
   assert.match(execFileSync("node", [
@@ -538,6 +539,19 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "agenda.md"), "utf8"), /Decision Agenda/);
   assert.match(readFileSync(path.join(packDir, "timeline.md"), "utf8"), /Decision Timeline/);
   assert.match(readFileSync(path.join(packDir, "dashboard.html"), "utf8"), /Decision Lab Dashboard/);
+
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "weekly",
+    draftsDir,
+    "--out-dir",
+    weeklyDir,
+    "--as-of",
+    "2026-08-01"
+  ], { encoding: "utf8" }), /Wrote weekly pack/);
+  assert.match(readFileSync(path.join(weeklyDir, "agenda.md"), "utf8"), /Decision Agenda/);
+  assert.match(readFileSync(path.join(weeklyDir, "triage.md"), "utf8"), /Decision Triage/);
+  assert.match(readFileSync(path.join(weeklyDir, "review-pack.md"), "utf8"), /Review Pack/);
 });
 
 test("cli applies evidence and patch commands", () => {

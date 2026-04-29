@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.27.0
+
+### Added
+
+- Weekly pack command for a lightweight recurring review folder
+
 ## 2.26.0
 
 ### Added

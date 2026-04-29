@@ -118,6 +118,7 @@ node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 
 ```bash
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
+node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/weekly/2026-08-01
 ```
 
 `agenda` turns the portfolio into a near-term operating agenda.

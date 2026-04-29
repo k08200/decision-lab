@@ -105,6 +105,7 @@ decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab agenda [directory] [--as-of YYYY-MM-DD] [--horizon 7] [--days 30] [--out report.md]
 decision-lab timeline [directory] [--out report.md]
 decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
+decision-lab weekly [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/weekly/YYYY-MM-DD]
 decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab review-pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/reviews/YYYY-MM-DD]
 decision-lab search [directory] --query text [--out report.md]
@@ -308,6 +309,7 @@ node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/p
 node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out outputs/agenda.md
 node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
+node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/weekly/2026-08-01
 ```
 
 Enforce quality and find neglected records:

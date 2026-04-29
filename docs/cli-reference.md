@@ -113,6 +113,7 @@ node bin/decision-lab.js prioritize decisions --as-of 2026-08-01
 node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14
 node bin/decision-lab.js timeline decisions
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
+node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/weekly/2026-08-01
 node bin/decision-lab.js due decisions --as-of 2026-08-01
 node bin/decision-lab.js review-pack decisions --as-of 2026-08-01 --out-dir outputs/reviews/2026-08-01
 node bin/decision-lab.js search decisions --query pricing

@@ -161,6 +161,7 @@ Usage:
   decision-lab agenda [directory] [--as-of YYYY-MM-DD] [--horizon 7] [--days 30] [--out report.md]
   decision-lab timeline [directory] [--out report.md]
   decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
+  decision-lab weekly [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/weekly/YYYY-MM-DD]
   decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab review-pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/reviews/YYYY-MM-DD]
   decision-lab search [directory] --query text [--out report.md]
@@ -339,6 +340,25 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "agenda.md": renderDecisionAgenda(records, { asOf }),
     "timeline.md": renderTimeline(records),
     "doctor.md": renderDoctor({ root, examples: readDecisionFiles(path.join(root, "examples")) })
+  };
+  for (const [name, content] of Object.entries(artifacts)) {
+    fs.writeFileSync(path.join(outDir, name), content);
+  }
+}
+
+function writeWeeklyPack(records, { outDir, asOf }) {
+  fs.mkdirSync(outDir, { recursive: true });
+  const artifacts = {
+    "agenda.md": renderDecisionAgenda(records, { asOf }),
+    "scorecard.md": renderOperatingScorecard(records, { asOf }),
+    "triage.md": renderTriageReport(records, { asOf }),
+    "debt.md": renderDecisionDebt(records, { asOf }),
+    "questions.md": renderQuestionRegister(records),
+    "hypotheses.md": renderHypothesisRegister(records),
+    "evidence-scorecard.md": renderEvidenceScorecard(records),
+    "assumption-tests.md": renderAssumptionTestQueue(records),
+    "risk-heatmap.md": renderRiskHeatmap(records),
+    "review-pack.md": renderReviewPackIndex(records, asOf)
   };
   for (const [name, content] of Object.entries(artifacts)) {
     fs.writeFileSync(path.join(outDir, name), content);
@@ -832,6 +852,15 @@ try {
     const outDir = readFlag(args, "--out-dir") || path.join("outputs", "packs", asOf);
     writeOperatingPack(readDecisionFiles(root), { outDir, asOf, root: "." });
     console.log(`Wrote operating pack to ${outDir}`);
+    process.exit(0);
+  }
+
+  if (command === "weekly") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    const asOf = readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10);
+    const outDir = readFlag(args, "--out-dir") || path.join("outputs", "weekly", asOf);
+    writeWeeklyPack(readDecisionFiles(root), { outDir, asOf });
+    console.log(`Wrote weekly pack to ${outDir}`);
     process.exit(0);
   }
 
