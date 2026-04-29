@@ -29,6 +29,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Assumption test queue for medium and high-importance assumptions
 - Weekly operating pack for lightweight recurring review
 - Signal watchlist for expected, failure, disconfirming, change-my-mind, and risk-trigger signals
+- Operating playbook recommendations for the next command sequence
 - Schema migration for older or partial records
 - Mermaid decision graph rendering
 - Decision record diff reports

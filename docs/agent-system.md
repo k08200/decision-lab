@@ -128,6 +128,12 @@ node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/w
 node bin/decision-lab.js agenda decisions --as-of 2026-08-01 --horizon 14 --out outputs/agenda.md
 ```
 
+`playbook` recommends the next operating commands from the current portfolio state.
+
+```bash
+node bin/decision-lab.js playbook decisions --as-of 2026-08-01 --out outputs/playbook.md
+```
+
 `questions` shows what still has to be learned before the judgment should harden.
 
 ```bash

@@ -101,6 +101,7 @@ export function renderReportCatalog() {
     ["Single Record", "premortem", "Stress-test failure modes before acting.", "before commitment"],
     ["Single Record", "research-plan", "Convert weak evidence and open questions into research tasks.", "before commitment"],
     ["Portfolio", "agenda", "Build a near-term operating agenda from priorities, reviews, debt, and actions.", "daily or weekly"],
+    ["Portfolio", "playbook", "Recommend the next operating commands from portfolio state.", "daily or weekly"],
     ["Portfolio", "scorecard", "Summarize portfolio health, quality, debt, evidence, reviews, and ownership.", "weekly"],
     ["Portfolio", "triage", "Classify each decision into the next operating lane.", "daily or weekly"],
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
@@ -219,6 +220,47 @@ export function renderSignalWatchlist(records, { asOf = new Date().toISOString()
         item.signal
       ]))
       : "No signals found."
+  ].join("\n") + "\n";
+}
+
+export function renderOperatingPlaybook(records, { asOf = new Date().toISOString().slice(0, 10), staleDays = 30, root = "decisions" } = {}) {
+  const audits = records.map(({ filePath, decision }) => ({ filePath, decision, audit: auditDecision(decision) }));
+  const dueReviews = getDueReviewRecords(records, asOf);
+  const debt = records.flatMap(({ filePath, decision }) => decisionDebtItems(filePath, decision, { asOf, staleDays }));
+  const weakEvidence = records.filter(({ decision }) => (decision.evidence || []).some((item) => item.strength !== "strong"));
+  const highRisks = records.filter(({ decision }) => (decision.risks || []).some((risk) => risk.impact === "high"));
+  const weakRecords = audits.filter((item) => !item.audit.validation.valid || item.audit.score.ratio < 0.75);
+  const steps = [
+    playbookStep("Review due decisions", dueReviews.length, `node bin/decision-lab.js review-pack ${root} --as-of ${asOf} --out-dir outputs/reviews/${asOf}`),
+    playbookStep("Clear decision debt", debt.length, `node bin/decision-lab.js debt ${root} --as-of ${asOf} --days ${staleDays} --out outputs/debt.md`),
+    playbookStep("Repair weak records", weakRecords.length, `node bin/decision-lab.js gate ${root} --min-score 0.75 --out outputs/gate.md`),
+    playbookStep("Upgrade evidence", weakEvidence.length, `node bin/decision-lab.js evidence-scorecard ${root} --out outputs/evidence-scorecard.md`),
+    playbookStep("Stress high-impact risks", highRisks.length, `node bin/decision-lab.js risk-heatmap ${root} --out outputs/risk-heatmap.md`),
+    playbookStep("Check signals", records.length, `node bin/decision-lab.js signals ${root} --as-of ${asOf} --out outputs/signals.md`)
+  ].filter((step) => step.count > 0);
+
+  return [
+    "# Operating Playbook",
+    "",
+    `As of: ${asOf}`,
+    `Records: ${records.length}`,
+    "",
+    "## Recommended Sequence",
+    steps.length
+      ? table(["Order", "Work", "Count", "Command"], steps.map((step, index) => [
+        String(index + 1),
+        step.work,
+        String(step.count),
+        step.command
+      ]))
+      : "No active operating work found.",
+    "",
+    "## Baseline Commands",
+    "```bash",
+    `node bin/decision-lab.js scorecard ${root} --as-of ${asOf}`,
+    `node bin/decision-lab.js triage ${root} --as-of ${asOf}`,
+    `node bin/decision-lab.js weekly ${root} --as-of ${asOf} --out-dir outputs/weekly/${asOf}`,
+    "```"
   ].join("\n") + "\n";
 }
 
@@ -1800,6 +1842,10 @@ function triageRank(lane) {
     monitor: 5,
     archive: 6
   }[lane] ?? 7;
+}
+
+function playbookStep(work, count, command) {
+  return { work, count, command };
 }
 
 function checklistForType(decision) {

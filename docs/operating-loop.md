@@ -9,6 +9,7 @@ Use this when decisions are actively moving.
 ```bash
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md
+node bin/decision-lab.js playbook decisions --as-of 2026-08-01 --out outputs/playbook.md
 node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
 node bin/decision-lab.js scorecard decisions --as-of 2026-08-01 --out outputs/scorecard.md
 node bin/decision-lab.js triage decisions --as-of 2026-08-01 --out outputs/triage.md
@@ -24,6 +25,7 @@ node bin/decision-lab.js review-pack decisions --as-of 2026-08-01 --out-dir outp
 Daily questions:
 
 - Which decision is blocked by missing evidence?
+- Which playbook command should run first?
 - Which triage lane has the most urgent work?
 - Which decision has a deadline before the evidence is good enough?
 - Which high-impact risk has no owner?

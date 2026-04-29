@@ -58,6 +58,7 @@ import {
   renderLessonsReport,
   renderMonthlyReview,
   renderOperatingScorecard,
+  renderOperatingPlaybook,
   renderOwnerReport,
   renderPremortem,
   renderPortfolioBriefing,
@@ -306,6 +307,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderQuestionRegister(records), /Question Register/);
   assert.match(renderHypothesisRegister(records), /Hypothesis Register/);
   assert.match(renderGuardrailReport(records), /Guardrail Report/);
+  assert.match(renderOperatingPlaybook(records, { asOf: "2026-08-01", staleDays: 30, root: "examples" }), /Operating Playbook/);
   assert.match(renderOperatingScorecard(records, { asOf: "2026-08-01", staleDays: 30 }), /Operating Scorecard/);
   assert.match(renderTriageReport(records, { asOf: "2026-08-01", staleDays: 30 }), /Decision Triage/);
   assert.match(renderOwnerReport(records, "2026-08-01"), /Owner Report/);
@@ -533,6 +535,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "questions.md"), "utf8"), /Question Register/);
   assert.match(readFileSync(path.join(packDir, "hypotheses.md"), "utf8"), /Hypothesis Register/);
   assert.match(readFileSync(path.join(packDir, "guardrails.md"), "utf8"), /Guardrail Report/);
+  assert.match(readFileSync(path.join(packDir, "playbook.md"), "utf8"), /Operating Playbook/);
   assert.match(readFileSync(path.join(packDir, "scorecard.md"), "utf8"), /Operating Scorecard/);
   assert.match(readFileSync(path.join(packDir, "triage.md"), "utf8"), /Decision Triage/);
   assert.match(readFileSync(path.join(packDir, "owners.md"), "utf8"), /Owner Report/);
@@ -553,6 +556,7 @@ test("cli creates inbox drafts and operating packs", () => {
     "2026-08-01"
   ], { encoding: "utf8" }), /Wrote weekly pack/);
   assert.match(readFileSync(path.join(weeklyDir, "agenda.md"), "utf8"), /Decision Agenda/);
+  assert.match(readFileSync(path.join(weeklyDir, "playbook.md"), "utf8"), /Operating Playbook/);
   assert.match(readFileSync(path.join(weeklyDir, "triage.md"), "utf8"), /Decision Triage/);
   assert.match(readFileSync(path.join(weeklyDir, "signals.md"), "utf8"), /Signal Watchlist/);
   assert.match(readFileSync(path.join(weeklyDir, "review-pack.md"), "utf8"), /Review Pack/);
@@ -707,6 +711,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "owners", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Owner Report/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "playbook", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Operating Playbook/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "scorecard", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Operating Scorecard/);

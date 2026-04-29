@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.29.0
+
+### Added
+
+- Operating playbook command that recommends the next command sequence from current portfolio state
+- Operating packs and weekly packs now include `playbook.md`
+
 ## 2.28.0
 
 ### Added

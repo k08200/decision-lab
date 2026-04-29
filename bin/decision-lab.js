@@ -60,6 +60,7 @@ import {
   renderLessonsReport,
   renderMonthlyReview,
   renderOperatingScorecard,
+  renderOperatingPlaybook,
   renderOwnerReport,
   renderPremortem,
   renderPortfolioBriefing,
@@ -155,6 +156,7 @@ Usage:
   decision-lab guardrails [directory] [--out report.md]
   decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab playbook [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab scorecard [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab triage [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -333,6 +335,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
     "guardrails.md": renderGuardrailReport(records),
+    "playbook.md": renderOperatingPlaybook(records, { asOf }),
     "scorecard.md": renderOperatingScorecard(records, { asOf }),
     "triage.md": renderTriageReport(records, { asOf }),
     "owners.md": renderOwnerReport(records, asOf),
@@ -353,6 +356,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
   fs.mkdirSync(outDir, { recursive: true });
   const artifacts = {
     "agenda.md": renderDecisionAgenda(records, { asOf }),
+    "playbook.md": renderOperatingPlaybook(records, { asOf }),
     "scorecard.md": renderOperatingScorecard(records, { asOf }),
     "triage.md": renderTriageReport(records, { asOf }),
     "debt.md": renderDecisionDebt(records, { asOf }),
@@ -800,6 +804,17 @@ try {
   if (command === "briefing") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderPortfolioBriefing(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "playbook") {
+    const config = loadWorkspaceConfig();
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderOperatingPlaybook(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
+      staleDays: Number(readFlag(args, "--days") || config.stale_after_days),
+      root
+    }), readFlag(args, "--out"));
     process.exit(0);
   }
 
