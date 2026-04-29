@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4.0
+
+### Added
+
+- Dashboard priority, high-risk, due-review, and action-count fields for portfolio triage
+
 ## 2.3.0
 
 ### Added

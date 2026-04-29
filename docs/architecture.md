@@ -11,7 +11,7 @@ Decision Lab is intentionally small, local-first, and dependency-free.
 - `src/decision-core.js`: validation, scoring, audits, role prompts, and Markdown rendering
 - `src/decision-agent.js`: local bot workflow, schema migration, pipeline artifacts, ledger, and close-out review
 - `src/decision-tools.js`: source notes, evidence attachment, JSON patching, graph, diff, premortem, research plan, action queue, priority, and timeline rendering, due reviews, search, portfolio registers, monthly review packs, calibration, doctor, and health summaries
-- `src/decision-export.js`: dashboard and CSV/JSON export
+- `src/decision-export.js`: dashboard triage and CSV/JSON export
 
 ## Data Flow
 

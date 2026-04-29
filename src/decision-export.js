@@ -19,6 +19,10 @@ export function buildDecisionRows(records) {
       strongest_option: audit.strongest_option?.name || "",
       review_date: decision.recommendation?.review_date || "",
       owner: decision.owner || "",
+      high_risks: (decision.risks || []).filter((risk) => risk.impact === "high").length,
+      action_count: (decision.next_actions || []).length + audit.next_actions.length,
+      due_review: isDue(decision.recommendation?.review_date || decision.post_decision_review?.review_date || ""),
+      priority: dashboardPriority(decision, audit),
       warnings: audit.warnings.join("; "),
       next_actions: audit.next_actions.join("; ")
     };
@@ -80,7 +84,7 @@ export function renderDashboard(records) {
     .subhead { margin-top: 4px; color: var(--muted); }
     .summary {
       display: grid;
-      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
       gap: 12px;
       margin-bottom: 18px;
     }
@@ -179,6 +183,8 @@ export function renderDashboard(records) {
       <div class="metric"><span>Total</span><strong>${stats.total}</strong></div>
       <div class="metric"><span>Operational</span><strong>${stats.operational}</strong></div>
       <div class="metric"><span>Reviewed</span><strong>${stats.reviewed}</strong></div>
+      <div class="metric"><span>Needs Attention</span><strong>${stats.needsAttention}</strong></div>
+      <div class="metric"><span>Due Reviews</span><strong>${stats.dueReviews}</strong></div>
       <div class="metric"><span>Average Score</span><strong>${stats.averageScore}%</strong></div>
       <div class="metric"><span>Average Confidence</span><strong>${stats.averageConfidence}%</strong></div>
     </section>
@@ -247,9 +253,11 @@ export function renderDashboard(records) {
               <th>Type</th>
               <th>Status</th>
               <th>Recommendation</th>
+              <th>Priority</th>
               <th>Confidence</th>
               <th>Score</th>
               <th>Review</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -266,9 +274,20 @@ export function renderDashboard(records) {
                   <div>\${escapeHtml(row.decision)}</div>
                   <div class="question">Best: \${escapeHtml(row.strongest_option || "N/A")}</div>
                 </td>
+                <td>
+                  <span class="pill \${row.priority >= 50 ? "bad" : row.priority >= 25 ? "warn" : "good"}">\${escapeHtml(row.priority)}</span>
+                  <div class="question">\${row.high_risks} high risks</div>
+                </td>
                 <td>\${row.confidence === null ? "N/A" : Math.round(row.confidence * 100) + "%"}</td>
                 <td><span class="pill \${maturityClass(row.maturity)}">\${escapeHtml(row.score + "/" + row.max_score + " " + row.grade)}</span></td>
-                <td>\${escapeHtml(row.review_date || "")}</td>
+                <td>
+                  <div>\${escapeHtml(row.review_date || "")}</div>
+                  \${row.due_review ? '<div class="question">due</div>' : ""}
+                </td>
+                <td>
+                  <div>\${escapeHtml(row.action_count)}</div>
+                  <div class="question">\${escapeHtml(row.next_actions || row.warnings || "")}</div>
+                </td>
               </tr>
             \`).join("")}
           </tbody>
@@ -308,9 +327,28 @@ function summarizeRows(rows) {
     total,
     operational: rows.filter((row) => row.maturity === "operational").length,
     reviewed: rows.filter((row) => row.status === "reviewed").length,
+    needsAttention: rows.filter((row) => row.priority >= 25).length,
+    dueReviews: rows.filter((row) => row.due_review).length,
     averageScore: total ? Math.round(avg(rows.map((row) => row.score / row.max_score)) * 100) : 0,
     averageConfidence: total ? Math.round(avg(rows.map((row) => row.confidence).filter((value) => value !== null)) * 100) : 0
   };
+}
+
+function dashboardPriority(decision, audit) {
+  let score = 0;
+  const status = decision.status || "draft";
+  if (status === "draft") score += 20;
+  if (status === "researching") score += 15;
+  if (audit.score.ratio < 0.75) score += Math.round((0.75 - audit.score.ratio) * 100);
+  score += (decision.risks || []).filter((risk) => risk.impact === "high").length * 10;
+  if (isDue(decision.recommendation?.review_date || decision.post_decision_review?.review_date || "")) score += 20;
+  return score;
+}
+
+function isDue(date) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return date <= today;
 }
 
 function avg(values) {

@@ -169,6 +169,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - writes full operating packs for recurring review
 - enforces quality gates and highlights stale decisions
 - renders a standalone HTML dashboard
+- surfaces priority, high-risk, due-review, and action-count fields in the dashboard
 - exports decision summaries to CSV or JSON
 
 ## What The Bot Does Not Do

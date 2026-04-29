@@ -320,9 +320,12 @@ test("exports decision rows and dashboard", () => {
   const records = [{ filePath: "pricing.json", decision: business }];
   const rows = buildDecisionRows(records);
   assert.equal(rows[0].type, "business");
+  assert.equal(typeof rows[0].priority, "number");
+  assert.equal(typeof rows[0].high_risks, "number");
   assert.match(renderExport(records, "csv"), /pricing.json/);
   assert.match(renderExport(records, "json"), /Move Enterprise Plan/);
   assert.match(renderDashboard(records), /Decision Lab Dashboard/);
+  assert.match(renderDashboard(records), /Needs Attention/);
 });
 
 test("cli validates example", () => {
