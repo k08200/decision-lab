@@ -41,6 +41,7 @@ import {
   renderCalibration,
   renderDoctor,
   renderDueReviews,
+  renderDecisionDiff,
   renderDecisionGraph,
   renderAssumptionReport,
   evaluateGate,
@@ -74,6 +75,7 @@ Usage:
   decision-lab audit <file.json>
   decision-lab health <file.json>
   decision-lab compare <file.json>
+  decision-lab diff <before.json> <after.json> [--out diff.md]
   decision-lab graph <file.json> [--out graph.md]
   decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
   decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
@@ -357,6 +359,13 @@ try {
 
   if (command === "compare") {
     writeOrPrint(renderCompare(requireFile(args[0])), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "diff") {
+    const [beforePath, afterPath] = positional(args);
+    if (!beforePath || !afterPath) throw new Error("Usage: decision-lab diff <before.json> <after.json>");
+    writeOrPrint(renderDecisionDiff(requireFile(beforePath), requireFile(afterPath)), readFlag(args, "--out"));
     process.exit(0);
   }
 

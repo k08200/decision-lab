@@ -28,6 +28,12 @@ node bin/decision-lab.js run decisions/drafts/aapl.json --out-dir outputs/runs/a
 node bin/decision-lab.js graph decisions/drafts/aapl.json --out outputs/graphs/aapl.md
 ```
 
+`diff` compares two versions of a decision record.
+
+```bash
+node bin/decision-lab.js diff decisions/snapshots/aapl-before.json decisions/active/aapl.json --out outputs/diffs/aapl.md
+```
+
 `pipeline` creates the record and runs the full workflow in one command.
 
 ```bash
@@ -122,6 +128,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - creates role prompts for analyst, skeptic, CFO, CEO, operator, risk, and recorder
 - creates audit, memo, brief, comparison, review plan, and agent report
 - renders Mermaid decision maps for visual inspection
+- compares record versions for review and change tracking
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape

@@ -540,6 +540,40 @@ export function renderDecisionGraph(decision) {
   return lines.join("\n");
 }
 
+export function renderDecisionDiff(before, after) {
+  const rows = [
+    fieldChange("Schema", before.schema_version, after.schema_version),
+    fieldChange("Type", before.decision_type, after.decision_type),
+    fieldChange("Status", before.status, after.status),
+    fieldChange("Recommendation", before.recommendation?.decision, after.recommendation?.decision),
+    fieldChange("Confidence", percent(before.recommendation?.confidence), percent(after.recommendation?.confidence)),
+    fieldChange("Quality Score", qualityScore(before), qualityScore(after)),
+    fieldChange("Evidence Count", countItems(before.evidence), countItems(after.evidence)),
+    fieldChange("Hypothesis Count", countItems(before.hypotheses), countItems(after.hypotheses)),
+    fieldChange("Risk Count", countItems(before.risks), countItems(after.risks)),
+    fieldChange("Assumption Count", countItems(before.assumption_register), countItems(after.assumption_register)),
+    fieldChange("Open Question Count", countItems(before.open_questions), countItems(after.open_questions))
+  ];
+  const changed = rows.filter((row) => row.changed);
+
+  return [
+    `# Decision Diff: ${after.title || before.title || "Untitled decision"}`,
+    "",
+    "## Summary",
+    table(["Metric", "Before", "After", "Changed"], rows.map((row) => [
+      row.name,
+      row.before,
+      row.after,
+      row.changed ? "yes" : "no"
+    ])),
+    "",
+    "## Changed Fields",
+    changed.length
+      ? table(["Metric", "Before", "After"], changed.map((row) => [row.name, row.before, row.after]))
+      : "No tracked field changes."
+  ].join("\n") + "\n";
+}
+
 function normalizeEvidence(evidence) {
   const normalized = {
     claim: requireText(evidence.claim, "claim"),
@@ -555,6 +589,26 @@ function normalizeEvidence(evidence) {
   }
 
   return normalized;
+}
+
+function fieldChange(name, before, after) {
+  const normalizedBefore = String(before ?? "");
+  const normalizedAfter = String(after ?? "");
+  return {
+    name,
+    before: normalizedBefore,
+    after: normalizedAfter,
+    changed: normalizedBefore !== normalizedAfter
+  };
+}
+
+function countItems(value) {
+  return Array.isArray(value) ? String(value.length) : "0";
+}
+
+function qualityScore(decision) {
+  const audit = auditDecision(decision);
+  return `${audit.score.score}/${audit.score.max_score}`;
 }
 
 function appendNodeGroup(lines, prefix, title, items, labelFn, parentId) {

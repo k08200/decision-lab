@@ -40,6 +40,7 @@ import {
   promoteDecision,
   renderAssumptionReport,
   renderCalibration,
+  renderDecisionDiff,
   renderDecisionGraph,
   renderDoctor,
   renderDueReviews,
@@ -276,6 +277,15 @@ test("renders decision graphs", () => {
   assert.match(graph, /Risks/);
 });
 
+test("renders decision diffs", () => {
+  const after = promoteDecision(business, "decided", { now: "2026-04-29" });
+  after.recommendation.confidence = 0.72;
+  const diff = renderDecisionDiff(business, after);
+  assert.match(diff, /Decision Diff/);
+  assert.match(diff, /Confidence/);
+  assert.match(diff, /Changed Fields/);
+});
+
 test("evaluates quality gates and stale decisions", () => {
   const records = [{ filePath: "business.json", decision: business }];
   const gate = evaluateGate(records, { minScore: 0.9, requireOperational: true });
@@ -313,6 +323,21 @@ test("cli renders decision graph", () => {
   });
   assert.match(output, /flowchart LR/);
   assert.match(output, /Recommendation/);
+});
+
+test("cli renders decision diff", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-diff-test-"));
+  const beforePath = path.join(dir, "before.json");
+  const afterPath = path.join(dir, "after.json");
+  const after = promoteDecision(business, "decided", { now: "2026-04-29" });
+  writeFileSync(beforePath, `${JSON.stringify(business, null, 2)}\n`);
+  writeFileSync(afterPath, `${JSON.stringify(after, null, 2)}\n`);
+
+  const output = execFileSync("node", ["bin/decision-lab.js", "diff", beforePath, afterPath], {
+    encoding: "utf8"
+  });
+  assert.match(output, /Decision Diff/);
+  assert.match(output, /Status/);
 });
 
 test("cli creates decision from rough question", () => {

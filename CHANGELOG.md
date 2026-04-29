@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.0
+
+### Added
+
+- Decision diff command for comparing two versions of a record across status, recommendation, confidence, score, and register counts
+
 ## 1.6.0
 
 ### Added
