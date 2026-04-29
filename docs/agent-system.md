@@ -135,6 +135,12 @@ node bin/decision-lab.js questions decisions --out outputs/questions.md
 node bin/decision-lab.js review-pack decisions --as-of 2026-08-01 --out-dir outputs/reviews/2026-08-01
 ```
 
+`scorecard` summarizes repository health in one page.
+
+```bash
+node bin/decision-lab.js scorecard decisions --as-of 2026-08-01 --out outputs/scorecard.md
+```
+
 `guardrails` keeps stop conditions, success metrics, failure signals, constraints, and change-my-mind conditions visible.
 
 ```bash

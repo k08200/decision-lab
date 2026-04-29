@@ -56,6 +56,7 @@ import {
   renderIntegrityManifest,
   renderLessonsReport,
   renderMonthlyReview,
+  renderOperatingScorecard,
   renderOwnerReport,
   renderPremortem,
   renderPortfolioBriefing,
@@ -143,6 +144,7 @@ Usage:
   decision-lab guardrails [directory] [--out report.md]
   decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab scorecard [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -313,6 +315,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "sources.md": renderSourceIndex(records),
     "questions.md": renderQuestionRegister(records),
     "guardrails.md": renderGuardrailReport(records),
+    "scorecard.md": renderOperatingScorecard(records, { asOf }),
     "owners.md": renderOwnerReport(records, asOf),
     "briefing.md": renderPortfolioBriefing(records, asOf),
     "monthly.md": renderMonthlyReview(records, asOf),
@@ -726,6 +729,16 @@ try {
   if (command === "briefing") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderPortfolioBriefing(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "scorecard") {
+    const config = loadWorkspaceConfig();
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderOperatingScorecard(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
+      staleDays: Number(readFlag(args, "--days") || config.stale_after_days)
+    }), readFlag(args, "--out"));
     process.exit(0);
   }
 

@@ -101,6 +101,7 @@ export function renderReportCatalog() {
     ["Single Record", "premortem", "Stress-test failure modes before acting.", "before commitment"],
     ["Single Record", "research-plan", "Convert weak evidence and open questions into research tasks.", "before commitment"],
     ["Portfolio", "agenda", "Build a near-term operating agenda from priorities, reviews, debt, and actions.", "daily or weekly"],
+    ["Portfolio", "scorecard", "Summarize portfolio health, quality, debt, evidence, reviews, and ownership.", "weekly"],
     ["Portfolio", "status", "Show repo health, weak records, due reviews, and status/type counts.", "daily or weekly"],
     ["Portfolio", "debt", "Show invalid, weak, overdue, stale, ownerless, or under-evidenced records.", "weekly"],
     ["Portfolio", "questions", "Collect open questions, change-my-mind conditions, and evidence upgrades.", "weekly"],
@@ -119,6 +120,68 @@ export function renderReportCatalog() {
     "Use this as the operating map for the repo.",
     "",
     table(["Area", "Command", "Purpose", "Cadence"], rows)
+  ].join("\n") + "\n";
+}
+
+export function renderOperatingScorecard(records, { asOf = new Date().toISOString().slice(0, 10), staleDays = 30 } = {}) {
+  const audits = records.map(({ filePath, decision }) => ({ filePath, decision, audit: auditDecision(decision) }));
+  const valid = audits.filter((item) => item.audit.validation.valid).length;
+  const operational = audits.filter((item) => item.audit.maturity === "operational").length;
+  const avgScore = avg(audits.map((item) => item.audit.score.ratio).filter(isNumber));
+  const dueReviews = getDueReviewRecords(records, asOf).length;
+  const debtItems = records.flatMap(({ filePath, decision }) => decisionDebtItems(filePath, decision, { asOf, staleDays }));
+  const evidence = records.flatMap(({ decision }) => decision.evidence || []);
+  const strongEvidence = evidence.filter((item) => item.strength === "strong").length;
+  const owners = new Set(records.map(({ decision }) => decision.owner).filter((owner) => owner && owner !== "decision owner"));
+  const reviewed = records.filter(({ decision }) => decision.status === "reviewed").length;
+  const active = records.filter(({ decision }) => (decision.status || "draft") !== "reviewed").length;
+  const typeCounts = groupBy(records, ({ decision }) => decision.decision_type || "unknown");
+  const statusCounts = groupBy(records, ({ decision }) => decision.status || "draft");
+  const debtBySeverity = groupBy(debtItems, (item) => item.severity);
+
+  return [
+    "# Operating Scorecard",
+    "",
+    `As of: ${asOf}`,
+    "",
+    "## Core Metrics",
+    table(["Metric", "Value"], [
+      ["Decision records", String(records.length)],
+      ["Active records", String(active)],
+      ["Reviewed records", String(reviewed)],
+      ["Valid records", `${valid}/${records.length}`],
+      ["Operational records", `${operational}/${records.length}`],
+      ["Average quality score", percent(avgScore)],
+      ["Due reviews", String(dueReviews)],
+      ["Decision debt items", String(debtItems.length)],
+      ["Strong evidence share", evidence.length ? `${strongEvidence}/${evidence.length} (${percent(strongEvidence / evidence.length)})` : "N/A"],
+      ["Named owners", String(owners.size)]
+    ]),
+    "",
+    "## By Status",
+    countTable(statusCounts),
+    "",
+    "## By Type",
+    countTable(typeCounts),
+    "",
+    "## Debt By Severity",
+    countTable(debtBySeverity),
+    "",
+    "## Lowest Quality Records",
+    audits.length
+      ? table(["File", "Type", "Status", "Title", "Score", "Maturity"], audits
+        .slice()
+        .sort((a, b) => a.audit.score.ratio - b.audit.score.ratio || a.filePath.localeCompare(b.filePath))
+        .slice(0, 5)
+        .map((item) => [
+          item.filePath,
+          item.decision.decision_type,
+          item.decision.status || "draft",
+          item.decision.title,
+          `${item.audit.score.score}/${item.audit.score.max_score}`,
+          item.audit.maturity
+        ]))
+      : "No decision records found."
   ].join("\n") + "\n";
 }
 

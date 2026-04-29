@@ -92,6 +92,7 @@ decision-lab questions [directory] [--out report.md]
 decision-lab guardrails [directory] [--out report.md]
 decision-lab owners [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
+decision-lab scorecard [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
 decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -289,6 +290,7 @@ node bin/decision-lab.js questions decisions --out outputs/questions.md
 node bin/decision-lab.js guardrails decisions --out outputs/guardrails.md
 node bin/decision-lab.js owners decisions --as-of 2026-08-01 --out outputs/owners.md
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md
+node bin/decision-lab.js scorecard decisions --as-of 2026-08-01 --out outputs/scorecard.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md

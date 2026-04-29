@@ -101,6 +101,7 @@ node bin/decision-lab.js questions decisions
 node bin/decision-lab.js guardrails decisions
 node bin/decision-lab.js owners decisions --as-of 2026-08-01
 node bin/decision-lab.js briefing decisions --as-of 2026-08-01
+node bin/decision-lab.js scorecard decisions --as-of 2026-08-01
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01
 node bin/decision-lab.js next decisions --as-of 2026-08-01
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01

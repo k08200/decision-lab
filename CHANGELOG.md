@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.20.0
+
+### Added
+
+- Operating scorecard command for portfolio health, quality, debt, evidence, reviews, and ownership
+- Operating packs now include `scorecard.md`
+
 ## 2.19.0
 
 ### Added

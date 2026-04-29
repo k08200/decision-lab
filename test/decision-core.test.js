@@ -54,6 +54,7 @@ import {
   renderIntegrityManifest,
   renderLessonsReport,
   renderMonthlyReview,
+  renderOperatingScorecard,
   renderOwnerReport,
   renderPremortem,
   renderPortfolioBriefing,
@@ -294,6 +295,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderSourceIndex(records), /Source Index/);
   assert.match(renderQuestionRegister(records), /Question Register/);
   assert.match(renderGuardrailReport(records), /Guardrail Report/);
+  assert.match(renderOperatingScorecard(records, { asOf: "2026-08-01", staleDays: 30 }), /Operating Scorecard/);
   assert.match(renderOwnerReport(records, "2026-08-01"), /Owner Report/);
   assert.match(renderIntegrityManifest([{ filePath: "examples/business/enterprise_pricing_change.json", decision: business }]), /SHA256/);
   assert.match(renderPortfolioBriefing(records, "2026-08-01"), /Portfolio Briefing/);
@@ -513,6 +515,7 @@ test("cli creates inbox drafts and operating packs", () => {
   assert.match(readFileSync(path.join(packDir, "review-pack.md"), "utf8"), /Review Pack/);
   assert.match(readFileSync(path.join(packDir, "questions.md"), "utf8"), /Question Register/);
   assert.match(readFileSync(path.join(packDir, "guardrails.md"), "utf8"), /Guardrail Report/);
+  assert.match(readFileSync(path.join(packDir, "scorecard.md"), "utf8"), /Operating Scorecard/);
   assert.match(readFileSync(path.join(packDir, "owners.md"), "utf8"), /Owner Report/);
   assert.match(readFileSync(path.join(packDir, "briefing.md"), "utf8"), /Portfolio Briefing/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
@@ -656,6 +659,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "owners", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Owner Report/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "scorecard", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Operating Scorecard/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "status", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Repository Status/);
