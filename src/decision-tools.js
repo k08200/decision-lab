@@ -426,6 +426,62 @@ export function renderMonthlyReview(records, asOf = new Date().toISOString().sli
   ].join("\n") + "\n";
 }
 
+export function renderPortfolioBriefing(records, asOf = new Date().toISOString().slice(0, 10)) {
+  const audits = records.map(({ filePath, decision }) => ({ filePath, decision, audit: auditDecision(decision) }));
+  const active = audits.filter((item) => ["draft", "researching", "decided"].includes(item.decision.status || "draft"));
+  const reviewed = audits.filter((item) => item.decision.status === "reviewed");
+  const weak = audits.filter((item) => item.audit.score.ratio < 0.75);
+  const highRisks = records.flatMap(({ filePath, decision }) => (
+    (decision.risks || [])
+      .filter((risk) => risk.impact === "high")
+      .map((risk) => ({ filePath, decision, risk }))
+  ));
+  const priorities = audits
+    .map((item) => ({ ...item, priority: priorityScore(item.decision, item.audit, asOf) }))
+    .sort((a, b) => b.priority.score - a.priority.score)
+    .slice(0, 5);
+
+  return [
+    "# Portfolio Briefing",
+    "",
+    `As of: ${asOf}`,
+    "",
+    "## Snapshot",
+    table(["Metric", "Value"], [
+      ["Total decisions", String(records.length)],
+      ["Active decisions", String(active.length)],
+      ["Reviewed decisions", String(reviewed.length)],
+      ["Below quality target", String(weak.length)],
+      ["High-impact risks", String(highRisks.length)]
+    ]),
+    "",
+    "## Top Priorities",
+    priorities.length
+      ? table(["Priority", "File", "Status", "Title", "Reasons"], priorities.map((item) => [
+        String(item.priority.score),
+        item.filePath,
+        item.decision.status || "draft",
+        item.decision.title,
+        item.priority.reasons.join("; ")
+      ]))
+      : "No priorities found.",
+    "",
+    "## High-Impact Risks",
+    highRisks.length
+      ? table(["File", "Decision", "Risk", "Trigger", "Mitigation"], highRisks.slice(0, 10).map((item) => [
+        item.filePath,
+        item.decision.title,
+        item.risk.risk || "",
+        item.risk.trigger || "",
+        item.risk.mitigation || ""
+      ]))
+      : "No high-impact risks found.",
+    "",
+    "## Due Reviews",
+    renderDueReviews(records, asOf).replace(/^# Due Reviews\n\n/, "")
+  ].join("\n") + "\n";
+}
+
 export function renderActionQueue(records, asOf = new Date().toISOString().slice(0, 10)) {
   const actionRows = records.flatMap(({ filePath, decision }) => {
     const audit = auditDecision(decision);

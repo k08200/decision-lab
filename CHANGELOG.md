@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.7.0
+
+### Added
+
+- Portfolio briefing command for a one-page view of snapshot, top priorities, high-impact risks, and due reviews
+- Operating packs now include `briefing.md`
+
 ## 2.6.0
 
 ### Added

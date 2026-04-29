@@ -31,6 +31,7 @@ node bin/decision-lab.js doctor
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migration-aapl.md
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
+node bin/decision-lab.js briefing examples --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js next examples --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize examples --as-of 2026-08-01 --out outputs/priorities.md
 node bin/decision-lab.js timeline examples --out outputs/timeline.md
@@ -81,6 +82,7 @@ decision-lab calibration [directory] [--out report.md]
 decision-lab risks [directory] [--out report.md]
 decision-lab assumptions [directory] [--out report.md]
 decision-lab sources [directory] [--out report.md]
+decision-lab briefing [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
@@ -262,6 +264,7 @@ Review decision portfolios:
 node bin/decision-lab.js risks decisions --out outputs/risks.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
+node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md

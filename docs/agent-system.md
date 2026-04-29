@@ -96,12 +96,13 @@ node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memo
 node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 ```
 
-`risks`, `assumptions`, `sources`, `monthly`, `next`, `prioritize`, and `timeline` turn individual records into portfolio-level operating reports.
+`risks`, `assumptions`, `sources`, `briefing`, `monthly`, `next`, `prioritize`, and `timeline` turn individual records into portfolio-level operating reports.
 
 ```bash
 node bin/decision-lab.js risks decisions --out outputs/risks.md
 node bin/decision-lab.js assumptions decisions --out outputs/assumptions.md
 node bin/decision-lab.js sources decisions --out outputs/sources.md
+node bin/decision-lab.js briefing decisions --as-of 2026-08-01 --out outputs/briefing.md
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/monthly.md
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md
@@ -166,6 +167,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - creates monthly operating review packs
 - creates portfolio-level action queues
 - ranks decisions by priority signals
+- creates one-page portfolio briefings
 - creates timeline reports and point-in-time snapshots
 - writes full operating packs for recurring review
 - enforces quality gates and highlights stale decisions

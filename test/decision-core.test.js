@@ -49,6 +49,7 @@ import {
   renderGateReport,
   renderMonthlyReview,
   renderPremortem,
+  renderPortfolioBriefing,
   renderPriorityReview,
   renderResearchPlan,
   renderRiskRegister,
@@ -272,6 +273,7 @@ test("renders portfolio-level operating reports", () => {
   assert.match(renderRiskRegister(records), /Risk Register/);
   assert.match(renderAssumptionReport(records), /Assumption Register/);
   assert.match(renderSourceIndex(records), /Source Index/);
+  assert.match(renderPortfolioBriefing(records, "2026-08-01"), /Portfolio Briefing/);
   assert.match(renderMonthlyReview(records, "2026-08-01"), /Monthly Decision Review/);
   assert.match(renderActionQueue(records, "2026-08-01"), /Action Queue/);
   assert.match(renderPriorityReview(records, "2026-08-01"), /Decision Priority Review/);
@@ -475,6 +477,7 @@ test("cli creates inbox drafts and operating packs", () => {
   ], { encoding: "utf8" }), /Wrote operating pack/);
 
   assert.match(readFileSync(path.join(packDir, "monthly.md"), "utf8"), /Monthly Decision Review/);
+  assert.match(readFileSync(path.join(packDir, "briefing.md"), "utf8"), /Portfolio Briefing/);
   assert.match(readFileSync(path.join(packDir, "next.md"), "utf8"), /Action Queue/);
   assert.match(readFileSync(path.join(packDir, "priorities.md"), "utf8"), /Decision Priority Review/);
   assert.match(readFileSync(path.join(packDir, "timeline.md"), "utf8"), /Decision Timeline/);
@@ -591,6 +594,9 @@ test("cli renders portfolio-level reports", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "sources", "examples"], {
     encoding: "utf8"
   }), /Source Index/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "briefing", "examples", "--as-of", "2026-08-01"], {
+    encoding: "utf8"
+  }), /Portfolio Briefing/);
   assert.match(execFileSync("node", ["bin/decision-lab.js", "monthly", "examples", "--as-of", "2026-08-01"], {
     encoding: "utf8"
   }), /Monthly Decision Review/);
