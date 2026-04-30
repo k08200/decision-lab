@@ -10,6 +10,18 @@ The bot layer is intentionally local-first. It does not require an API key to cr
 node bin/decision-lab.js config --out .decision-lab.json
 ```
 
+`private-workspace` creates a separate folder for real private decision data.
+
+```bash
+node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
+```
+
+`privacy-check` scans the public framework repository for tracked private paths and obvious secrets.
+
+```bash
+node bin/decision-lab.js privacy-check --out outputs/privacy.md
+```
+
 `ask` turns a rough question into a valid decision record.
 
 ```bash
@@ -285,6 +297,8 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 
 - infers decision type from the question
 - reads local defaults from `.decision-lab.json`
+- scaffolds private workspaces for real decision records
+- scans the public framework repository for private-data leaks
 - creates a schema-valid decision record
 - creates batches of decision drafts from inbox files
 - chooses a staged default when uncertainty is material

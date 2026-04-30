@@ -45,6 +45,17 @@ Daily questions:
 - Which hypothesis has the weakest evidence or strongest counterargument?
 - Which guardrail says this decision should stop, narrow, or reverse?
 
+## Public Repository Check
+
+Use this before pushing framework changes or making a repository public.
+
+```bash
+npm run privacy:check
+node bin/decision-lab.js privacy-check --out outputs/privacy.md
+```
+
+The check should pass in the public framework repository. It should fail in a real private decision workspace, because that workspace is expected to contain private records and local config.
+
 ## Before Committing
 
 Use this before buying, hiring, changing pricing, shipping a strategy, or approving spend.

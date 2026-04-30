@@ -44,6 +44,11 @@ import {
   renderEvidenceImportReport
 } from "../src/decision-import.js";
 import {
+  createPrivateWorkspace,
+  renderPrivacyReport,
+  scanPrivacy
+} from "../src/decision-privacy.js";
+import {
   createDraftDecision,
   createDecisionServer,
   decisionPayload,
@@ -374,6 +379,22 @@ test("imports evidence from CSV files", () => {
   const next = importEvidenceItems(business, items, { now: "2026-04-30" });
   assert.equal(next.evidence.at(-1).source, "Research note");
   assert.match(renderEvidenceImportReport(items, { sourcePath: evidencePath }), /Evidence Import Report/);
+});
+
+test("creates private workspaces and scans privacy risks", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-private-workspace-test-"));
+  const result = createPrivateWorkspace(dir, { owner: "Private Owner" });
+  assert.equal(result.files.includes(".decision-lab.json"), true);
+  assert.match(readFileSync(path.join(dir, "README.md"), "utf8"), /Private Decision Lab Workspace/);
+  assert.match(readFileSync(path.join(dir, ".decision-lab.json"), "utf8"), /Private Owner/);
+
+  const scan = scanPrivacy({ root: dir });
+  assert.equal(scan.ok, false);
+  assert.match(renderPrivacyReport(scan), /FAIL/);
+
+  const publicDir = mkdtempSync(path.join(tmpdir(), "decision-lab-public-scan-test-"));
+  writeFileSync(path.join(publicDir, "README.md"), "# Public\n");
+  assert.equal(scanPrivacy({ root: publicDir }).ok, true);
 });
 
 test("extracts evidence from markdown and text notes", () => {
@@ -777,6 +798,38 @@ test("cli imports evidence files", () => {
   const updated = JSON.parse(readFileSync(decisionPath, "utf8"));
   assert.equal(updated.evidence.at(-1).claim, "Imported pipeline claim");
   assert.match(readFileSync(reportPath, "utf8"), /Evidence Import Report/);
+});
+
+test("cli creates private workspaces and runs privacy checks", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-private-cli-test-"));
+  const workspacePath = path.join(dir, "private-decisions");
+  const reportPath = path.join(dir, "privacy.md");
+
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "private-workspace",
+    workspacePath,
+    "--owner",
+    "Private Owner"
+  ], { encoding: "utf8" }), /Created private Decision Lab workspace/);
+  assert.match(readFileSync(path.join(workspacePath, "README.md"), "utf8"), /Do not make this repository public/);
+
+  assert.throws(() => execFileSync("node", [
+    "bin/decision-lab.js",
+    "privacy-check",
+    workspacePath
+  ], { encoding: "utf8" }));
+
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "privacy-check",
+    workspacePath,
+    "--out",
+    reportPath,
+    "--no-fail",
+    "yes"
+  ], { encoding: "utf8" }), /Wrote/);
+  assert.match(readFileSync(reportPath, "utf8"), /FAIL/);
 });
 
 test("cli extracts evidence from notes", () => {

@@ -40,6 +40,11 @@ import {
   renderEvidenceImportReport
 } from "../src/decision-import.js";
 import {
+  createPrivateWorkspace,
+  renderPrivacyReport,
+  scanPrivacy
+} from "../src/decision-privacy.js";
+import {
   renderDashboard,
   renderExport
 } from "../src/decision-export.js";
@@ -136,6 +141,7 @@ function printHelp() {
 
 Usage:
   decision-lab init [directory]
+  decision-lab private-workspace <directory> [--owner name] [--overwrite yes]
   decision-lab config [--out .decision-lab.json]
   decision-lab catalog [--out report.md]
   decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
@@ -213,6 +219,7 @@ Usage:
   decision-lab review-pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/reviews/YYYY-MM-DD]
   decision-lab search [directory] --query text [--out report.md]
   decision-lab doctor [directory] [--out report.md]
+  decision-lab privacy-check [directory] [--out report.md] [--no-fail yes]
   decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
   decision-lab stale [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab debt [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
@@ -585,6 +592,19 @@ try {
 
   if (command === "init") {
     initWorkspace(args[0] || ".");
+    process.exit(0);
+  }
+
+  if (command === "private-workspace") {
+    const directory = args[0];
+    if (!directory) throw new Error("Usage: decision-lab private-workspace <directory>");
+    const result = createPrivateWorkspace(directory, {
+      owner: readFlag(args, "--owner") || "decision owner",
+      overwrite: readFlag(args, "--overwrite") === "yes"
+    });
+    console.log(`Created private Decision Lab workspace in ${result.root}`);
+    console.log(`Folders: ${result.folders.length}`);
+    console.log(`Files: ${result.files.length}`);
     process.exit(0);
   }
 
@@ -1235,6 +1255,14 @@ try {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : ".";
     const examples = readDecisionFiles(path.join(root, "examples"));
     writeOrPrint(renderDoctor({ root, examples }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "privacy-check") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : ".";
+    const result = scanPrivacy({ root });
+    writeOrPrint(renderPrivacyReport(result), readFlag(args, "--out"));
+    if (!result.ok && readFlag(args, "--no-fail") !== "yes") process.exit(1);
     process.exit(0);
   }
 

@@ -29,6 +29,7 @@ It is not a prompt pile. It is a way to turn a vague question into a durable dec
 ```bash
 npm test
 npm run verify
+npm run privacy:check
 npm run pack:check
 npm run example:pack
 npm run example:weekly
@@ -38,6 +39,8 @@ npm run example:red-team
 node bin/decision-lab.js commitments examples --as-of 2026-08-01 --out outputs/commitments.md
 node bin/decision-lab.js dependencies examples --out outputs/dependencies.md
 node bin/decision-lab.js config --out .decision-lab.json
+node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
+node bin/decision-lab.js privacy-check
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing
 node bin/decision-lab.js new investment --out decisions/drafts/nvda.json
@@ -74,6 +77,7 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 
 ```bash
 decision-lab init [directory]
+decision-lab private-workspace <directory> [--owner name] [--overwrite yes]
 decision-lab config [--out .decision-lab.json]
 decision-lab catalog [--out report.md]
 decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
@@ -151,6 +155,7 @@ decision-lab due [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab review-pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/reviews/YYYY-MM-DD]
 decision-lab search [directory] --query text [--out report.md]
 decision-lab doctor [directory] [--out report.md]
+decision-lab privacy-check [directory] [--out report.md] [--no-fail yes]
 decision-lab gate [directory] [--min-score 0.75] [--operational] [--out report.md]
 decision-lab stale [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab debt [directory] [--days 30] [--as-of YYYY-MM-DD] [--out report.md]

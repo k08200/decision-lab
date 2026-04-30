@@ -4,13 +4,19 @@
 
 ```bash
 node bin/decision-lab.js init
+node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
 node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js catalog --out outputs/catalog.md
+node bin/decision-lab.js privacy-check --out outputs/privacy.md
 ```
 
 Creates local folders for decisions, research, and outputs.
 
 `config` writes the default local settings file for owner, directories, quality gate thresholds, and stale decision age.
+
+`private-workspace` creates a separate private folder for real decisions, raw research, local config, and private outputs.
+
+`privacy-check` scans tracked files for private workspace paths and obvious secrets before publishing.
 
 ## Create
 

@@ -43,6 +43,12 @@ node bin/decision-lab.js init
 node bin/decision-lab.js serve decisions
 ```
 
+Or create a separate private workspace next to this repository:
+
+```bash
+node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
+```
+
 Create a decision:
 
 ```bash
@@ -65,3 +71,14 @@ OPENAI_API_KEY=... node bin/decision-lab.js ai-suggest skeptic decisions/drafts/
 ```
 
 `ai-suggest` proposes JSON Patch operations. It does not apply them automatically.
+
+## Before Publishing
+
+Run:
+
+```bash
+npm run privacy:check
+node bin/decision-lab.js privacy-check
+```
+
+The privacy check fails if tracked files include local decision records, raw research, generated outputs, local config, `.env` files, or obvious API keys.

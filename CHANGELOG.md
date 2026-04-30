@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.56.0
+
+### Added
+
+- Private workspace scaffold via `decision-lab private-workspace`
+- Public-repo leakage scan via `decision-lab privacy-check`
+- `npm run privacy:check` included in the full verification gate
+
 ## 2.55.0
 
 ### Added

@@ -22,6 +22,18 @@ Keep this repository public, then keep your actual records in one of these place
 
 The default `.gitignore` blocks local `decisions/`, `research/`, `outputs/`, `.decision-lab.json`, and `.env` content so normal use does not leak private material.
 
+Create a separate private workspace:
+
+```bash
+node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
+```
+
+Before publishing, run:
+
+```bash
+npm run privacy:check
+```
+
 ## Reporting
 
 If you find a security issue in the framework, open a private advisory or contact the maintainer directly. Do not open a public issue containing secrets or real decision records.
