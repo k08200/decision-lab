@@ -16,6 +16,7 @@ npm test
 - Add tests for new CLI commands, scoring rules, or validation rules.
 - Update examples when schema behavior changes.
 - Do not add external runtime dependencies unless they remove meaningful complexity.
+- Use sanitized examples only. Do not commit real decision records, raw research, generated private reports, or API keys.
 
 ## Quality Bar
 

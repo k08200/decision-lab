@@ -73,6 +73,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - CI for syntax and test coverage
 - Full verify gate in CI and expanded repository doctor checks
 - ICS calendar export for review reminders
+- Public-ready security, private-data, and environment setup guidance
 
 ## Next
 

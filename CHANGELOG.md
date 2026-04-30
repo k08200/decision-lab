@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.55.0
+
+### Added
+
+- Public/private usage guide for publishing the framework while keeping real decision data private
+- Security policy and `.env.example`
+- Stronger ignore rules for secrets, local config, raw research, private evidence, snapshots, and archives
+
 ## 2.54.0
 
 ### Added

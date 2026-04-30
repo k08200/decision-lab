@@ -2,6 +2,10 @@ node_modules/
 coverage/
 *.log
 .npm-cache/
+.env
+.env.*
+!.env.example
+.decision-lab.json
 outputs/*
 !outputs/.gitkeep
 !outputs/memos/
@@ -23,6 +27,16 @@ decisions/active/*
 !decisions/active/.gitkeep
 decisions/reviewed/*
 !decisions/reviewed/.gitkeep
+decisions/snapshots/*
+!decisions/snapshots/.gitkeep
+decisions/archive/*
+!decisions/archive/.gitkeep
+research/raw/*
+!research/raw/.gitkeep
+research/evidence/*
+!research/evidence/.gitkeep
+research/imports/*
+!research/imports/.gitkeep
 research/sources/*
 !research/sources/.gitkeep
 research/models/*

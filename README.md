@@ -2,6 +2,16 @@
 
 Decision Lab is a schema-first personal decision operating system for investment, finance, and management judgment.
 
+## Public Code, Private Decisions
+
+This repository is intended to be public as a framework, but your actual decision data should stay private.
+
+Safe to publish: code, schemas, prompts, docs, tests, workflows, and sanitized examples.
+
+Keep private: real `decisions/`, raw `research/`, generated `outputs/`, `.env`, `.decision-lab.json`, investment theses, management assumptions, financial forecasts, customer notes, and model responses containing private context.
+
+See [docs/public-private-usage.md](docs/public-private-usage.md) and [SECURITY.md](SECURITY.md) before using this with real data.
+
 It is not a prompt pile. It is a way to turn a vague question into a durable decision record:
 
 1. Frame the decision.
@@ -169,6 +179,8 @@ research/             sources and financial/model artifacts created by `init`
 outputs/              rendered memos, briefs, reviews, and prompts
 test/                 Node test runner tests
 ```
+
+The `decisions/`, `research/`, and `outputs/` folders are for local private work. The repo tracks only placeholder files there.
 
 ## Architecture
 
