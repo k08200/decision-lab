@@ -42,9 +42,12 @@ import {
   renderEvidenceImportReport
 } from "../src/decision-import.js";
 import {
+  createDraftDecision,
   createDecisionServer,
   decisionPayload,
-  reportCatalog
+  readDecisionRecord,
+  reportCatalog,
+  saveDecisionRecord
 } from "../src/decision-server.js";
 import {
   applyJsonPatch,
@@ -460,6 +463,18 @@ test("serves the local product API", async () => {
   assert.equal(payload.count, 4);
   assert.ok(payload.stats.averageScore > 0);
   assert.ok(reportCatalog().some((report) => report.id === "executive"));
+
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-server-test-"));
+  const created = createDraftDecision(dir, {
+    question: "Should we change enterprise pricing?",
+    type: "business",
+    owner: "product owner"
+  });
+  assert.equal(readDecisionRecord(dir, created.filePath).decision.owner, "product owner");
+  const updated = structuredClone(created.decision);
+  updated.owner = "updated owner";
+  assert.equal(saveDecisionRecord(dir, created.filePath, updated).saved, true);
+  assert.equal(readDecisionRecord(dir, created.filePath).decision.owner, "updated owner");
 
   const server = createDecisionServer({ root: "examples", asOf: "2026-08-01" });
   assert.equal(typeof server.listen, "function");

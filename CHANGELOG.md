@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.50.0
+
+### Added
+
+- Editable local product UI for creating, opening, editing, saving, and memo-previewing decision records
+- Read/write server endpoints for decision creation, decision loading, and validated saves
+
 ## 2.49.0
 
 ### Added

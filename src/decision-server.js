@@ -1,7 +1,8 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
-import { loadDecisionFile, renderDecisionMemo } from "./decision-core.js";
+import { loadDecisionFile, renderDecisionMemo, validateDecision } from "./decision-core.js";
+import { createDecisionFromQuestion, slugify } from "./decision-agent.js";
 import { buildDecisionRows } from "./decision-export.js";
 import {
   renderActionQueue,
@@ -85,12 +86,22 @@ const REPORTS = {
 };
 
 export function createDecisionServer({ root = "decisions", asOf = new Date().toISOString().slice(0, 10) } = {}) {
-  return http.createServer((request, response) => {
+  return http.createServer(async (request, response) => {
     try {
       const url = new URL(request.url || "/", "http://localhost");
       if (url.pathname === "/") return sendHtml(response, renderApp({ root, asOf }));
       if (url.pathname === "/healthz") return sendJson(response, { ok: true, root, asOf });
-      if (url.pathname === "/api/decisions") return sendJson(response, decisionPayload(root));
+      if (url.pathname === "/api/decisions" && request.method === "GET") return sendJson(response, decisionPayload(root));
+      if (url.pathname === "/api/decisions" && request.method === "POST") {
+        return sendJson(response, createDraftDecision(root, await readJson(request)), 201);
+      }
+      if (url.pathname === "/api/decision" && request.method === "GET") {
+        return sendJson(response, readDecisionRecord(root, url.searchParams.get("file")));
+      }
+      if (url.pathname === "/api/decision" && request.method === "PUT") {
+        const payload = await readJson(request);
+        return sendJson(response, saveDecisionRecord(root, url.searchParams.get("file"), payload.decision || payload));
+      }
       if (url.pathname === "/api/reports") return sendJson(response, reportCatalog());
       if (url.pathname.startsWith("/api/report/")) {
         return sendReport(response, root, asOf, url.pathname.replace("/api/report/", ""));
@@ -142,6 +153,42 @@ export function loadDecisionRecords(root = "decisions") {
     });
 }
 
+export function readDecisionRecord(root, filePath) {
+  const safePath = resolveInside(root, filePath);
+  const decision = loadDecisionFile(safePath);
+  if (!decision?.decision_type) throw new Error("File is not a decision record");
+  return {
+    filePath,
+    decision,
+    validation: validateDecision(decision),
+    memo: renderDecisionMemo(decision)
+  };
+}
+
+export function saveDecisionRecord(root, filePath, decision) {
+  if (!decision || typeof decision !== "object") throw new Error("Decision payload is required");
+  const validation = validateDecision(decision);
+  if (!validation.valid) return { saved: false, validation };
+  const safePath = resolveInside(root, filePath);
+  fs.writeFileSync(safePath, `${JSON.stringify(decision, null, 2)}\n`);
+  return { saved: true, filePath, validation };
+}
+
+export function createDraftDecision(root, { question, type = null, owner = "decision owner" } = {}) {
+  const decision = createDecisionFromQuestion(question, { type, owner });
+  const baseDir = path.resolve(root);
+  const slug = slugify(decision.title);
+  const directory = uniqueDirectory(path.join(baseDir, slug));
+  fs.mkdirSync(directory, { recursive: true });
+  const filePath = path.join(directory, "decision.json");
+  fs.writeFileSync(filePath, `${JSON.stringify(decision, null, 2)}\n`);
+  return {
+    filePath: path.relative(process.cwd(), filePath),
+    decision,
+    validation: validateDecision(decision)
+  };
+}
+
 function sendReport(response, root, asOf, id) {
   const report = REPORTS[id];
   if (!report) return sendJson(response, { error: `Unknown report: ${id}` }, 404);
@@ -153,6 +200,45 @@ function sendMemo(response, root, filePath) {
   const record = records.find((item) => item.filePath === filePath);
   if (!record) return sendJson(response, { error: "Decision file not found in server root" }, 404);
   return sendText(response, renderDecisionMemo(record.decision));
+}
+
+function resolveInside(root, filePath) {
+  if (!filePath) throw new Error("file is required");
+  const rootPath = path.resolve(root);
+  const target = path.resolve(filePath);
+  if (target !== rootPath && !target.startsWith(`${rootPath}${path.sep}`)) {
+    throw new Error("File must be inside the server root");
+  }
+  return target;
+}
+
+function uniqueDirectory(base) {
+  if (!fs.existsSync(base)) return base;
+  let counter = 2;
+  while (fs.existsSync(`${base}-${counter}`)) counter += 1;
+  return `${base}-${counter}`;
+}
+
+function readJson(request) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    request.setEncoding("utf8");
+    request.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 2_000_000) {
+        reject(new Error("Request body is too large"));
+        request.destroy();
+      }
+    });
+    request.on("end", () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (error) {
+        reject(new Error(`Invalid JSON body: ${error.message}`));
+      }
+    });
+    request.on("error", reject);
+  });
 }
 
 function renderApp({ root, asOf }) {
@@ -232,10 +318,24 @@ function renderApp({ root, asOf }) {
       font: inherit;
     }
     button { cursor: pointer; }
+    button.secondary { background: #f8fafb; }
     button.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+    button.inline { width: auto; min-width: 74px; }
     .field { margin-bottom: 12px; }
+    .actions { display: flex; gap: 8px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line); }
+    .actions button { width: auto; }
     .nav { display: grid; gap: 6px; margin-top: 16px; }
     .nav button { text-align: left; }
+    textarea {
+      width: 100%;
+      min-height: 520px;
+      resize: vertical;
+      border: 0;
+      border-radius: 0 0 8px 8px;
+      padding: 14px;
+      font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--text);
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -311,6 +411,20 @@ function renderApp({ root, asOf }) {
           <option value="reviewed">Reviewed</option>
         </select>
       </div>
+      <div class="field">
+        <label for="new-question">New Decision</label>
+        <input id="new-question" type="text">
+      </div>
+      <div class="field">
+        <select id="new-type">
+          <option value="">Infer type</option>
+          <option value="investment">Investment</option>
+          <option value="business">Business</option>
+          <option value="finance">Finance</option>
+          <option value="general">General</option>
+        </select>
+      </div>
+      <button id="create" class="secondary">Create</button>
       <div class="nav" id="reports"></div>
     </aside>
     <section class="content">
@@ -319,10 +433,13 @@ function renderApp({ root, asOf }) {
     </section>
   </main>
   <script>
-    const state = { rows: [], reports: [], activeReport: "" };
+    const state = { rows: [], reports: [], activeReport: "", activeFile: "" };
     const search = document.querySelector("#search");
     const type = document.querySelector("#type");
     const decisionStatus = document.querySelector("#decision-status");
+    const newQuestion = document.querySelector("#new-question");
+    const newType = document.querySelector("#new-type");
+    const createButton = document.querySelector("#create");
     const view = document.querySelector("#view");
     const stats = document.querySelector("#stats");
     const status = document.querySelector("#status");
@@ -367,13 +484,14 @@ function renderApp({ root, asOf }) {
 
     function renderTable() {
       state.activeReport = "";
+      state.activeFile = "";
       renderReportButtons();
       const rows = filteredRows();
       if (!rows.length) {
         view.innerHTML = '<div class="report small">No matching decisions.</div>';
         return;
       }
-      view.innerHTML = '<table><thead><tr><th>Decision</th><th>Type</th><th>Status</th><th>Recommendation</th><th>Priority</th><th>Score</th><th>Review</th></tr></thead><tbody>'
+      view.innerHTML = '<table><thead><tr><th>Decision</th><th>Type</th><th>Status</th><th>Recommendation</th><th>Priority</th><th>Score</th><th>Review</th><th></th></tr></thead><tbody>'
         + rows.map((row) => '<tr>'
           + '<td><div class="title">' + escapeHtml(row.title) + '</div><div class="small">' + escapeHtml(row.question) + '</div><div class="small">' + escapeHtml(row.file) + '</div></td>'
           + '<td><span class="pill">' + escapeHtml(row.type) + '</span></td>'
@@ -382,8 +500,12 @@ function renderApp({ root, asOf }) {
           + '<td><span class="pill ' + (row.priority >= 50 ? "bad" : row.priority >= 25 ? "warn" : "good") + '">' + escapeHtml(row.priority) + '</span></td>'
           + '<td><span class="pill ' + scoreClass(row) + '">' + escapeHtml(row.score + "/" + row.max_score + " " + row.grade) + '</span></td>'
           + '<td>' + escapeHtml(row.review_date || "") + (row.due_review ? '<div class="small">due</div>' : "") + '</td>'
+          + '<td><button class="inline secondary" data-open="' + escapeHtml(row.file) + '">Open</button></td>'
           + '</tr>').join("")
         + '</tbody></table>';
+      view.querySelectorAll("[data-open]").forEach((button) => {
+        button.addEventListener("click", () => openDecision(button.dataset.open));
+      });
     }
 
     function renderReportButtons() {
@@ -401,9 +523,84 @@ function renderApp({ root, asOf }) {
 
     async function loadReport(id) {
       state.activeReport = id;
+      state.activeFile = "";
       renderReportButtons();
       const response = await fetch('/api/report/' + encodeURIComponent(id));
       view.innerHTML = '<div class="report"><pre>' + escapeHtml(await response.text()) + '</pre></div>';
+    }
+
+    async function openDecision(file) {
+      state.activeReport = "";
+      state.activeFile = file;
+      renderReportButtons();
+      const response = await fetch('/api/decision?file=' + encodeURIComponent(file));
+      const payload = await response.json();
+      if (!response.ok || payload.error) {
+        view.innerHTML = '<div class="report bad">' + escapeHtml(payload.error || "Could not load decision") + '</div>';
+        return;
+      }
+      view.innerHTML = '<div class="actions">'
+        + '<button id="save" class="inline">Save</button>'
+        + '<button id="memo" class="inline secondary">Memo</button>'
+        + '<span class="small">' + escapeHtml(file) + '</span>'
+        + '</div>'
+        + '<textarea id="editor" spellcheck="false">' + escapeHtml(JSON.stringify(payload.decision, null, 2)) + '</textarea>';
+      document.querySelector("#save").addEventListener("click", saveDecision);
+      document.querySelector("#memo").addEventListener("click", () => {
+        view.innerHTML = '<div class="actions"><button id="back" class="inline secondary">Back</button><span class="small">' + escapeHtml(file) + '</span></div>'
+          + '<div class="report"><pre>' + escapeHtml(payload.memo) + '</pre></div>';
+        document.querySelector("#back").addEventListener("click", () => openDecision(file));
+      });
+    }
+
+    async function saveDecision() {
+      const editor = document.querySelector("#editor");
+      let decision;
+      try {
+        decision = JSON.parse(editor.value);
+      } catch (error) {
+        status.textContent = 'Invalid JSON';
+        return;
+      }
+      const response = await fetch('/api/decision?file=' + encodeURIComponent(state.activeFile), {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ decision })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.saved) {
+        status.textContent = 'Not saved';
+        return;
+      }
+      status.textContent = 'Saved';
+      await refresh();
+      await openDecision(state.activeFile);
+    }
+
+    async function createDecision() {
+      const question = newQuestion.value.trim();
+      if (!question) return;
+      const response = await fetch('/api/decisions', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ question, type: newType.value || null })
+      });
+      const payload = await response.json();
+      if (!response.ok || payload.error) {
+        status.textContent = payload.error || 'Create failed';
+        return;
+      }
+      newQuestion.value = '';
+      await refresh();
+      await openDecision(payload.filePath);
+    }
+
+    async function refresh() {
+      const decisionResponse = await fetch('/api/decisions');
+      const payload = await decisionResponse.json();
+      state.rows = payload.rows;
+      renderStats(payload);
+      status.textContent = payload.count + ' records';
     }
 
     async function boot() {
@@ -423,6 +620,7 @@ function renderApp({ root, asOf }) {
     search.addEventListener("input", renderTable);
     type.addEventListener("change", renderTable);
     decisionStatus.addEventListener("change", renderTable);
+    createButton.addEventListener("click", createDecision);
     boot().catch((error) => {
       status.textContent = 'Error';
       view.innerHTML = '<div class="report">' + escapeHtml(error.message) + '</div>';

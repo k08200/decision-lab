@@ -148,4 +148,4 @@ node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memo
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Report earlier."
 ```
 
-`serve` runs a local read-only product UI on `127.0.0.1:8787` by default.
+`serve` runs a local product UI on `127.0.0.1:8787` by default. It supports decision creation, JSON editing, validated saves, memo previews, report tabs, and portfolio filters.

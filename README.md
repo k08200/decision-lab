@@ -313,7 +313,7 @@ node bin/decision-lab.js manifest decisions --out outputs/manifest.md
 node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
 ```
 
-`serve` starts a local product UI with portfolio filters and report tabs. It also exposes read-only JSON and Markdown endpoints for decisions, reports, and memos.
+`serve` starts a local product UI with portfolio filters, report tabs, decision creation, JSON editing, validated saves, and memo previews. It also exposes JSON and Markdown endpoints for decisions, reports, and memos.
 
 Find due reviews and search the ledger:
 
