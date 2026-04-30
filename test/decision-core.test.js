@@ -617,6 +617,22 @@ test("cli creates decision from rough question", () => {
   assert.match(decision.question, /AAPL/);
 });
 
+test("cli creates a demo workspace", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-demo-test-"));
+  const demoPath = path.join(dir, "demo");
+
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "demo",
+    demoPath
+  ], { encoding: "utf8" }), /Created Decision Lab demo/);
+
+  assert.match(readFileSync(path.join(demoPath, "README.md"), "utf8"), /Decision Lab Demo/);
+  assert.match(readFileSync(path.join(demoPath, "outputs/run/memo.md"), "utf8"), /Enterprise Pricing Pilot Demo/);
+  assert.match(readFileSync(path.join(demoPath, "outputs/weekly/2026-08-01/index.md"), "utf8"), /Weekly Pack Index/);
+  assert.match(readFileSync(path.join(demoPath, "outputs/weekly/2026-08-01/calendar.ics"), "utf8"), /BEGIN:VCALENDAR/);
+});
+
 test("cli writes config and uses default owner", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-config-test-"));
   const cliPath = path.resolve("bin/decision-lab.js");

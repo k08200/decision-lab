@@ -4,6 +4,7 @@
 
 ```bash
 node bin/decision-lab.js init
+node bin/decision-lab.js demo outputs/demo
 node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
 node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js catalog --out outputs/catalog.md
@@ -11,6 +12,8 @@ node bin/decision-lab.js privacy-check --out outputs/privacy.md
 ```
 
 Creates local folders for decisions, research, and outputs.
+
+`demo` creates a sanitized sample workspace with a decision record, memo, audit, weekly pack, and calendar file.
 
 `config` writes the default local settings file for owner, directories, quality gate thresholds, and stale decision age.
 

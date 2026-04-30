@@ -26,7 +26,18 @@ It is not a prompt pile. It is a way to turn a vague question into a durable dec
 
 ## Quick Start
 
+Try the product in a disposable demo workspace:
+
 ```bash
+npx github:k08200/decision-lab demo decision-lab-demo
+cd decision-lab-demo
+less outputs/run/memo.md
+```
+
+Or from a cloned checkout:
+
+```bash
+npm run demo
 npm test
 npm run verify
 npm run privacy:check
@@ -77,6 +88,7 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 
 ```bash
 decision-lab init [directory]
+decision-lab demo [directory]
 decision-lab private-workspace <directory> [--owner name] [--overwrite yes]
 decision-lab config [--out .decision-lab.json]
 decision-lab catalog [--out report.md]

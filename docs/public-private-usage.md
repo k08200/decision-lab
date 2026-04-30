@@ -35,6 +35,12 @@ Keep private:
 
 ## First Real Use
 
+Try the sanitized demo first:
+
+```bash
+npx github:k08200/decision-lab demo decision-lab-demo
+```
+
 ```bash
 git clone https://github.com/k08200/decision-lab.git
 cd decision-lab

@@ -75,12 +75,13 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - ICS calendar export for review reminders
 - Public-ready security, private-data, and environment setup guidance
 - Private workspace scaffold and privacy leak check
+- npm-ready package metadata and first-run demo workspace
 
 ## Next
 
 - Evidence import adapters for PDFs and spreadsheets
 - Optional LLM provider adapters that propose JSON patches instead of rewriting records
-- Web UI for browsing the decision ledger
+- Web UI polish for the local product server
 
 ## Principles
 

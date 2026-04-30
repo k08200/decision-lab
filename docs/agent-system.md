@@ -16,6 +16,12 @@ node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
 ```
 
+`demo` creates a sanitized sample workspace for first-run onboarding.
+
+```bash
+node bin/decision-lab.js demo outputs/demo
+```
+
 `privacy-check` scans the public framework repository for tracked private paths and obvious secrets.
 
 ```bash
@@ -297,6 +303,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 
 - infers decision type from the question
 - reads local defaults from `.decision-lab.json`
+- creates a disposable demo workspace for first-run onboarding
 - scaffolds private workspaces for real decision records
 - scans the public framework repository for private-data leaks
 - creates a schema-valid decision record

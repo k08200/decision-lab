@@ -141,6 +141,7 @@ function printHelp() {
 
 Usage:
   decision-lab init [directory]
+  decision-lab demo [directory]
   decision-lab private-workspace <directory> [--owner name] [--overwrite yes]
   decision-lab config [--out .decision-lab.json]
   decision-lab catalog [--out report.md]
@@ -341,6 +342,68 @@ function initWorkspace(directory = ".") {
     fs.writeFileSync(configPath, `${JSON.stringify(DEFAULT_CONFIG, null, 2)}\n`);
   }
   console.log(`Initialized Decision Lab workspace in ${root}`);
+}
+
+function createDemoWorkspace(directory = "outputs/demo") {
+  const root = path.resolve(directory);
+  fs.mkdirSync(root, { recursive: true });
+  const decision = createDecisionFromQuestion("Should we pilot enterprise pricing this quarter?", {
+    type: "business",
+    owner: "Demo Owner",
+    now: "2026-08-01"
+  });
+  decision.title = "Enterprise Pricing Pilot Demo";
+  decision.recommendation = {
+    ...decision.recommendation,
+    decision: "run a scoped pilot",
+    selected_option: "B",
+    summary: "Run a reversible enterprise pricing pilot while tracking approval time, churn risk, and sales cycle impact.",
+    confidence: 0.62,
+    decision_deadline: "2026-08-15",
+    review_date: "2026-09-15"
+  };
+
+  const decisionPath = path.join(root, "decisions/drafts/enterprise-pricing-pilot.json");
+  fs.mkdirSync(path.dirname(decisionPath), { recursive: true });
+  fs.writeFileSync(decisionPath, `${JSON.stringify(decision, null, 2)}\n`);
+
+  writeWorkflowArtifacts(path.join(root, "outputs/run"), runDecisionWorkflow(decision));
+  writeWeeklyPack([{ filePath: "decisions/drafts/enterprise-pricing-pilot.json", decision }], {
+    outDir: path.join(root, "outputs/weekly/2026-08-01"),
+    asOf: "2026-08-01"
+  });
+  fs.writeFileSync(path.join(root, "README.md"), renderDemoReadme());
+
+  return {
+    root,
+    decisionPath,
+    runDir: path.join(root, "outputs/run"),
+    weeklyDir: path.join(root, "outputs/weekly/2026-08-01")
+  };
+}
+
+function renderDemoReadme() {
+  return [
+    "# Decision Lab Demo",
+    "",
+    "This folder is a sanitized demo workspace.",
+    "",
+    "## Files",
+    "",
+    "- `decisions/drafts/enterprise-pricing-pilot.json`: example decision record",
+    "- `outputs/run/memo.md`: rendered decision memo",
+    "- `outputs/run/audit.json`: audit and score detail",
+    "- `outputs/weekly/2026-08-01/index.md`: weekly operating pack",
+    "- `outputs/weekly/2026-08-01/calendar.ics`: importable review calendar",
+    "",
+    "## Try",
+    "",
+    "```bash",
+    "node ../../bin/decision-lab.js serve decisions --as-of 2026-08-01",
+    "node ../../bin/decision-lab.js privacy-check . --no-fail yes",
+    "```",
+    ""
+  ].join("\n");
 }
 
 function loadWorkspaceConfig(root = ".") {
@@ -592,6 +655,15 @@ try {
 
   if (command === "init") {
     initWorkspace(args[0] || ".");
+    process.exit(0);
+  }
+
+  if (command === "demo") {
+    const result = createDemoWorkspace(args[0] || "outputs/demo");
+    console.log(`Created Decision Lab demo in ${result.root}`);
+    console.log(`Decision: ${result.decisionPath}`);
+    console.log(`Run artifacts: ${result.runDir}`);
+    console.log(`Weekly pack: ${result.weeklyDir}`);
     process.exit(0);
   }
 

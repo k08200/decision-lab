@@ -1,11 +1,21 @@
 {
   "name": "decision-lab",
-  "version": "2.56.0",
+  "version": "2.57.0",
   "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
   "type": "module",
-  "private": true,
   "bin": {
     "decision-lab": "./bin/decision-lab.js"
+  },
+  "homepage": "https://github.com/k08200/decision-lab#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k08200/decision-lab.git"
+  },
+  "bugs": {
+    "url": "https://github.com/k08200/decision-lab/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "bin",
@@ -31,6 +41,8 @@
     "privacy:check": "node bin/decision-lab.js privacy-check",
     "pack:check": "npm pack --dry-run --cache .npm-cache",
     "verify": "npm run check && npm test && npm run doctor && npm run privacy:check && npm run pack:check",
+    "demo": "node bin/decision-lab.js demo outputs/demo",
+    "prepublishOnly": "npm run verify",
     "example:investment": "node bin/decision-lab.js render examples/investment/nvidia_add_position.json",
     "example:business": "node bin/decision-lab.js render examples/business/enterprise_pricing_change.json",
     "example:audit": "node bin/decision-lab.js audit examples/business/enterprise_pricing_change.json",
@@ -47,9 +59,14 @@
   },
   "keywords": [
     "decision",
+    "decision-making",
     "investment",
+    "finance",
     "management",
+    "openai",
     "schema",
+    "json-schema",
+    "cli",
     "memo"
   ],
   "license": "MIT"

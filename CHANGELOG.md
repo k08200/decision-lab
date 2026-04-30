@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.57.0
+
+### Added
+
+- Three-minute demo workspace via `decision-lab demo`
+- npm package metadata for public package publishing
+- `npm run demo` and `prepublishOnly` verification
+
 ## 2.56.0
 
 ### Added
