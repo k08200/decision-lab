@@ -53,6 +53,7 @@ import {
   createDecisionServer,
   decisionPayload,
   readDecisionRecord,
+  renderApp,
   reportCatalog,
   saveDecisionRecord
 } from "../src/decision-server.js";
@@ -542,6 +543,9 @@ test("serves the local product API", async () => {
   const server = createDecisionServer({ root: "examples", asOf: "2026-08-01" });
   assert.equal(typeof server.listen, "function");
   assert.equal(typeof server.close, "function");
+  const html = renderApp({ root: "examples", asOf: "2026-08-01" });
+  assert.match(html, /Operating Loop/);
+  assert.match(html, /Decision Ledger/);
 });
 
 test("cli validates example", () => {

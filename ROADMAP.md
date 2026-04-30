@@ -76,12 +76,13 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Public-ready security, private-data, and environment setup guidance
 - Private workspace scaffold and privacy leak check
 - npm-ready package metadata and first-run demo workspace
+- First-run and operating-loop panel in the local product UI
 
 ## Next
 
 - Evidence import adapters for PDFs and spreadsheets
 - Optional LLM provider adapters that propose JSON patches instead of rewriting records
-- Web UI polish for the local product server
+- Publish package to npm after confirming package name and account ownership
 
 ## Principles
 

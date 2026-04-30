@@ -291,7 +291,7 @@ node bin/decision-lab.js serve decisions --as-of 2026-08-01
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 ```
 
-`serve` starts a local product UI with portfolio filtering, report tabs, decision creation, JSON editing, validated saves, memo previews, and JSON/Markdown endpoints for automation.
+`serve` starts a local product UI with portfolio filtering, report tabs, decision creation, JSON editing, validated saves, memo previews, first-run guidance, operating-loop actions, and JSON/Markdown endpoints for automation.
 
 `close` marks a decision as reviewed and records the outcome.
 
@@ -342,7 +342,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - writes full operating packs for recurring review
 - enforces quality gates and highlights stale decisions
 - renders a standalone HTML dashboard
-- runs a local product UI/API server with decision create/edit/save support
+- runs a local product UI/API server with decision create/edit/save support and first-run guidance
 - surfaces priority, high-risk, due-review, and action-count fields in the dashboard
 - exports decision summaries to CSV or JSON
 

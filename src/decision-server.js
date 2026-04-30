@@ -241,7 +241,7 @@ function readJson(request) {
   });
 }
 
-function renderApp({ root, asOf }) {
+export function renderApp({ root, asOf }) {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -260,6 +260,7 @@ function renderApp({ root, asOf }) {
       --warn: #9a5b05;
       --bad: #b42318;
       --good: #067647;
+      --focus: #2f6fed;
     }
     * { box-sizing: border-box; }
     body {
@@ -292,6 +293,13 @@ function renderApp({ root, asOf }) {
       padding: 16px;
     }
     .content { padding: 18px 22px 34px; overflow: auto; }
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 14px;
+      align-items: start;
+    }
+    .main-column { min-width: 0; }
     .stats {
       display: grid;
       grid-template-columns: repeat(4, minmax(130px, 1fr));
@@ -306,6 +314,46 @@ function renderApp({ root, asOf }) {
     .metric { padding: 12px; }
     .metric span { display: block; color: var(--muted); font-size: 12px; }
     .metric strong { display: block; margin-top: 4px; font-size: 24px; line-height: 1; }
+    .onboarding {
+      position: sticky;
+      top: 18px;
+      padding: 14px;
+    }
+    .onboarding h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 10px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+    .step:first-of-type { border-top: 0; }
+    .step-index {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .step-title { font-weight: 700; }
+    .step-copy { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .command {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 6px;
+      background: #101828;
+      color: #f9fafb;
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow-x: auto;
+    }
     label { display: block; color: var(--muted); font-size: 12px; margin: 0 0 6px; }
     input, select, button {
       width: 100%;
@@ -369,10 +417,36 @@ function renderApp({ root, asOf }) {
       font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
     .report { padding: 14px; }
+    .empty {
+      padding: 36px 18px;
+      text-align: center;
+    }
+    .empty h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    .empty p {
+      max-width: 560px;
+      margin: 0 auto 14px;
+      color: var(--muted);
+    }
+    .empty .inline { margin: 0 auto; }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfd;
+    }
     @media (max-width: 900px) {
       main { grid-template-columns: 1fr; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
       .stats { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+      .workspace { grid-template-columns: 1fr; }
+      .onboarding { position: static; }
       table { display: block; overflow-x: auto; }
     }
   </style>
@@ -428,8 +502,13 @@ function renderApp({ root, asOf }) {
       <div class="nav" id="reports"></div>
     </aside>
     <section class="content">
-      <div class="stats" id="stats"></div>
-      <div class="panel" id="view"></div>
+      <div class="workspace">
+        <div class="main-column">
+          <div class="stats" id="stats"></div>
+          <div class="panel" id="view"></div>
+        </div>
+        <div class="panel onboarding" id="onboarding"></div>
+      </div>
     </section>
   </main>
   <script>
@@ -444,6 +523,7 @@ function renderApp({ root, asOf }) {
     const stats = document.querySelector("#stats");
     const status = document.querySelector("#status");
     const reports = document.querySelector("#reports");
+    const onboarding = document.querySelector("#onboarding");
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -472,6 +552,23 @@ function renderApp({ root, asOf }) {
       ].join("");
     }
 
+    function renderOnboarding(payload) {
+      const hasRecords = payload.count > 0;
+      onboarding.innerHTML = '<h2>' + (hasRecords ? 'Operating Loop' : 'First Run') + '</h2>'
+        + step(1, hasRecords ? 'Review priority' : 'Create a record', hasRecords ? 'Open the action queue or priority report.' : 'Use the field on the left or run the demo command.', hasRecords ? 'node bin/decision-lab.js next ${escapeJs(root)} --out outputs/next.md' : 'node bin/decision-lab.js demo outputs/demo')
+        + step(2, hasRecords ? 'Strengthen evidence' : 'Read the memo', hasRecords ? 'Attach notes, challenge assumptions, then inspect the memo.' : 'Open the generated memo and audit files.', hasRecords ? 'node bin/decision-lab.js research-plan ${escapeJs(root)} --out outputs/research.md' : 'less outputs/demo/outputs/run/memo.md')
+        + step(3, hasRecords ? 'Schedule review' : 'Start private work', hasRecords ? 'Export dated reviews into a calendar file.' : 'Create a separate private workspace for real decisions.', hasRecords ? 'node bin/decision-lab.js ics ${escapeJs(root)} --out outputs/calendar.ics' : 'node bin/decision-lab.js private-workspace ../my-private-decisions')
+        + step(4, 'Check privacy', 'Run the public-repo leak check before pushing.', 'npm run privacy:check');
+    }
+
+    function step(index, title, copy, command) {
+      return '<div class="step"><span class="step-index">' + index + '</span><div>'
+        + '<div class="step-title">' + escapeHtml(title) + '</div>'
+        + '<div class="step-copy">' + escapeHtml(copy) + '</div>'
+        + '<div class="command">' + escapeHtml(command) + '</div>'
+        + '</div></div>';
+    }
+
     function filteredRows() {
       const query = search.value.trim().toLowerCase();
       return state.rows.filter((row) => {
@@ -488,10 +585,22 @@ function renderApp({ root, asOf }) {
       renderReportButtons();
       const rows = filteredRows();
       if (!rows.length) {
-        view.innerHTML = '<div class="report small">No matching decisions.</div>';
+        const hasAny = state.rows.length > 0;
+        view.innerHTML = '<div class="empty">'
+          + '<h2>' + (hasAny ? 'No matching decisions' : 'No decisions yet') + '</h2>'
+          + '<p>' + (hasAny ? 'Adjust the filters or open a report from the left rail.' : 'Create the first decision from the left rail, or generate a disposable demo workspace from the command line.') + '</p>'
+          + (hasAny ? '' : '<button class="inline secondary" id="seed-question">Seed question</button>')
+          + '</div>';
+        const seed = document.querySelector("#seed-question");
+        if (seed) seed.addEventListener("click", () => {
+          newQuestion.value = "Should we pilot enterprise pricing this quarter?";
+          newType.value = "business";
+          newQuestion.focus();
+        });
         return;
       }
-      view.innerHTML = '<table><thead><tr><th>Decision</th><th>Type</th><th>Status</th><th>Recommendation</th><th>Priority</th><th>Score</th><th>Review</th><th></th></tr></thead><tbody>'
+      view.innerHTML = '<div class="toolbar"><strong>Decision Ledger</strong><span class="small">' + rows.length + ' visible</span></div>'
+        + '<table><thead><tr><th>Decision</th><th>Type</th><th>Status</th><th>Recommendation</th><th>Priority</th><th>Score</th><th>Review</th><th></th></tr></thead><tbody>'
         + rows.map((row) => '<tr>'
           + '<td><div class="title">' + escapeHtml(row.title) + '</div><div class="small">' + escapeHtml(row.question) + '</div><div class="small">' + escapeHtml(row.file) + '</div></td>'
           + '<td><span class="pill">' + escapeHtml(row.type) + '</span></td>'
@@ -600,6 +709,7 @@ function renderApp({ root, asOf }) {
       const payload = await decisionResponse.json();
       state.rows = payload.rows;
       renderStats(payload);
+      renderOnboarding(payload);
       status.textContent = payload.count + ' records';
     }
 
@@ -612,6 +722,7 @@ function renderApp({ root, asOf }) {
       state.rows = payload.rows;
       state.reports = await reportResponse.json();
       renderStats(payload);
+      renderOnboarding(payload);
       renderReportButtons();
       renderTable();
       status.textContent = payload.count + ' records';
@@ -672,6 +783,10 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function escapeJs(value) {
+  return String(value ?? "").replaceAll("\\", "\\\\").replaceAll("'", "\\'");
 }
 
 function avg(values) {

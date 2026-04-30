@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.58.0
+
+### Added
+
+- First-run and operating-loop panel in the local product UI
+- Empty-state seed question flow for new local workspaces
+- Decision ledger toolbar with visible record counts
+
 ## 2.57.0
 
 ### Added
