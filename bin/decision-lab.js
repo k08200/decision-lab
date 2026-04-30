@@ -34,6 +34,11 @@ import {
   renderPatchReview
 } from "../src/decision-ai.js";
 import {
+  importEvidenceItems,
+  parseEvidenceFile,
+  renderEvidenceImportReport
+} from "../src/decision-import.js";
+import {
   renderDashboard,
   renderExport
 } from "../src/decision-export.js";
@@ -147,6 +152,7 @@ Usage:
   decision-lab premortem <file.json> [--out premortem.md]
   decision-lab research-plan <file.json> [--out research-plan.md]
   decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
+  decision-lab import-evidence <file.json> <evidence.csv|evidence.json> [--out file.json] [--report report.md]
   decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
   decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
   decision-lab patch <file.json> <patch.json> [--out file.json]
@@ -751,6 +757,20 @@ try {
       now: readFlag(args, "--date") || null
     });
     writeDecisionUpdate(filePath, next, readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "import-evidence") {
+    const [filePath, evidencePath] = positional(args);
+    if (!filePath || !evidencePath) {
+      throw new Error("Usage: decision-lab import-evidence <file.json> <evidence.csv|evidence.json>");
+    }
+    const items = parseEvidenceFile(evidencePath);
+    writeDecisionUpdate(filePath, importEvidenceItems(requireFile(filePath), items, {
+      now: readFlag(args, "--date") || null
+    }), readFlag(args, "--out"));
+    const reportPath = readFlag(args, "--report");
+    if (reportPath) writeOrPrint(renderEvidenceImportReport(items, { sourcePath: evidencePath }), reportPath);
     process.exit(0);
   }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.48.0
+
+### Added
+
+- Evidence import workflow for CSV and JSON files via `decision-lab import-evidence`
+- Evidence import reports for bulk source intake
+
 ## 2.47.0
 
 ### Added

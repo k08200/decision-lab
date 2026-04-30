@@ -37,6 +37,11 @@ import {
   renderExport
 } from "../src/decision-export.js";
 import {
+  importEvidenceItems,
+  parseEvidenceFile,
+  renderEvidenceImportReport
+} from "../src/decision-import.js";
+import {
   createDecisionServer,
   decisionPayload,
   reportCatalog
@@ -329,6 +334,19 @@ test("creates source notes and links source evidence", () => {
     strength: "medium"
   });
   assert.equal(next.evidence.at(-1).source, "research/sources/qbr-notes.md");
+});
+
+test("imports evidence from CSV files", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-evidence-import-unit-"));
+  const evidencePath = path.join(dir, "evidence.csv");
+  writeFileSync(evidencePath, "claim,source,strength,source_type,recency,notes\nImported claim,Research note,strong,note,current,Imported by test\n");
+
+  const items = parseEvidenceFile(evidencePath);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].claim, "Imported claim");
+  const next = importEvidenceItems(business, items, { now: "2026-04-30" });
+  assert.equal(next.evidence.at(-1).source, "Research note");
+  assert.match(renderEvidenceImportReport(items, { sourcePath: evidencePath }), /Evidence Import Report/);
 });
 
 test("renders due reviews, search results, promotion, and review worksheets", () => {
@@ -678,6 +696,28 @@ test("cli applies evidence and patch commands", () => {
   execFileSync("node", ["bin/decision-lab.js", "patch", decisionPath, patchPath]);
   const patched = JSON.parse(readFileSync(decisionPath, "utf8"));
   assert.equal(patched.recommendation.confidence, 0.62);
+});
+
+test("cli imports evidence files", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-import-evidence-test-"));
+  const decisionPath = path.join(dir, "decision.json");
+  const evidencePath = path.join(dir, "evidence.csv");
+  const reportPath = path.join(dir, "import-report.md");
+  writeFileSync(decisionPath, `${JSON.stringify(business, null, 2)}\n`);
+  writeFileSync(evidencePath, "claim,source,strength\nImported pipeline claim,CRM export,strong\n");
+
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "import-evidence",
+    decisionPath,
+    evidencePath,
+    "--report",
+    reportPath
+  ]);
+
+  const updated = JSON.parse(readFileSync(decisionPath, "utf8"));
+  assert.equal(updated.evidence.at(-1).claim, "Imported pipeline claim");
+  assert.match(readFileSync(reportPath, "utf8"), /Evidence Import Report/);
 });
 
 test("cli builds and parses patch suggestions", () => {

@@ -79,6 +79,7 @@ decision-lab graph <file.json> [--out graph.md]
 decision-lab premortem <file.json> [--out premortem.md]
 decision-lab research-plan <file.json> [--out research-plan.md]
 decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
+decision-lab import-evidence <file.json> <evidence.csv|evidence.json> [--out file.json] [--report report.md]
 decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
 decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
 decision-lab patch <file.json> <patch.json> [--out file.json]
@@ -266,6 +267,7 @@ node bin/decision-lab.js evidence decisions/drafts/aapl.json \
 Normalize a source note and link it as evidence:
 
 ```bash
+node bin/decision-lab.js import-evidence decisions/drafts/aapl.json research/evidence.csv --report outputs/evidence-import.md
 node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md \
   --claim "Customer notes support the core hypothesis." \

@@ -11,6 +11,7 @@ Decision Lab is intentionally small, local-first, and dependency-free.
 - `src/decision-core.js`: validation, scoring, audits, role prompts, and Markdown rendering
 - `src/decision-agent.js`: local bot workflow, schema migration, pipeline artifacts, ledger, and close-out review
 - `src/decision-ai.js`: patch-specific AI prompts, JSON Patch response parsing, and patch review rendering
+- `src/decision-import.js`: CSV/JSON evidence import and import report rendering
 - `src/decision-tools.js`: source notes, evidence attachment, JSON patching, checklist, graph, diff, premortem, research plan, portfolio briefing, executive summaries, integrity manifest, taxonomy reports, calendar reports, outcomes, principles, theme reports, commitment reports, dependency reports, lessons, owner reporting, repository status, operating playbooks, operating scorecards, red-team reports, scenario reports, sensitivity reports, evidence scorecards, assumption test queues, signal watchlists, decision triage, decision debt, decision agenda, risk heatmaps, hypothesis registers, question registers, guardrail reports, review packs, report catalog, archive planning, action queue, priority, and timeline rendering, due reviews, search, portfolio registers, monthly review packs, calibration, doctor, and health summaries
 - `src/decision-export.js`: dashboard triage and CSV/JSON export
 - `src/decision-server.js`: local read-only product UI and JSON/Markdown API server
@@ -30,6 +31,7 @@ rough question
   -> research plan for missing evidence
   -> prompts for role review
   -> AI patch suggestion
+  -> CSV/JSON evidence import
   -> evidence/patch/set updates
   -> source notes/search/due reviews/portfolio registers/monthly review
   -> taxonomy report

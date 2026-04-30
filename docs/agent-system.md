@@ -112,6 +112,7 @@ node bin/decision-lab.js dependencies decisions --out outputs/dependencies.md
 
 ```bash
 node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source"
+node bin/decision-lab.js import-evidence decisions/drafts/aapl.json research/evidence.csv --report outputs/evidence-import.md
 node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
 node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --prompt-out outputs/prompts/aapl-skeptic-patch.md
@@ -291,6 +292,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape
+- imports evidence from CSV and JSON files
 - normalizes source notes and links them as evidence
 - tracks calibration across reviewed decisions
 - reports outcomes and lessons from reviewed decisions
