@@ -90,6 +90,7 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 node bin/decision-lab.js ledger decisions
 node bin/decision-lab.js status decisions --as-of 2026-08-01
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
+node bin/decision-lab.js serve decisions --as-of 2026-08-01
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md
 node bin/decision-lab.js taxonomy decisions --out outputs/taxonomy.md
@@ -139,3 +140,5 @@ node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review.md
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Report earlier."
 ```
+
+`serve` runs a local read-only product UI on `127.0.0.1:8787` by default.

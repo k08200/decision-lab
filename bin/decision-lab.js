@@ -33,6 +33,9 @@ import {
   renderExport
 } from "../src/decision-export.js";
 import {
+  startDecisionServer
+} from "../src/decision-server.js";
+import {
   applyJsonPatch,
   attachSourceEvidence,
   attachEvidence,
@@ -151,6 +154,7 @@ Usage:
   decision-lab ledger [directory] [--out ledger.md]
   decision-lab status [directory] [--as-of YYYY-MM-DD] [--out status.md]
   decision-lab dashboard [directory] [--out dashboard.html]
+  decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD]
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab manifest [directory] [--out manifest.md]
   decision-lab calibration [directory] [--out report.md]
@@ -842,6 +846,17 @@ try {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderDashboard(readDecisionFiles(root)), readFlag(args, "--out") || "outputs/dashboard.html");
     process.exit(0);
+  }
+
+  if (command === "serve") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    const { url } = startDecisionServer({
+      root,
+      host: readFlag(args, "--host") || "127.0.0.1",
+      port: Number(readFlag(args, "--port") || 8787),
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
+    });
+    console.log(`Decision Lab running at ${url}`);
   }
 
   if (command === "export") {

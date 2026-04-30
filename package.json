@@ -1,6 +1,6 @@
 {
   "name": "decision-lab",
-  "version": "2.45.0",
+  "version": "2.46.0",
   "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
   "type": "module",
   "private": true,
@@ -11,7 +11,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "check": "node --check bin/decision-lab.js && node --check src/decision-core.js && node --check src/decision-agent.js && node --check src/decision-export.js && node --check src/decision-tools.js && node --check src/templates.js && node --check test/decision-core.test.js",
+    "check": "node --check bin/decision-lab.js && node --check src/decision-core.js && node --check src/decision-agent.js && node --check src/decision-export.js && node --check src/decision-server.js && node --check src/decision-tools.js && node --check src/templates.js && node --check test/decision-core.test.js",
     "test": "node --test",
     "doctor": "node bin/decision-lab.js doctor",
     "verify": "npm run check && npm test && npm run doctor",
@@ -21,6 +21,7 @@
     "example:prompts": "node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.json --out-dir outputs/prompts",
     "example:pipeline": "node bin/decision-lab.js pipeline \"Should we change enterprise pricing?\" --type business --slug pricing-example",
     "example:dashboard": "node bin/decision-lab.js dashboard examples --out outputs/dashboard.html",
+    "example:serve": "node bin/decision-lab.js serve examples --as-of 2026-08-01",
     "example:export": "node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv",
     "example:pack": "node bin/decision-lab.js pack examples --out-dir outputs/packs/example",
     "example:weekly": "node bin/decision-lab.js weekly examples --out-dir outputs/weekly/example",

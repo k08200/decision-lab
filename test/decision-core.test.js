@@ -32,6 +32,11 @@ import {
   renderExport
 } from "../src/decision-export.js";
 import {
+  createDecisionServer,
+  decisionPayload,
+  reportCatalog
+} from "../src/decision-server.js";
+import {
   applyJsonPatch,
   attachEvidence,
   attachSourceEvidence,
@@ -401,6 +406,17 @@ test("exports decision rows and dashboard", () => {
   assert.match(renderExport(records, "json"), /Move Enterprise Plan/);
   assert.match(renderDashboard(records), /Decision Lab Dashboard/);
   assert.match(renderDashboard(records), /Needs Attention/);
+});
+
+test("serves the local product API", async () => {
+  const payload = decisionPayload("examples");
+  assert.equal(payload.count, 4);
+  assert.ok(payload.stats.averageScore > 0);
+  assert.ok(reportCatalog().some((report) => report.id === "executive"));
+
+  const server = createDecisionServer({ root: "examples", asOf: "2026-08-01" });
+  assert.equal(typeof server.listen, "function");
+  assert.equal(typeof server.close, "function");
 });
 
 test("cli validates example", () => {

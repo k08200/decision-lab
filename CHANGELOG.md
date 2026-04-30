@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.46.0
+
+### Added
+
+- Local read-only product UI/API server via `decision-lab serve`
+- Server endpoints for decision rows, report catalog, Markdown reports, and rendered memos
+
 ## 2.45.0
 
 ### Added

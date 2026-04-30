@@ -97,6 +97,7 @@ Use this to create a durable review folder.
 ```bash
 node bin/decision-lab.js pack decisions --as-of 2026-08-01 --out-dir outputs/packs/2026-08-01
 node bin/decision-lab.js weekly decisions --as-of 2026-08-01 --out-dir outputs/weekly/2026-08-01
+node bin/decision-lab.js serve decisions --as-of 2026-08-01
 ```
 
 The pack includes `index.md`, ledger, dashboard, exports, taxonomy, calendar, calibration, outcomes, principles, themes, commitments, dependencies, lessons, due reviews, review-pack index, risks, assumptions, sources, red-team, scenarios, sensitivities, executive summary, scorecard, monthly review, next actions, priorities, timeline, and doctor checks.
