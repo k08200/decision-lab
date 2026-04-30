@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { strToU8, zipSync } from "fflate";
@@ -33,6 +33,12 @@ import {
   parsePatchResponse,
   renderPatchReview
 } from "../src/decision-ai.js";
+import {
+  createBackupBundle,
+  renderBackupReport,
+  restoreBackupBundle,
+  verifyBackupBundle
+} from "../src/decision-backup.js";
 import {
   buildDecisionRows,
   renderDashboard,
@@ -598,6 +604,28 @@ test("exports decision rows and dashboard", () => {
   assert.match(renderExport(records, "json"), /Move Enterprise Plan/);
   assert.match(renderDashboard(records), /Decision Lab Dashboard/);
   assert.match(renderDashboard(records), /Needs Attention/);
+});
+
+test("creates, verifies, reports, and restores backup bundles", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-backup-test-"));
+  const root = path.join(dir, "decisions");
+  const decisionPath = path.join(root, "business", "decision.json");
+  const restoreDir = path.join(dir, "restore");
+  writeFileSyncRecursive(decisionPath, `${JSON.stringify(business, null, 2)}\n`);
+
+  const bundle = createBackupBundle(root, { createdAt: "2026-08-01T00:00:00.000Z" });
+  const verification = verifyBackupBundle(bundle);
+  assert.equal(bundle.summary.decisions, 1);
+  assert.equal(verification.valid, true, verification.issues.join("\n"));
+  assert.match(renderBackupReport(bundle), /Backup Report/);
+
+  const restored = restoreBackupBundle(bundle, restoreDir);
+  assert.equal(restored.restored, 1);
+  assert.equal(existsSync(path.join(restoreDir, "decisions", "business", "decision.json")), true);
+
+  const tampered = structuredClone(bundle);
+  tampered.files[0].content = "{}\n";
+  assert.equal(verifyBackupBundle(tampered).valid, false);
 });
 
 test("serves the local product API", async () => {
@@ -1310,6 +1338,37 @@ test("cli exports dashboard and csv", () => {
   assert.match(readFileSync("outputs/dashboard.html", "utf8"), /Decision Lab Dashboard/);
 });
 
+test("cli backs up, verifies, and restores a decision workspace", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-backup-cli-test-"));
+  const root = path.join(dir, "decisions");
+  const backupPath = path.join(dir, "backup.json");
+  const reportPath = path.join(dir, "backup.md");
+  const restoreDir = path.join(dir, "restored");
+  writeFileSyncRecursive(path.join(root, "pricing", "decision.json"), `${JSON.stringify(business, null, 2)}\n`);
+
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "backup",
+    root,
+    "--out",
+    backupPath,
+    "--report",
+    reportPath
+  ], { encoding: "utf8" }), /Wrote/);
+  assert.match(readFileSync(reportPath, "utf8"), /Status: PASS/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "verify-backup", backupPath], {
+    encoding: "utf8"
+  }), /Backup Report/);
+  assert.match(execFileSync("node", [
+    "bin/decision-lab.js",
+    "restore",
+    backupPath,
+    "--out-dir",
+    restoreDir
+  ], { encoding: "utf8" }), /Restored 1 file/);
+  assert.equal(existsSync(path.join(restoreDir, "decisions", "pricing", "decision.json")), true);
+});
+
 test("rejects weak decision records", () => {
   const weak = { decision_type: "investment" };
   const result = validateDecision(weak);
@@ -1364,4 +1423,10 @@ function xmlEscape(value) {
 
 function pdfEscape(value) {
   return String(value).replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
+}
+
+function writeFileSyncRecursive(filePath, content) {
+  const directory = path.dirname(filePath);
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(filePath, content);
 }

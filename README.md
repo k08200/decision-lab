@@ -69,6 +69,8 @@ node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js serve examples --as-of 2026-08-01
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest examples --out outputs/manifest.md
+node bin/decision-lab.js backup examples --out outputs/example-backup.json --report outputs/backup.md
+node bin/decision-lab.js verify-backup outputs/example-backup.json --report outputs/backup-verify.md
 node bin/decision-lab.js taxonomy examples --out outputs/taxonomy.md
 node bin/decision-lab.js status examples --as-of 2026-08-01 --out outputs/status.md
 node bin/decision-lab.js briefing examples --as-of 2026-08-01 --out outputs/briefing.md
@@ -130,6 +132,9 @@ decision-lab dashboard [directory] [--out dashboard.html]
 decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD]
 decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab manifest [directory] [--out manifest.md]
+decision-lab backup [directory] [--out backup.json] [--report report.md] [--include-research yes]
+decision-lab verify-backup <backup.json> [--report report.md]
+decision-lab restore <backup.json> --out-dir directory [--overwrite yes]
 decision-lab calibration [directory] [--out report.md]
 decision-lab taxonomy [directory] [--out report.md]
 decision-lab outcomes [directory] [--out report.md]
@@ -354,10 +359,14 @@ node bin/decision-lab.js serve decisions --as-of 2026-08-01
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js export decisions --format json --out outputs/decisions.json
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md
+node bin/decision-lab.js backup decisions --out outputs/decision-lab-backup.json --report outputs/backup.md
+node bin/decision-lab.js verify-backup outputs/decision-lab-backup.json --report outputs/backup-verify.md
 node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
 ```
 
 `serve` starts a local product UI with portfolio filters, report tabs, decision creation, JSON editing, validated saves, memo previews, first-run guidance, and operating-loop actions. It also exposes JSON and Markdown endpoints for decisions, reports, and memos.
+
+`backup` creates a portable JSON bundle with file contents, SHA256 hashes, and decision validation status. `verify-backup` checks integrity before storage or restore. `restore` rebuilds a verified bundle into a chosen directory and rejects unsafe paths.
 
 Find due reviews and search the ledger:
 

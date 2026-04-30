@@ -1002,6 +1002,7 @@ export function renderDoctor({ root = ".", examples = [] } = {}) {
     fileCheck("src/decision-core.js", fs.existsSync(`${root}/src/decision-core.js`)),
     fileCheck("src/decision-agent.js", fs.existsSync(`${root}/src/decision-agent.js`)),
     fileCheck("src/decision-ai.js", fs.existsSync(`${root}/src/decision-ai.js`)),
+    fileCheck("src/decision-backup.js", fs.existsSync(`${root}/src/decision-backup.js`)),
     fileCheck("src/decision-export.js", fs.existsSync(`${root}/src/decision-export.js`)),
     fileCheck("src/decision-import.js", fs.existsSync(`${root}/src/decision-import.js`)),
     fileCheck("src/decision-server.js", fs.existsSync(`${root}/src/decision-server.js`)),

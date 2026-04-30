@@ -117,6 +117,8 @@ node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 node bin/decision-lab.js serve decisions --as-of 2026-08-01
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md
+node bin/decision-lab.js backup decisions --out outputs/decision-lab-backup.json --report outputs/backup.md
+node bin/decision-lab.js verify-backup outputs/decision-lab-backup.json --report outputs/backup-verify.md
 node bin/decision-lab.js taxonomy decisions --out outputs/taxonomy.md
 node bin/decision-lab.js calibration decisions
 node bin/decision-lab.js outcomes decisions
@@ -165,5 +167,7 @@ node bin/decision-lab.js promote decisions/drafts/pricing.json decided
 node bin/decision-lab.js review decisions/active/pricing.json --out outputs/memos/pricing-review.md
 node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot completed." --lesson "Report earlier."
 ```
+
+`backup` writes a verifiable JSON bundle with file contents, SHA256 hashes, decision validation status, and a summary. `verify-backup` checks the bundle before storage or restore. `restore` rebuilds the files into a chosen destination and rejects unsafe paths unless the bundle verifies cleanly.
 
 `serve` runs a local product UI on `127.0.0.1:8787` by default. It supports decision creation, JSON editing, validated saves, memo previews, report tabs, and portfolio filters.

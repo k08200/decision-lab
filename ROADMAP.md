@@ -80,6 +80,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Private workspace scaffold and privacy leak check
 - npm-ready package metadata and first-run demo workspace
 - First-run and operating-loop panel in the local product UI
+- Verifiable backup, restore, and backup integrity reports
 
 ## Next
 

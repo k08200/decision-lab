@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.62.0
+
+### Added
+
+- Verifiable JSON backup bundles for decision workspaces
+- Backup verification reports with SHA256 integrity checks
+- Restore workflow with path traversal protection and overwrite controls
+- CLI coverage for `backup`, `verify-backup`, and `restore`
+
 ## 2.61.0
 
 ### Added

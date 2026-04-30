@@ -35,6 +35,12 @@ import {
   renderPatchReview
 } from "../src/decision-ai.js";
 import {
+  createBackupBundle,
+  renderBackupReport,
+  restoreBackupBundle,
+  verifyBackupBundle
+} from "../src/decision-backup.js";
+import {
   importEvidenceItems,
   parseEvidenceSourceAsync,
   renderEvidenceImportReport
@@ -180,6 +186,9 @@ Usage:
   decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD]
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab manifest [directory] [--out manifest.md]
+  decision-lab backup [directory] [--out backup.json] [--report report.md] [--include-research yes]
+  decision-lab verify-backup <backup.json> [--report report.md]
+  decision-lab restore <backup.json> --out-dir directory [--overwrite yes]
   decision-lab calibration [directory] [--out report.md]
   decision-lab taxonomy [directory] [--out report.md]
   decision-lab outcomes [directory] [--out report.md]
@@ -1045,6 +1054,38 @@ try {
   if (command === "manifest") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderIntegrityManifest(readDecisionFiles(root)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "backup") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    const bundle = createBackupBundle(root, {
+      includeResearch: readFlag(args, "--include-research") === "yes"
+    });
+    writeOrPrint(`${JSON.stringify(bundle, null, 2)}\n`, readFlag(args, "--out") || "outputs/decision-lab-backup.json");
+    const reportPath = readFlag(args, "--report");
+    if (reportPath) writeOrPrint(renderBackupReport(bundle), reportPath);
+    process.exit(verifyBackupBundle(bundle).valid ? 0 : 1);
+  }
+
+  if (command === "verify-backup") {
+    const backupPath = args[0];
+    if (!backupPath) throw new Error("Usage: decision-lab verify-backup <backup.json>");
+    const bundle = JSON.parse(fs.readFileSync(path.resolve(backupPath), "utf8"));
+    const verification = verifyBackupBundle(bundle);
+    writeOrPrint(renderBackupReport(bundle, verification), readFlag(args, "--report"));
+    process.exit(verification.valid ? 0 : 1);
+  }
+
+  if (command === "restore") {
+    const backupPath = args[0];
+    const outDir = readFlag(args, "--out-dir");
+    if (!backupPath || !outDir) throw new Error("Usage: decision-lab restore <backup.json> --out-dir directory");
+    const bundle = JSON.parse(fs.readFileSync(path.resolve(backupPath), "utf8"));
+    const result = restoreBackupBundle(bundle, outDir, {
+      overwrite: readFlag(args, "--overwrite") === "yes"
+    });
+    console.log(`Restored ${result.restored} file(s) to ${result.destination}`);
     process.exit(0);
   }
 
