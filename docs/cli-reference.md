@@ -59,6 +59,8 @@ node bin/decision-lab.js research-plan examples/business/enterprise_pricing_chan
 node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source name" --strength strong
 node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
+node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --prompt-out outputs/prompts/aapl-skeptic-patch.md
+node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --response outputs/llm/aapl-skeptic.md --out outputs/patches/aapl.patch.json --review outputs/patches/aapl-review.md
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrations/aapl.md
@@ -66,6 +68,8 @@ node bin/decision-lab.js snapshot decisions/active/aapl.json --label before-chan
 ```
 
 `patch` accepts JSON patch operations with `add`, `replace`, and `remove`.
+
+`suggest` creates a patch-specific role prompt and parses an LLM response into a reviewable JSON Patch file.
 
 `migrate` upgrades older or partial decision records into the current schema while preserving meaningful existing fields.
 

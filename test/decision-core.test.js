@@ -27,6 +27,11 @@ import {
   runDecisionWorkflow
 } from "../src/decision-agent.js";
 import {
+  buildPatchPrompt,
+  parsePatchResponse,
+  renderPatchReview
+} from "../src/decision-ai.js";
+import {
   buildDecisionRows,
   renderDashboard,
   renderExport
@@ -259,6 +264,30 @@ test("applies JSON patch and dot-path updates", () => {
 
   const updated = setJsonPath(business, "recommendation.decision", "pause");
   assert.equal(updated.recommendation.decision, "pause");
+});
+
+test("builds and parses AI patch suggestions", () => {
+  const prompt = buildPatchPrompt("skeptic", business);
+  assert.match(prompt, /RFC 6902 JSON Patch/);
+  assert.match(prompt, /Current validation/);
+
+  const patch = parsePatchResponse(`
+\`\`\`json
+[
+  {
+    "op": "add",
+    "path": "/open_questions/-",
+    "value": "What would invalidate the pilot?"
+  }
+]
+\`\`\`
+`);
+  assert.equal(patch[0].op, "add");
+  assert.match(renderPatchReview(patch), /Patch Review/);
+});
+
+test("rejects invalid AI patch suggestions", () => {
+  assert.throws(() => parsePatchResponse('[{"op":"move","path":"/title","value":"x"}]'), /unsupported op/);
 });
 
 test("renders calibration and doctor reports", () => {
@@ -649,6 +678,39 @@ test("cli applies evidence and patch commands", () => {
   execFileSync("node", ["bin/decision-lab.js", "patch", decisionPath, patchPath]);
   const patched = JSON.parse(readFileSync(decisionPath, "utf8"));
   assert.equal(patched.recommendation.confidence, 0.62);
+});
+
+test("cli builds and parses patch suggestions", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-suggest-test-"));
+  const responsePath = path.join(dir, "response.md");
+  const patchPath = path.join(dir, "suggested.patch.json");
+  const reviewPath = path.join(dir, "review.md");
+
+  const prompt = execFileSync("node", [
+    "bin/decision-lab.js",
+    "suggest",
+    "skeptic",
+    "examples/business/enterprise_pricing_change.json"
+  ], { encoding: "utf8" });
+  assert.match(prompt, /Patch protocol/);
+
+  writeFileSync(responsePath, `${JSON.stringify([
+    { op: "add", path: "/open_questions/-", value: "What would invalidate the pilot?" }
+  ], null, 2)}\n`);
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "suggest",
+    "skeptic",
+    "examples/business/enterprise_pricing_change.json",
+    "--response",
+    responsePath,
+    "--out",
+    patchPath,
+    "--review",
+    reviewPath
+  ]);
+  assert.equal(JSON.parse(readFileSync(patchPath, "utf8"))[0].op, "add");
+  assert.match(readFileSync(reviewPath, "utf8"), /Patch Review/);
 });
 
 test("cli migrates legacy records and writes a report", () => {

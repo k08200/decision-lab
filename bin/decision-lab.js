@@ -29,6 +29,11 @@ import {
   runDecisionWorkflow
 } from "../src/decision-agent.js";
 import {
+  buildPatchPrompt,
+  parsePatchResponse,
+  renderPatchReview
+} from "../src/decision-ai.js";
+import {
   renderDashboard,
   renderExport
 } from "../src/decision-export.js";
@@ -146,6 +151,7 @@ Usage:
   decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
   decision-lab patch <file.json> <patch.json> [--out file.json]
   decision-lab set <file.json> <path> <json-value> [--out file.json]
+  decision-lab suggest <role> <file.json> [--prompt-out prompt.md] [--response llm-output.txt] [--out patch.json] [--review review.md]
   decision-lab migrate <file.json> [--out file.json] [--report report.md]
   decision-lab snapshot <file.json> [--out-dir decisions/snapshots] [--label text]
   decision-lab render <file.json> [--out memo.md]
@@ -804,6 +810,27 @@ try {
       throw new Error("Usage: decision-lab set <file.json> <path> <json-value>");
     }
     writeDecisionUpdate(filePath, setJsonPath(requireFile(filePath), dottedPath, parseJsonish(rawValue)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "suggest") {
+    const role = args[0];
+    const filePath = args[1];
+    if (!role || !filePath) throw new Error("Usage: decision-lab suggest <role> <file.json>");
+    const prompt = buildPatchPrompt(role, requireFile(filePath));
+    const promptOut = readFlag(args, "--prompt-out");
+    if (promptOut) writeOrPrint(prompt, promptOut);
+
+    const responsePath = readFlag(args, "--response");
+    if (!responsePath) {
+      if (!promptOut) writeOrPrint(prompt, null);
+      process.exit(0);
+    }
+
+    const patch = parsePatchResponse(fs.readFileSync(path.resolve(responsePath), "utf8"));
+    writeOrPrint(`${JSON.stringify(patch, null, 2)}\n`, readFlag(args, "--out"));
+    const reviewPath = readFlag(args, "--review");
+    if (reviewPath) writeOrPrint(renderPatchReview(patch), reviewPath);
     process.exit(0);
   }
 

@@ -47,6 +47,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Decision record diff reports
 - Premortem failure reviews
 - Local configuration defaults
+- Safe AI patch suggestion workflow
 - Portfolio action queue
 - Point-in-time snapshots and timeline reports
 - Research plans for missing evidence

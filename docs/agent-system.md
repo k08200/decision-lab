@@ -114,9 +114,13 @@ node bin/decision-lab.js dependencies decisions --out outputs/dependencies.md
 node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source"
 node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
+node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --prompt-out outputs/prompts/aapl-skeptic-patch.md
+node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --response outputs/llm/aapl-skeptic.md --out outputs/patches/aapl.patch.json --review outputs/patches/aapl-review.md
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
 ```
+
+`suggest` is the AI adapter path. It asks a role to return only JSON Patch operations, so the source record remains inspectable and patch application stays explicit.
 
 `migrate` upgrades older records into the current schema and can write a migration report.
 
@@ -283,6 +287,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - compares record versions for review and change tracking
 - generates premortem reports before commitment
 - creates research plans from weak evidence and open questions
+- creates AI patch prompts and parses JSON Patch suggestions
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape

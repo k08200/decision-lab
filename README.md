@@ -83,6 +83,7 @@ decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
 decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
 decision-lab patch <file.json> <patch.json> [--out file.json]
 decision-lab set <file.json> <path> <json-value> [--out file.json]
+decision-lab suggest <role> <file.json> [--prompt-out prompt.md] [--response llm-output.txt] [--out patch.json] [--review review.md]
 decision-lab migrate <file.json> [--out file.json] [--report report.md]
 decision-lab snapshot <file.json> [--out-dir decisions/snapshots] [--label text]
 decision-lab render <file.json> [--out memo.md]
@@ -274,8 +275,12 @@ node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sou
 Apply JSON patches proposed by role prompts or another agent:
 
 ```bash
+node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --prompt-out outputs/prompts/aapl-skeptic-patch.md
+node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --response outputs/llm/aapl-skeptic.md --out outputs/patches/aapl.patch.json --review outputs/patches/aapl-review.md
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 ```
+
+`suggest` is the safe AI integration path: the model proposes a JSON Patch array, then you inspect and apply it with `patch`.
 
 Set a single field:
 

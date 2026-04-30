@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.47.0
+
+### Added
+
+- Safe AI patch suggestion workflow via `decision-lab suggest`
+- JSON Patch response parsing and patch review rendering
+
 ## 2.46.0
 
 ### Added
