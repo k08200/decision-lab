@@ -13,6 +13,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - CSV/JSON evidence import
 - Markdown and text note evidence extraction
 - TSV spreadsheet export and saved-HTML evidence extraction
+- PDF and XLSX evidence extraction
 - Portfolio-level risk, assumption, and source registers plus monthly review packs
 - Inbox batch drafting and full operating pack generation
 - Quality gates and stale decision reports
@@ -81,7 +82,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 
 ## Next
 
-- Evidence import adapters for PDFs and XLSX spreadsheets
+- Live URL fetch adapter with citation capture
 - Optional LLM provider adapters that propose JSON patches instead of rewriting records
 - Publish package to npm after confirming package name and account ownership
 

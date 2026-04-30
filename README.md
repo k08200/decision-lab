@@ -41,6 +41,7 @@ npm run demo
 npm test
 npm run verify
 npm run privacy:check
+npm run security:audit
 npm run pack:check
 npm run example:pack
 npm run example:weekly
@@ -109,8 +110,8 @@ decision-lab graph <file.json> [--out graph.md]
 decision-lab premortem <file.json> [--out premortem.md]
 decision-lab research-plan <file.json> [--out research-plan.md]
 decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
-decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html> [--out evidence.json] [--report report.md]
-decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html> [--out file.json] [--report report.md]
+decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx> [--out evidence.json] [--report report.md]
+decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx> [--out file.json] [--report report.md]
 decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
 decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
 decision-lab patch <file.json> <patch.json> [--out file.json]

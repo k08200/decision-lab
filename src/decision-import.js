@@ -14,7 +14,14 @@ export function parseEvidenceFile(filePath) {
   if ([".html", ".htm"].includes(extension)) {
     return parseEvidenceHtml(content, { sourcePath: filePath });
   }
-  throw new Error("Evidence import supports .csv, .tsv, .json, .md, .txt, .html, and .htm files");
+  throw new Error("Evidence import supports .csv, .tsv, .json, .md, .txt, .html, .htm, .pdf, and .xlsx files");
+}
+
+export async function parseEvidenceFileAsync(filePath) {
+  const extension = path.extname(filePath).toLowerCase();
+  if (extension === ".pdf") return parseEvidencePdf(fs.readFileSync(path.resolve(filePath)), { sourcePath: filePath });
+  if (extension === ".xlsx") return parseEvidenceXlsx(path.resolve(filePath));
+  return parseEvidenceFile(filePath);
 }
 
 export function importEvidenceItems(decision, items, options = {}) {
@@ -68,6 +75,24 @@ function parseDelimitedEvidence(rows) {
 
 export function parseEvidenceHtml(content, { sourcePath = "" } = {}) {
   return parseEvidenceNotes(htmlToEvidenceText(content), { sourcePath });
+}
+
+export async function parseEvidencePdf(buffer, { sourcePath = "" } = {}) {
+  const { PDFParse } = await import("pdf-parse");
+  const parser = new PDFParse({ data: buffer });
+  try {
+    const result = await parser.getText();
+    return parseEvidenceNotes(result.text || "", { sourcePath });
+  } finally {
+    await parser.destroy();
+  }
+}
+
+export async function parseEvidenceXlsx(filePath) {
+  const { default: readXlsxFile } = await import("read-excel-file/node");
+  const workbook = await readXlsxFile(filePath);
+  const rows = Array.isArray(workbook?.[0]?.data) ? workbook[0].data : workbook;
+  return parseDelimitedEvidence(rows.map((row) => row.map((cell) => cell === null || cell === undefined ? "" : String(cell))));
 }
 
 export function parseEvidenceNotes(content, { sourcePath = "" } = {}) {

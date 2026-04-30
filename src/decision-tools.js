@@ -997,6 +997,7 @@ export function renderIcsCalendar(records, { asOf = new Date().toISOString().sli
 export function renderDoctor({ root = ".", examples = [] } = {}) {
   const checks = [
     fileCheck("package.json", fs.existsSync(`${root}/package.json`)),
+    fileCheck("package-lock.json", fs.existsSync(`${root}/package-lock.json`)),
     fileCheck("bin/decision-lab.js", fs.existsSync(`${root}/bin/decision-lab.js`)),
     fileCheck("src/decision-core.js", fs.existsSync(`${root}/src/decision-core.js`)),
     fileCheck("src/decision-agent.js", fs.existsSync(`${root}/src/decision-agent.js`)),

@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { strToU8, zipSync } from "fflate";
 import {
   auditDecision,
   buildPromptChain,
@@ -41,6 +42,7 @@ import {
   importEvidenceItems,
   parseEvidenceHtml,
   parseEvidenceFile,
+  parseEvidenceFileAsync,
   parseEvidenceNotes,
   renderEvidenceImportReport
 } from "../src/decision-import.js";
@@ -405,6 +407,30 @@ test("imports evidence from TSV and HTML files", () => {
   const htmlItems = parseEvidenceFile(htmlPath);
   assert.equal(htmlItems[0].source, "Saved product analytics page");
   assert.equal(parseEvidenceHtml(readFileSync(htmlPath, "utf8"), { sourcePath: htmlPath })[0].source_type, "saved_webpage");
+});
+
+test("imports evidence from XLSX and PDF files", async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-binary-evidence-test-"));
+  const xlsxPath = path.join(dir, "evidence.xlsx");
+  const pdfPath = path.join(dir, "evidence.pdf");
+  writeFileSync(xlsxPath, createMinimalXlsx([
+    ["claim", "source", "strength", "source_type"],
+    ["XLSX claim", "Workbook export", "strong", "spreadsheet"]
+  ]));
+  writeFileSync(pdfPath, createMinimalPdf([
+    "claim: PDF evidence supports staged rollout.",
+    "source: Research PDF",
+    "strength: medium",
+    "source_type: pdf"
+  ]));
+
+  const xlsxItems = await parseEvidenceFileAsync(xlsxPath);
+  assert.equal(xlsxItems[0].claim, "XLSX claim");
+  assert.equal(xlsxItems[0].source_type, "spreadsheet");
+
+  const pdfItems = await parseEvidenceFileAsync(pdfPath);
+  assert.equal(pdfItems[0].source, "Research PDF");
+  assert.equal(pdfItems[0].source_type, "pdf");
 });
 
 test("creates private workspaces and scans privacy risks", () => {
@@ -869,6 +895,30 @@ test("cli extracts evidence from saved web pages", () => {
   assert.equal(extracted[0].strength, "strong");
 });
 
+test("cli extracts evidence from XLSX and PDF files", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-binary-evidence-cli-test-"));
+  const xlsxPath = path.join(dir, "evidence.xlsx");
+  const pdfPath = path.join(dir, "evidence.pdf");
+  const xlsxOutPath = path.join(dir, "xlsx-evidence.json");
+  const pdfOutPath = path.join(dir, "pdf-evidence.json");
+  writeFileSync(xlsxPath, createMinimalXlsx([
+    ["claim", "source", "strength", "source_type"],
+    ["CLI XLSX claim", "Workbook export", "strong", "spreadsheet"]
+  ]));
+  writeFileSync(pdfPath, createMinimalPdf([
+    "claim: CLI PDF evidence supports staged rollout.",
+    "source: Research PDF",
+    "strength: medium",
+    "source_type: pdf"
+  ]));
+
+  execFileSync("node", ["bin/decision-lab.js", "extract-evidence", xlsxPath, "--out", xlsxOutPath]);
+  execFileSync("node", ["bin/decision-lab.js", "extract-evidence", pdfPath, "--out", pdfOutPath]);
+
+  assert.equal(JSON.parse(readFileSync(xlsxOutPath, "utf8"))[0].claim, "CLI XLSX claim");
+  assert.equal(JSON.parse(readFileSync(pdfOutPath, "utf8"))[0].source_type, "pdf");
+});
+
 test("cli creates private workspaces and runs privacy checks", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-private-cli-test-"));
   const workspacePath = path.join(dir, "private-decisions");
@@ -1239,3 +1289,52 @@ test("rejects weak decision records", () => {
   assert.equal(result.valid, false);
   assert.ok(result.issues.length > 3);
 });
+
+function createMinimalXlsx(rows) {
+  const sheetRows = rows.map((row, rowIndex) => (
+    `<row r="${rowIndex + 1}">${row.map((cell, columnIndex) => {
+      const cellRef = `${String.fromCharCode(65 + columnIndex)}${rowIndex + 1}`;
+      return `<c r="${cellRef}" t="inlineStr"><is><t>${xmlEscape(cell)}</t></is></c>`;
+    }).join("")}</row>`
+  )).join("");
+  return Buffer.from(zipSync({
+    "[Content_Types].xml": strToU8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'),
+    "_rels/.rels": strToU8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'),
+    "xl/_rels/workbook.xml.rels": strToU8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'),
+    "xl/workbook.xml": strToU8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Evidence" sheetId="1" r:id="rId1"/></sheets></workbook>'),
+    "xl/worksheets/sheet1.xml": strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`)
+  }));
+}
+
+function createMinimalPdf(lines) {
+  const textCommands = lines.map((line, index) => `${index === 0 ? "" : "0 -18 Td\n"}(${pdfEscape(line)}) Tj`).join("\n");
+  const stream = `BT\n/F1 12 Tf\n72 720 Td\n${textCommands}\nET`;
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xrefOffset = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const offset of offsets.slice(1)) {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  }
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+  return Buffer.from(pdf);
+}
+
+function xmlEscape(value) {
+  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
+function pdfEscape(value) {
+  return String(value).replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
+}

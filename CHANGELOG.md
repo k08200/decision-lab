@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.60.0
+
+### Added
+
+- PDF evidence extraction through `pdf-parse`
+- XLSX spreadsheet evidence extraction through `read-excel-file`
+- Dependency installation and security audit steps in GitHub workflows
+- Package lock doctor check and `npm run security:audit`
+
 ## 2.59.0
 
 ### Added

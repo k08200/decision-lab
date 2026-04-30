@@ -1,6 +1,6 @@
 {
   "name": "decision-lab",
-  "version": "2.59.0",
+  "version": "2.60.0",
   "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
   "type": "module",
   "bin": {
@@ -39,6 +39,7 @@
     "test": "node --test",
     "doctor": "node bin/decision-lab.js doctor",
     "privacy:check": "node bin/decision-lab.js privacy-check",
+    "security:audit": "npm audit --audit-level=moderate",
     "pack:check": "npm pack --dry-run --cache .npm-cache",
     "verify": "npm run check && npm test && npm run doctor && npm run privacy:check && npm run pack:check",
     "demo": "node bin/decision-lab.js demo outputs/demo",
@@ -69,5 +70,12 @@
     "cli",
     "memo"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "pdf-parse": "^2.4.5",
+    "read-excel-file": "^9.0.6"
+  },
+  "devDependencies": {
+    "fflate": "^0.8.2"
+  }
 }
