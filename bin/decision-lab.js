@@ -153,7 +153,8 @@ Usage:
   decision-lab premortem <file.json> [--out premortem.md]
   decision-lab research-plan <file.json> [--out research-plan.md]
   decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
-  decision-lab import-evidence <file.json> <evidence.csv|evidence.json> [--out file.json] [--report report.md]
+  decision-lab extract-evidence <evidence.csv|evidence.json|notes.md|notes.txt> [--out evidence.json] [--report report.md]
+  decision-lab import-evidence <file.json> <evidence.csv|evidence.json|notes.md|notes.txt> [--out file.json] [--report report.md]
   decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
   decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
   decision-lab patch <file.json> <patch.json> [--out file.json]
@@ -765,12 +766,24 @@ try {
   if (command === "import-evidence") {
     const [filePath, evidencePath] = positional(args);
     if (!filePath || !evidencePath) {
-      throw new Error("Usage: decision-lab import-evidence <file.json> <evidence.csv|evidence.json>");
+      throw new Error("Usage: decision-lab import-evidence <file.json> <evidence.csv|evidence.json|notes.md|notes.txt>");
     }
     const items = parseEvidenceFile(evidencePath);
     writeDecisionUpdate(filePath, importEvidenceItems(requireFile(filePath), items, {
       now: readFlag(args, "--date") || null
     }), readFlag(args, "--out"));
+    const reportPath = readFlag(args, "--report");
+    if (reportPath) writeOrPrint(renderEvidenceImportReport(items, { sourcePath: evidencePath }), reportPath);
+    process.exit(0);
+  }
+
+  if (command === "extract-evidence") {
+    const evidencePath = args[0];
+    if (!evidencePath) {
+      throw new Error("Usage: decision-lab extract-evidence <evidence.csv|evidence.json|notes.md|notes.txt>");
+    }
+    const items = parseEvidenceFile(evidencePath);
+    writeOrPrint(`${JSON.stringify(items, null, 2)}\n`, readFlag(args, "--out"));
     const reportPath = readFlag(args, "--report");
     if (reportPath) writeOrPrint(renderEvidenceImportReport(items, { sourcePath: evidencePath }), reportPath);
     process.exit(0);

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.52.0
+
+### Added
+
+- Markdown and text note evidence extraction via `decision-lab extract-evidence`
+- `.md`, `.markdown`, and `.txt` support for `decision-lab import-evidence`
+- Note parser for `claim:`, `source:`, `strength:`, and pipe-delimited evidence lines
+
 ## 2.51.0
 
 ### Added

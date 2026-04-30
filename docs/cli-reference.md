@@ -58,6 +58,8 @@ node bin/decision-lab.js research-plan examples/business/enterprise_pricing_chan
 ```bash
 node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source name" --strength strong
 node bin/decision-lab.js import-evidence decisions/drafts/aapl.json research/evidence.csv --report outputs/evidence-import.md
+node bin/decision-lab.js extract-evidence examples/evidence/customer_qbr_notes.md --out research/evidence/customer-qbr.json --report outputs/evidence-extract.md
+node bin/decision-lab.js import-evidence decisions/drafts/aapl.json examples/evidence/customer_qbr_notes.md --report outputs/evidence-import.md
 node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
 node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --prompt-out outputs/prompts/aapl-skeptic-patch.md
@@ -75,7 +77,9 @@ node bin/decision-lab.js snapshot decisions/active/aapl.json --label before-chan
 
 `ai-suggest` calls OpenAI with `OPENAI_API_KEY`, asks the chosen role for JSON Patch operations, and can save the patch, review table, and raw response separately. It does not apply the patch.
 
-`import-evidence` attaches evidence rows from CSV or JSON files and can write an import report.
+`extract-evidence` parses CSV, JSON, Markdown, or text notes into normalized evidence JSON and can write an extraction report.
+
+`import-evidence` attaches evidence rows from CSV, JSON, Markdown, or text files and can write an import report.
 
 `migrate` upgrades older or partial decision records into the current schema while preserving meaningful existing fields.
 

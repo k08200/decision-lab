@@ -11,6 +11,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Evidence attachment, JSON patch application, calibration reports, and repository doctor checks
 - Source note import, source-linked evidence, due review reports, search, review worksheets, and status promotion
 - CSV/JSON evidence import
+- Markdown and text note evidence extraction
 - Portfolio-level risk, assumption, and source registers plus monthly review packs
 - Inbox batch drafting and full operating pack generation
 - Quality gates and stale decision reports
@@ -73,7 +74,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 
 ## Next
 
-- Evidence import adapters for transcripts, PDFs, notes, and spreadsheets
+- Evidence import adapters for PDFs and spreadsheets
 - Optional LLM provider adapters that propose JSON patches instead of rewriting records
 - Decision review reminders
 - Web UI for browsing the decision ledger

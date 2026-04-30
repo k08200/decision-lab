@@ -7,7 +7,10 @@ export function parseEvidenceFile(filePath) {
   const content = fs.readFileSync(path.resolve(filePath), "utf8");
   if (extension === ".json") return parseEvidenceJson(content);
   if (extension === ".csv") return parseEvidenceCsv(content);
-  throw new Error("Evidence import supports .csv and .json files");
+  if ([".md", ".markdown", ".txt"].includes(extension)) {
+    return parseEvidenceNotes(content, { sourcePath: filePath });
+  }
+  throw new Error("Evidence import supports .csv, .json, .md, and .txt files");
 }
 
 export function importEvidenceItems(decision, items, options = {}) {
@@ -51,6 +54,46 @@ function parseEvidenceCsv(content) {
   });
 }
 
+export function parseEvidenceNotes(content, { sourcePath = "" } = {}) {
+  const sourceName = sourcePath ? path.basename(sourcePath) : "note";
+  const items = [];
+  let current = null;
+
+  for (const rawLine of String(content || "").split(/\r?\n/)) {
+    const line = normalizeNoteLine(rawLine);
+    if (!line || line.startsWith("#")) continue;
+
+    const pipeItem = parsePipeEvidenceLine(line, sourceName);
+    if (pipeItem) {
+      if (current) items.push(normalizeImportedEvidence(current));
+      current = null;
+      items.push(normalizeImportedEvidence(pipeItem));
+      continue;
+    }
+
+    const field = parseKeyValueEvidenceLine(line);
+    if (!field) continue;
+
+    if (["claim", "evidence"].includes(field.key)) {
+      if (current) items.push(normalizeImportedEvidence(current));
+      current = {
+        claim: field.value,
+        source: sourceName,
+        source_type: "note",
+        strength: "medium"
+      };
+      continue;
+    }
+
+    if (current) {
+      current[field.key] = field.value;
+    }
+  }
+
+  if (current) items.push(normalizeImportedEvidence(current));
+  return items.filter((item) => item.claim);
+}
+
 function normalizeImportedEvidence(item) {
   return {
     claim: item.claim || item.Claim || "",
@@ -59,6 +102,42 @@ function normalizeImportedEvidence(item) {
     source_type: item.source_type || item.sourceType || item["source type"] || item.Type || "",
     recency: item.recency || item.Recency || "",
     notes: item.notes || item.Notes || ""
+  };
+}
+
+function normalizeNoteLine(line) {
+  return String(line || "")
+    .trim()
+    .replace(/^[-*]\s+/, "")
+    .replace(/^\d+\.\s+/, "")
+    .trim();
+}
+
+function parsePipeEvidenceLine(line, sourceName) {
+  const parts = line.split("|").map((part) => part.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+  if (parts.every((part) => /^:?-{3,}:?$/.test(part))) return null;
+  if (parts[0].toLowerCase() === "claim" && parts[1].toLowerCase().includes("source")) return null;
+
+  const first = parts[0].replace(/^(claim|evidence)\s*:\s*/i, "").trim();
+  if (!first) return null;
+  return {
+    claim: first,
+    source: parts[1] || sourceName,
+    strength: parts[2] || "medium",
+    source_type: parts[3] || "note",
+    recency: parts[4] || "",
+    notes: parts[5] || ""
+  };
+}
+
+function parseKeyValueEvidenceLine(line) {
+  const match = line.match(/^(claim|evidence|source|strength|source_type|source type|type|recency|notes?)\s*:\s*(.+)$/i);
+  if (!match) return null;
+  const key = match[1].toLowerCase().replace(/\s+/g, "_");
+  return {
+    key: key === "evidence" ? "claim" : key === "type" ? "source_type" : key === "note" ? "notes" : key,
+    value: match[2].trim()
   };
 }
 

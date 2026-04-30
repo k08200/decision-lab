@@ -40,6 +40,7 @@ import {
 import {
   importEvidenceItems,
   parseEvidenceFile,
+  parseEvidenceNotes,
   renderEvidenceImportReport
 } from "../src/decision-import.js";
 import {
@@ -372,6 +373,23 @@ test("imports evidence from CSV files", () => {
   const next = importEvidenceItems(business, items, { now: "2026-04-30" });
   assert.equal(next.evidence.at(-1).source, "Research note");
   assert.match(renderEvidenceImportReport(items, { sourcePath: evidencePath }), /Evidence Import Report/);
+});
+
+test("extracts evidence from markdown and text notes", () => {
+  const items = parseEvidenceNotes([
+    "# Customer Notes",
+    "- claim: Three enterprise prospects asked for budget guardrails.",
+    "  source: QBR notes",
+    "  strength: strong",
+    "  source_type: customer_note",
+    "  recency: current",
+    "",
+    "- Pricing pilot reduced approval time | Sales ops transcript | medium | transcript | current | Needs CFO validation"
+  ].join("\n"), { sourcePath: "research/raw/qbr.md" });
+
+  assert.equal(items.length, 2);
+  assert.equal(items[0].source, "QBR notes");
+  assert.equal(items[1].source_type, "transcript");
 });
 
 test("renders due reviews, search results, promotion, and review worksheets", () => {
@@ -754,6 +772,33 @@ test("cli imports evidence files", () => {
 
   const updated = JSON.parse(readFileSync(decisionPath, "utf8"));
   assert.equal(updated.evidence.at(-1).claim, "Imported pipeline claim");
+  assert.match(readFileSync(reportPath, "utf8"), /Evidence Import Report/);
+});
+
+test("cli extracts evidence from notes", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-extract-evidence-test-"));
+  const notesPath = path.join(dir, "notes.md");
+  const outPath = path.join(dir, "evidence.json");
+  const reportPath = path.join(dir, "extract-report.md");
+  writeFileSync(notesPath, [
+    "# Research Notes",
+    "- claim: Finance team expects payback inside two quarters.",
+    "  source: CFO interview",
+    "  strength: medium"
+  ].join("\n"));
+
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "extract-evidence",
+    notesPath,
+    "--out",
+    outPath,
+    "--report",
+    reportPath
+  ]);
+
+  const extracted = JSON.parse(readFileSync(outPath, "utf8"));
+  assert.equal(extracted[0].claim, "Finance team expects payback inside two quarters.");
   assert.match(readFileSync(reportPath, "utf8"), /Evidence Import Report/);
 });
 
