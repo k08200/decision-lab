@@ -19,6 +19,7 @@ It is not a prompt pile. It is a way to turn a vague question into a durable dec
 ```bash
 npm test
 npm run verify
+npm run pack:check
 npm run example:pack
 npm run example:weekly
 npm run example:executive

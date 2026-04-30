@@ -17,6 +17,7 @@ Decision Lab is intentionally small, local-first, and dependency-free.
 - `src/decision-server.js`: local read-only product UI and JSON/Markdown API server
 - `.github/workflows/ci.yml`: syntax and test verification
 - `.github/workflows/operating-pack.yml`: scheduled and manual example operating pack generation
+- `.github/workflows/release-pack.yml`: manual package tarball and operating-pack artifact generation
 
 ## Data Flow
 

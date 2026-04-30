@@ -1,0 +1,38 @@
+name: Release Pack
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify
+        run: npm run verify
+
+      - name: Build package tarball
+        run: npm pack
+
+      - name: Generate example operating pack
+        run: node bin/decision-lab.js pack examples --as-of 2026-08-01 --out-dir outputs/release-pack
+
+      - name: Upload package tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision-lab-package
+          path: decision-lab-*.tgz
+
+      - name: Upload operating pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision-lab-operating-pack
+          path: outputs/release-pack

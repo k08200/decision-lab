@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.49.0
+
+### Added
+
+- Package dry-run verification via `npm run pack:check`
+- Manual release-pack workflow that uploads the package tarball and example operating pack
+- Package `files` manifest for cleaner distribution contents
+
 ## 2.48.0
 
 ### Added

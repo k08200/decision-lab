@@ -1,6 +1,7 @@
 node_modules/
 coverage/
 *.log
+.npm-cache/
 outputs/*
 !outputs/.gitkeep
 !outputs/memos/
