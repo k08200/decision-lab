@@ -75,6 +75,7 @@ import {
   renderGuardrailReport,
   renderHypothesisRegister,
   renderIntegrityManifest,
+  renderIcsCalendar,
   renderLessonsReport,
   renderMonthlyReview,
   renderOperatingScorecard,
@@ -203,6 +204,7 @@ Usage:
   decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab calendar [directory] [--as-of YYYY-MM-DD] [--horizon 30] [--out report.md]
+  decision-lab ics [directory] [--as-of YYYY-MM-DD] [--out calendar.ics]
   decision-lab agenda [directory] [--as-of YYYY-MM-DD] [--horizon 7] [--days 30] [--out report.md]
   decision-lab timeline [directory] [--out report.md]
   decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
@@ -394,6 +396,7 @@ function writeOperatingPack(records, { outDir, asOf, root = "." }) {
     "next.md": renderActionQueue(records, asOf),
     "priorities.md": renderPriorityReview(records, asOf),
     "calendar.md": renderCalendarReport(records, { asOf }),
+    "calendar.ics": renderIcsCalendar(records, { asOf }),
     "agenda.md": renderDecisionAgenda(records, { asOf }),
     "executive.md": renderExecutiveSummary(records, { asOf }),
     "timeline.md": renderTimeline(records),
@@ -415,6 +418,7 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "taxonomy.md": renderTaxonomyReport(records),
     "triage.md": renderTriageReport(records, { asOf }),
     "calendar.md": renderCalendarReport(records, { asOf }),
+    "calendar.ics": renderIcsCalendar(records, { asOf }),
     "debt.md": renderDecisionDebt(records, { asOf }),
     "questions.md": renderQuestionRegister(records),
     "hypotheses.md": renderHypothesisRegister(records),
@@ -463,6 +467,7 @@ function artifactRank(name) {
     "triage.md",
     "agenda.md",
     "calendar.md",
+    "calendar.ics",
     "commitments.md",
     "dependencies.md",
     "debt.md"
@@ -487,6 +492,7 @@ function artifactPurpose(name) {
     "commitments.md": "Owners, due dates, reviews, next actions, kill criteria, and success metrics.",
     "dependencies.md": "Execution dependencies, open questions, weak evidence, assumption tests, and risk blockers.",
     "calendar.md": "Dated deadlines, reviews, actions, kill checks, and success metric checks.",
+    "calendar.ics": "Calendar import file for deadlines, reviews, actions, kill checks, and metric checks.",
     "dashboard.html": "Local HTML dashboard.",
     "decisions.csv": "CSV export of decision rows.",
     "decisions.json": "JSON export of decision rows.",
@@ -1157,6 +1163,14 @@ try {
     writeOrPrint(renderCalendarReport(readDecisionFiles(root), {
       asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
       horizonDays: Number(readFlag(args, "--horizon") || 30)
+    }), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "ics") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderIcsCalendar(readDecisionFiles(root), {
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
     }), readFlag(args, "--out"));
     process.exit(0);
   }

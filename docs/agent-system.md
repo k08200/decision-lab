@@ -163,10 +163,13 @@ node bin/decision-lab.js monthly decisions --as-of 2026-08-01 --out outputs/mont
 node bin/decision-lab.js next decisions --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01 --out outputs/priorities.md
 node bin/decision-lab.js calendar decisions --as-of 2026-08-01 --out outputs/calendar.md
+node bin/decision-lab.js ics decisions --as-of 2026-08-01 --out outputs/calendar.ics
 node bin/decision-lab.js timeline decisions --out outputs/timeline.md
 ```
 
 `calendar` turns decision deadlines, review dates, actions, kill checks, and success metrics into a dated operating view.
+
+`ics` exports the same dated operating view as an importable calendar file.
 
 `pack` writes the full operating report set in one directory.
 
@@ -308,6 +311,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - aggregates risk, assumption, and source registers
 - groups active work and due reviews by owner
 - creates monthly operating review packs
+- exports calendar import files for review reminders
 - creates portfolio-level action queues
 - ranks decisions by priority signals
 - creates one-page portfolio briefings

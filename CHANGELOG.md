@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.54.0
+
+### Added
+
+- Calendar import export via `decision-lab ics`
+- `calendar.ics` artifacts in operating and weekly packs
+
 ## 2.53.0
 
 ### Changed

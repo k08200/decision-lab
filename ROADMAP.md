@@ -72,12 +72,12 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Standalone dashboard, editable local product server, and CSV/JSON export
 - CI for syntax and test coverage
 - Full verify gate in CI and expanded repository doctor checks
+- ICS calendar export for review reminders
 
 ## Next
 
 - Evidence import adapters for PDFs and spreadsheets
 - Optional LLM provider adapters that propose JSON patches instead of rewriting records
-- Decision review reminders
 - Web UI for browsing the decision ledger
 
 ## Principles

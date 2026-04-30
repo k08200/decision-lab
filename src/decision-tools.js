@@ -959,6 +959,41 @@ export function renderCalendarReport(records, { asOf = new Date().toISOString().
   ].join("\n") + "\n";
 }
 
+export function renderIcsCalendar(records, { asOf = new Date().toISOString().slice(0, 10), now = new Date() } = {}) {
+  const rows = uniqueCalendarRows(records
+    .filter(({ decision }) => (decision.status || "draft") !== "reviewed")
+    .flatMap(({ filePath, decision }) => calendarRows(filePath, decision, asOf))
+    .filter((row) => row.date)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.kind.localeCompare(b.kind) || a.filePath.localeCompare(b.filePath)));
+  const stamp = toIcsTimestamp(now);
+  const events = rows.map((row, index) => [
+    "BEGIN:VEVENT",
+    `UID:${icsEscape(`${row.date}-${index}-${row.kind}-${row.filePath}@decision-lab`)}`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${toIcsDate(row.date)}`,
+    `DTEND;VALUE=DATE:${toIcsDate(addDays(row.date, 1))}`,
+    `SUMMARY:${icsEscape(`Decision Lab: ${row.kind} - ${row.title || row.item}`)}`,
+    `DESCRIPTION:${icsEscape([
+      `File: ${row.filePath}`,
+      `Status: ${row.status}`,
+      `Type: ${row.type}`,
+      `Owner: ${row.owner}`,
+      `Item: ${row.item}`
+    ].join("\n"))}`,
+    "END:VEVENT"
+  ]);
+
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Decision Lab//Decision Calendar//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    ...events.flat(),
+    "END:VCALENDAR"
+  ].map(foldIcsLine).join("\r\n") + "\r\n";
+}
+
 export function renderDoctor({ root = ".", examples = [] } = {}) {
   const checks = [
     fileCheck("package.json", fs.existsSync(`${root}/package.json`)),
@@ -2827,6 +2862,37 @@ function uniqueCalendarRows(rows) {
     seen.add(key);
     return true;
   });
+}
+
+function toIcsTimestamp(date) {
+  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+}
+
+function toIcsDate(date) {
+  return String(date || "").replaceAll("-", "");
+}
+
+function addDays(date, days) {
+  const parsed = new Date(`${date}T00:00:00Z`);
+  parsed.setUTCDate(parsed.getUTCDate() + days);
+  return parsed.toISOString().slice(0, 10);
+}
+
+function icsEscape(value) {
+  return String(value ?? "")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("\n", "\\n")
+    .replaceAll(";", "\\;")
+    .replaceAll(",", "\\,");
+}
+
+function foldIcsLine(line) {
+  const value = String(line);
+  const chunks = [];
+  for (let index = 0; index < value.length; index += 74) {
+    chunks.push(`${index === 0 ? "" : " "}${value.slice(index, index + 74)}`);
+  }
+  return chunks.join("\r\n");
 }
 
 function decisionScenarios(filePath, decision) {

@@ -43,7 +43,7 @@ rough question
   -> next action queue
   -> priority review
   -> snapshots/timeline
-  -> memo/brief/review-plan/dashboard/server/export/operating pack
+  -> memo/brief/review-plan/dashboard/server/export/calendar/operating pack
   -> close
   -> calibration
   -> outcomes/lessons

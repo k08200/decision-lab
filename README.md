@@ -48,6 +48,7 @@ node bin/decision-lab.js briefing examples --as-of 2026-08-01 --out outputs/brie
 node bin/decision-lab.js next examples --as-of 2026-08-01 --out outputs/next.md
 node bin/decision-lab.js prioritize examples --as-of 2026-08-01 --out outputs/priorities.md
 node bin/decision-lab.js calendar examples --as-of 2026-08-01 --out outputs/calendar.md
+node bin/decision-lab.js ics examples --as-of 2026-08-01 --out outputs/calendar.ics
 node bin/decision-lab.js timeline examples --out outputs/timeline.md
 node bin/decision-lab.js compare examples/finance/hiring_runway_tradeoff.json
 node bin/decision-lab.js snapshot examples/business/enterprise_pricing_change.json --out-dir decisions/snapshots --label before-review
@@ -131,6 +132,7 @@ decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
 decision-lab calendar [directory] [--as-of YYYY-MM-DD] [--horizon 30] [--out report.md]
+decision-lab ics [directory] [--as-of YYYY-MM-DD] [--out calendar.ics]
 decision-lab agenda [directory] [--as-of YYYY-MM-DD] [--horizon 7] [--days 30] [--out report.md]
 decision-lab timeline [directory] [--out report.md]
 decision-lab pack [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/packs/YYYY-MM-DD]
