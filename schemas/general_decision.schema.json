@@ -102,6 +102,7 @@
           "source": { "type": "string" },
           "strength": { "enum": ["weak", "medium", "strong"] },
           "source_type": { "type": "string" },
+          "source_url": { "type": "string" },
           "recency": { "type": "string" },
           "notes": { "type": "string" }
         }

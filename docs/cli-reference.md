@@ -87,9 +87,9 @@ node bin/decision-lab.js snapshot decisions/active/aapl.json --label before-chan
 
 `ai-suggest` calls OpenAI with `OPENAI_API_KEY`, asks the chosen role for JSON Patch operations, and can save the patch, review table, and raw response separately. It does not apply the patch.
 
-`extract-evidence` parses CSV, TSV, JSON, Markdown, text notes, saved HTML pages, PDFs, or XLSX spreadsheets into normalized evidence JSON and can write an extraction report.
+`extract-evidence` parses CSV, TSV, JSON, Markdown, text notes, saved HTML pages, PDFs, XLSX spreadsheets, or live HTTP(S) URLs into normalized evidence JSON and can write an extraction report with source URLs.
 
-`import-evidence` attaches evidence rows from CSV, TSV, JSON, Markdown, text, saved HTML, PDF, or XLSX files and can write an import report.
+`import-evidence` attaches evidence rows from CSV, TSV, JSON, Markdown, text, saved HTML, PDF, XLSX, or live HTTP(S) URL sources and can write an import report.
 
 `migrate` upgrades older or partial decision records into the current schema while preserving meaningful existing fields.
 

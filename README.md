@@ -62,6 +62,7 @@ node bin/decision-lab.js checklist examples/business/enterprise_pricing_change.j
 node bin/decision-lab.js evidence examples/business/enterprise_pricing_change.json --claim "Pipeline data refreshed" --source "CRM export" --strength strong --out /tmp/pricing.json
 node bin/decision-lab.js extract-evidence examples/evidence/customer_qbr_notes.md --out research/evidence/customer-qbr.json --report outputs/evidence-extract.md
 node bin/decision-lab.js extract-evidence examples/evidence/customer_research_page.html --out research/evidence/customer-page.json --report outputs/html-evidence.md
+node bin/decision-lab.js extract-evidence https://example.com/research --out research/evidence/web-research.json --report outputs/url-evidence.md
 node bin/decision-lab.js doctor
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migration-aapl.md
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
@@ -110,8 +111,8 @@ decision-lab graph <file.json> [--out graph.md]
 decision-lab premortem <file.json> [--out premortem.md]
 decision-lab research-plan <file.json> [--out research-plan.md]
 decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
-decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx> [--out evidence.json] [--report report.md]
-decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx> [--out file.json] [--report report.md]
+decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...> [--out evidence.json] [--report report.md]
+decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...> [--out file.json] [--report report.md]
 decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
 decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
 decision-lab patch <file.json> <patch.json> [--out file.json]
@@ -307,6 +308,7 @@ Normalize a source note and link it as evidence:
 node bin/decision-lab.js import-evidence decisions/drafts/aapl.json research/evidence.csv --report outputs/evidence-import.md
 node bin/decision-lab.js extract-evidence examples/evidence/customer_qbr_notes.md --out research/evidence/customer-qbr.json --report outputs/evidence-extract.md
 node bin/decision-lab.js extract-evidence examples/evidence/customer_research_page.html --out research/evidence/customer-page.json --report outputs/html-evidence.md
+node bin/decision-lab.js extract-evidence https://example.com/research --out research/evidence/web-research.json --report outputs/url-evidence.md
 node bin/decision-lab.js import-evidence decisions/drafts/aapl.json examples/evidence/customer_qbr_notes.md --report outputs/evidence-import.md
 node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md \

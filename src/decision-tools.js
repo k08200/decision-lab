@@ -3155,6 +3155,7 @@ function normalizeEvidence(evidence) {
     source: requireText(evidence.source, "source"),
     strength: evidence.strength || "medium",
     source_type: evidence.source_type || evidence.sourceType || "",
+    source_url: evidence.source_url || evidence.sourceUrl || "",
     recency: evidence.recency || "",
     notes: evidence.notes || ""
   };

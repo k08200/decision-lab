@@ -36,7 +36,7 @@ import {
 } from "../src/decision-ai.js";
 import {
   importEvidenceItems,
-  parseEvidenceFileAsync,
+  parseEvidenceSourceAsync,
   renderEvidenceImportReport
 } from "../src/decision-import.js";
 import {
@@ -161,8 +161,8 @@ Usage:
   decision-lab premortem <file.json> [--out premortem.md]
   decision-lab research-plan <file.json> [--out research-plan.md]
   decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
-  decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx> [--out evidence.json] [--report report.md]
-  decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx> [--out file.json] [--report report.md]
+  decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...> [--out evidence.json] [--report report.md]
+  decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...> [--out file.json] [--report report.md]
   decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
   decision-lab source-evidence <file.json> <source-file> --claim text [--strength weak|medium|strong] [--out file.json]
   decision-lab patch <file.json> <patch.json> [--out file.json]
@@ -864,9 +864,9 @@ try {
   if (command === "import-evidence") {
     const [filePath, evidencePath] = positional(args);
     if (!filePath || !evidencePath) {
-      throw new Error("Usage: decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx>");
+      throw new Error("Usage: decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...>");
     }
-    const items = await parseEvidenceFileAsync(evidencePath);
+    const items = await parseEvidenceSourceAsync(evidencePath);
     writeDecisionUpdate(filePath, importEvidenceItems(requireFile(filePath), items, {
       now: readFlag(args, "--date") || null
     }), readFlag(args, "--out"));
@@ -878,9 +878,9 @@ try {
   if (command === "extract-evidence") {
     const evidencePath = args[0];
     if (!evidencePath) {
-      throw new Error("Usage: decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx>");
+      throw new Error("Usage: decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...>");
     }
-    const items = await parseEvidenceFileAsync(evidencePath);
+    const items = await parseEvidenceSourceAsync(evidencePath);
     writeOrPrint(`${JSON.stringify(items, null, 2)}\n`, readFlag(args, "--out"));
     const reportPath = readFlag(args, "--report");
     if (reportPath) writeOrPrint(renderEvidenceImportReport(items, { sourcePath: evidencePath }), reportPath);

@@ -24,6 +24,29 @@ export async function parseEvidenceFileAsync(filePath) {
   return parseEvidenceFile(filePath);
 }
 
+export async function parseEvidenceSourceAsync(source, options = {}) {
+  if (isHttpUrl(source)) return parseEvidenceUrl(source, options);
+  return parseEvidenceFileAsync(source);
+}
+
+export async function parseEvidenceUrl(sourceUrl, { fetchImpl = globalThis.fetch } = {}) {
+  if (typeof fetchImpl !== "function") throw new Error("URL evidence import requires a fetch implementation");
+  const response = await fetchImpl(sourceUrl, {
+    headers: {
+      "accept": "text/html,text/plain,application/xhtml+xml;q=0.9,*/*;q=0.5",
+      "user-agent": "decision-lab/2 evidence-import"
+    }
+  });
+  if (!response.ok) throw new Error(`Evidence URL request failed: ${response.status} ${response.statusText || ""}`.trim());
+  const contentType = response.headers?.get?.("content-type") || "";
+  const content = await response.text();
+  const parser = contentType.includes("html") || looksLikeHtml(content) ? parseEvidenceHtml : parseEvidenceNotes;
+  return citeEvidenceItems(parser(content, { sourcePath: sourceUrl }), {
+    sourceUrl,
+    sourceType: contentType.includes("html") || looksLikeHtml(content) ? "webpage" : "url"
+  });
+}
+
 export function importEvidenceItems(decision, items, options = {}) {
   return items.reduce((next, item) => attachEvidence(next, item, options), decision);
 }
@@ -36,12 +59,13 @@ export function renderEvidenceImportReport(items, { sourcePath = "" } = {}) {
     `Evidence items: ${items.length}`,
     "",
     items.length
-      ? table(["#", "Claim", "Source", "Strength", "Type", "Recency"], items.map((item, index) => [
+      ? table(["#", "Claim", "Source", "Strength", "Type", "Source URL", "Recency"], items.map((item, index) => [
         String(index + 1),
         item.claim,
         item.source,
         item.strength,
         item.source_type || "",
+        item.source_url || "",
         item.recency || ""
       ]))
       : "No evidence items found."
@@ -96,7 +120,7 @@ export async function parseEvidenceXlsx(filePath) {
 }
 
 export function parseEvidenceNotes(content, { sourcePath = "" } = {}) {
-  const sourceName = sourcePath ? path.basename(sourcePath) : "note";
+  const sourceName = displaySourceName(sourcePath);
   const items = [];
   let current = null;
 
@@ -142,7 +166,8 @@ function normalizeImportedEvidence(item) {
     strength: item.strength || item.Strength || "medium",
     source_type: item.source_type || item.sourceType || item["source type"] || item.Type || "",
     recency: item.recency || item.Recency || "",
-    notes: item.notes || item.Notes || ""
+    notes: item.notes || item.Notes || "",
+    source_url: item.source_url || item.sourceUrl || item["source url"] || item.URL || item.url || ""
   };
 }
 
@@ -173,13 +198,45 @@ function parsePipeEvidenceLine(line, sourceName) {
 }
 
 function parseKeyValueEvidenceLine(line) {
-  const match = line.match(/^(claim|evidence|source|strength|source_type|source type|type|recency|notes?)\s*:\s*(.+)$/i);
+  const match = line.match(/^(claim|evidence|source|strength|source_type|source type|source_url|source url|url|type|recency|notes?)\s*:\s*(.+)$/i);
   if (!match) return null;
   const key = match[1].toLowerCase().replace(/\s+/g, "_");
   return {
-    key: key === "evidence" ? "claim" : key === "type" ? "source_type" : key === "note" ? "notes" : key,
+    key: key === "evidence" ? "claim" : key === "type" ? "source_type" : key === "url" ? "source_url" : key === "note" ? "notes" : key,
     value: match[2].trim()
   };
+}
+
+function citeEvidenceItems(items, { sourceUrl, sourceType }) {
+  return items.map((item) => normalizeImportedEvidence({
+    ...item,
+    source: item.source || displaySourceName(sourceUrl),
+    source_type: !item.source_type || item.source_type === "note" ? sourceType : item.source_type,
+    source_url: item.source_url || sourceUrl,
+    notes: item.notes || `Fetched from ${sourceUrl}`
+  }));
+}
+
+function displaySourceName(sourcePath) {
+  if (!sourcePath) return "note";
+  if (isHttpUrl(sourcePath)) {
+    const url = new URL(sourcePath);
+    return `${url.hostname}${url.pathname === "/" ? "" : url.pathname}`;
+  }
+  return path.basename(sourcePath);
+}
+
+function isHttpUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function looksLikeHtml(content) {
+  return /<(html|body|article|main|section|p|div|li|table)\b/i.test(String(content || ""));
 }
 
 function parseCsv(content) {

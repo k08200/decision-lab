@@ -323,8 +323,8 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape
-- imports evidence from CSV, TSV, JSON, Markdown, text, saved HTML, PDF, and XLSX files
-- extracts evidence from Markdown, text notes, saved web pages, PDFs, and spreadsheets
+- imports evidence from CSV, TSV, JSON, Markdown, text, saved HTML, PDF, XLSX, and live HTTP(S) URL sources
+- extracts evidence from Markdown, text notes, saved web pages, PDFs, spreadsheets, and live URLs with citation metadata
 - normalizes source notes and links them as evidence
 - tracks calibration across reviewed decisions
 - reports outcomes and lessons from reviewed decisions

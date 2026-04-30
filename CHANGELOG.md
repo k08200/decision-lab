@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.61.0
+
+### Added
+
+- Live HTTP(S) URL evidence extraction with source URL citation metadata
+- `source_url` evidence metadata in the decision schema and import reports
+- CLI and parser coverage for live URL evidence intake
+
 ## 2.60.0
 
 ### Added

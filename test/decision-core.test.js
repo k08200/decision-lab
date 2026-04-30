@@ -43,6 +43,7 @@ import {
   parseEvidenceHtml,
   parseEvidenceFile,
   parseEvidenceFileAsync,
+  parseEvidenceSourceAsync,
   parseEvidenceNotes,
   renderEvidenceImportReport
 } from "../src/decision-import.js";
@@ -431,6 +432,32 @@ test("imports evidence from XLSX and PDF files", async () => {
   const pdfItems = await parseEvidenceFileAsync(pdfPath);
   assert.equal(pdfItems[0].source, "Research PDF");
   assert.equal(pdfItems[0].source_type, "pdf");
+});
+
+test("imports evidence from live URLs with citation metadata", async () => {
+  const items = await parseEvidenceSourceAsync("https://example.com/research", {
+    fetchImpl: async (url, options) => {
+      assert.equal(url, "https://example.com/research");
+      assert.match(options.headers["user-agent"], /decision-lab/);
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        headers: new Map([["content-type", "text/html; charset=utf-8"]]),
+        text: async () => [
+          "<article>",
+          "<p>claim: Live URL evidence supports enterprise rollout.</p>",
+          "<p>source: Market research page</p>",
+          "<p>strength: strong</p>",
+          "</article>"
+        ].join("")
+      };
+    }
+  });
+
+  assert.equal(items[0].claim, "Live URL evidence supports enterprise rollout.");
+  assert.equal(items[0].source_url, "https://example.com/research");
+  assert.equal(items[0].source_type, "webpage");
 });
 
 test("creates private workspaces and scans privacy risks", () => {
