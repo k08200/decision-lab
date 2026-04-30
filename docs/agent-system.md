@@ -132,6 +132,7 @@ node bin/decision-lab.js dependencies decisions --out outputs/dependencies.md
 node bin/decision-lab.js evidence decisions/drafts/aapl.json --claim "Claim text" --source "Source"
 node bin/decision-lab.js import-evidence decisions/drafts/aapl.json research/evidence.csv --report outputs/evidence-import.md
 node bin/decision-lab.js extract-evidence examples/evidence/customer_qbr_notes.md --out research/evidence/customer-qbr.json --report outputs/evidence-extract.md
+node bin/decision-lab.js extract-evidence examples/evidence/customer_research_page.html --out research/evidence/customer-page.json --report outputs/html-evidence.md
 node bin/decision-lab.js import-evidence decisions/drafts/aapl.json examples/evidence/customer_qbr_notes.md --report outputs/evidence-import.md
 node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR" --out research/sources/customer-qbr.md
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
@@ -322,8 +323,8 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape
-- imports evidence from CSV and JSON files
-- extracts evidence from Markdown and text notes
+- imports evidence from CSV, TSV, JSON, Markdown, text, and saved HTML files
+- extracts evidence from Markdown, text notes, and saved web pages
 - normalizes source notes and links them as evidence
 - tracks calibration across reviewed decisions
 - reports outcomes and lessons from reviewed decisions

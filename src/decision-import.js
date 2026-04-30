@@ -7,10 +7,14 @@ export function parseEvidenceFile(filePath) {
   const content = fs.readFileSync(path.resolve(filePath), "utf8");
   if (extension === ".json") return parseEvidenceJson(content);
   if (extension === ".csv") return parseEvidenceCsv(content);
+  if (extension === ".tsv") return parseEvidenceTsv(content);
   if ([".md", ".markdown", ".txt"].includes(extension)) {
     return parseEvidenceNotes(content, { sourcePath: filePath });
   }
-  throw new Error("Evidence import supports .csv, .json, .md, and .txt files");
+  if ([".html", ".htm"].includes(extension)) {
+    return parseEvidenceHtml(content, { sourcePath: filePath });
+  }
+  throw new Error("Evidence import supports .csv, .tsv, .json, .md, .txt, .html, and .htm files");
 }
 
 export function importEvidenceItems(decision, items, options = {}) {
@@ -45,13 +49,25 @@ function parseEvidenceJson(content) {
 }
 
 function parseEvidenceCsv(content) {
-  const rows = parseCsv(content).filter((row) => row.some((cell) => cell.trim()));
+  return parseDelimitedEvidence(parseCsv(content));
+}
+
+function parseEvidenceTsv(content) {
+  return parseDelimitedEvidence(parseTsv(content));
+}
+
+function parseDelimitedEvidence(rows) {
+  rows = rows.filter((row) => row.some((cell) => cell.trim()));
   if (rows.length < 2) return [];
   const headers = rows[0].map((cell) => cell.trim());
   return rows.slice(1).map((row) => {
     const item = Object.fromEntries(headers.map((header, index) => [header, row[index] || ""]));
     return normalizeImportedEvidence(item);
   });
+}
+
+export function parseEvidenceHtml(content, { sourcePath = "" } = {}) {
+  return parseEvidenceNotes(htmlToEvidenceText(content), { sourcePath });
 }
 
 export function parseEvidenceNotes(content, { sourcePath = "" } = {}) {
@@ -176,6 +192,31 @@ function parseCsv(content) {
   row.push(cell);
   rows.push(row);
   return rows;
+}
+
+function parseTsv(content) {
+  return String(content || "")
+    .split(/\r?\n/)
+    .filter((line) => line.trim())
+    .map((line) => line.split("\t"));
+}
+
+function htmlToEvidenceText(content) {
+  return String(content || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "\n")
+    .replace(/<style[\s\S]*?<\/style>/gi, "\n")
+    .replace(/<(br|p|div|li|tr|h[1-6])\b[^>]*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;/g, "'")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join("\n");
 }
 
 function table(headers, rows) {

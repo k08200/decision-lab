@@ -39,6 +39,7 @@ import {
 } from "../src/decision-export.js";
 import {
   importEvidenceItems,
+  parseEvidenceHtml,
   parseEvidenceFile,
   parseEvidenceNotes,
   renderEvidenceImportReport
@@ -380,6 +381,30 @@ test("imports evidence from CSV files", () => {
   const next = importEvidenceItems(business, items, { now: "2026-04-30" });
   assert.equal(next.evidence.at(-1).source, "Research note");
   assert.match(renderEvidenceImportReport(items, { sourcePath: evidencePath }), /Evidence Import Report/);
+});
+
+test("imports evidence from TSV and HTML files", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-evidence-adapters-test-"));
+  const tsvPath = path.join(dir, "evidence.tsv");
+  const htmlPath = path.join(dir, "page.html");
+  writeFileSync(tsvPath, "claim\tsource\tstrength\tsource_type\trecency\nTSV claim\tSpreadsheet export\tmedium\tspreadsheet\tcurrent\n");
+  writeFileSync(htmlPath, [
+    "<html><body>",
+    "<h1>Research Page</h1>",
+    "<p>claim: Web trial signups increased after pricing copy changed.</p>",
+    "<p>source: Saved product analytics page</p>",
+    "<p>strength: medium</p>",
+    "<p>source_type: saved_webpage</p>",
+    "</body></html>"
+  ].join(""));
+
+  const tsvItems = parseEvidenceFile(tsvPath);
+  assert.equal(tsvItems[0].claim, "TSV claim");
+  assert.equal(tsvItems[0].source_type, "spreadsheet");
+
+  const htmlItems = parseEvidenceFile(htmlPath);
+  assert.equal(htmlItems[0].source, "Saved product analytics page");
+  assert.equal(parseEvidenceHtml(readFileSync(htmlPath, "utf8"), { sourcePath: htmlPath })[0].source_type, "saved_webpage");
 });
 
 test("creates private workspaces and scans privacy risks", () => {
@@ -818,6 +843,30 @@ test("cli imports evidence files", () => {
   const updated = JSON.parse(readFileSync(decisionPath, "utf8"));
   assert.equal(updated.evidence.at(-1).claim, "Imported pipeline claim");
   assert.match(readFileSync(reportPath, "utf8"), /Evidence Import Report/);
+});
+
+test("cli extracts evidence from saved web pages", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-html-evidence-test-"));
+  const htmlPath = path.join(dir, "research.html");
+  const outPath = path.join(dir, "evidence.json");
+  writeFileSync(htmlPath, [
+    "<article>",
+    "<p>claim: Saved page shows expansion interest from enterprise buyers.</p>",
+    "<p>source: Saved customer research page</p>",
+    "<p>strength: strong</p>",
+    "</article>"
+  ].join(""));
+
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "extract-evidence",
+    htmlPath,
+    "--out",
+    outPath
+  ]);
+
+  const extracted = JSON.parse(readFileSync(outPath, "utf8"));
+  assert.equal(extracted[0].strength, "strong");
 });
 
 test("cli creates private workspaces and runs privacy checks", () => {

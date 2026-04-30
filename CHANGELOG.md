@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.59.0
+
+### Added
+
+- TSV evidence import for spreadsheet exports
+- Saved HTML/webpage evidence extraction
+- Example saved webpage evidence file
+
 ## 2.58.0
 
 ### Added
