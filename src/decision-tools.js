@@ -965,11 +965,17 @@ export function renderDoctor({ root = ".", examples = [] } = {}) {
     fileCheck("bin/decision-lab.js", fs.existsSync(`${root}/bin/decision-lab.js`)),
     fileCheck("src/decision-core.js", fs.existsSync(`${root}/src/decision-core.js`)),
     fileCheck("src/decision-agent.js", fs.existsSync(`${root}/src/decision-agent.js`)),
+    fileCheck("src/decision-ai.js", fs.existsSync(`${root}/src/decision-ai.js`)),
     fileCheck("src/decision-export.js", fs.existsSync(`${root}/src/decision-export.js`)),
+    fileCheck("src/decision-import.js", fs.existsSync(`${root}/src/decision-import.js`)),
+    fileCheck("src/decision-server.js", fs.existsSync(`${root}/src/decision-server.js`)),
     fileCheck("src/decision-tools.js", fs.existsSync(`${root}/src/decision-tools.js`)),
+    fileCheck("src/templates.js", fs.existsSync(`${root}/src/templates.js`)),
     fileCheck("schemas/general_decision.schema.json", fs.existsSync(`${root}/schemas/general_decision.schema.json`)),
+    fileCheck("examples/evidence/customer_qbr_notes.md", fs.existsSync(`${root}/examples/evidence/customer_qbr_notes.md`)),
     fileCheck(".github/workflows/ci.yml", fs.existsSync(`${root}/.github/workflows/ci.yml`)),
-    fileCheck(".github/workflows/operating-pack.yml", fs.existsSync(`${root}/.github/workflows/operating-pack.yml`))
+    fileCheck(".github/workflows/operating-pack.yml", fs.existsSync(`${root}/.github/workflows/operating-pack.yml`)),
+    fileCheck(".github/workflows/release-pack.yml", fs.existsSync(`${root}/.github/workflows/release-pack.yml`))
   ];
 
   const exampleChecks = examples.map(({ filePath, decision }) => {

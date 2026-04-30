@@ -71,6 +71,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - Owner workload reports
 - Standalone dashboard, editable local product server, and CSV/JSON export
 - CI for syntax and test coverage
+- Full verify gate in CI and expanded repository doctor checks
 
 ## Next
 

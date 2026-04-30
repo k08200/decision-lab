@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.53.0
+
+### Changed
+
+- CI now runs the full `npm run verify` gate
+- Doctor checks now cover AI, import, server, template, release workflow, and example evidence files
+
 ## 2.52.0
 
 ### Added

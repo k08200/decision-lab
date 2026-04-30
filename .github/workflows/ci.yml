@@ -19,11 +19,5 @@ jobs:
         with:
           node-version: 22
 
-      - name: Check syntax
-        run: npm run check
-
-      - name: Run tests
-        run: npm test
-
-      - name: Check package
-        run: npm run pack:check
+      - name: Verify repository
+        run: npm run verify
