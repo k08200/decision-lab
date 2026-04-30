@@ -114,7 +114,9 @@ node bin/decision-lab.js prompt all examples/business/enterprise_pricing_change.
 node bin/decision-lab.js ledger decisions
 node bin/decision-lab.js status decisions --as-of 2026-08-01
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
-node bin/decision-lab.js serve decisions --as-of 2026-08-01
+node bin/decision-lab.js serve decisions --as-of 2026-08-01 --token local-dev-token --actor "Your Name"
+node bin/decision-lab.js openapi --out outputs/openapi.json
+node bin/decision-lab.js audit-log decisions --out outputs/audit-log.md
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md
 node bin/decision-lab.js backup decisions --out outputs/decision-lab-backup.json --report outputs/backup.md
@@ -169,5 +171,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 ```
 
 `backup` writes a verifiable JSON bundle with file contents, SHA256 hashes, decision validation status, and a summary. `verify-backup` checks the bundle before storage or restore. `restore` rebuilds the files into a chosen destination and rejects unsafe paths unless the bundle verifies cleanly.
+
+`openapi` writes the API contract for the local server. `serve --token` enables bearer or `x-api-key` auth for API routes, while `audit-log` renders append-only create/save mutation events.
 
 `serve` runs a local product UI on `127.0.0.1:8787` by default. It supports decision creation, JSON editing, validated saves, memo previews, report tabs, and portfolio filters.

@@ -81,6 +81,7 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - npm-ready package metadata and first-run demo workspace
 - First-run and operating-loop panel in the local product UI
 - Verifiable backup, restore, and backup integrity reports
+- OpenAPI contract, optional API token auth, and append-only audit logs
 
 ## Next
 

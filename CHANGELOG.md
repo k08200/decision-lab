@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.63.0
+
+### Added
+
+- OpenAPI 3.1 contract generation via CLI and `/api/openapi.json`
+- Optional token authentication for the local API server
+- Append-only audit log events for decision create/save API mutations
+- CLI audit log rendering for SaaS-style operational review
+
 ## 2.62.0
 
 ### Added

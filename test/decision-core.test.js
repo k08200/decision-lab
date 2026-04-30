@@ -33,6 +33,12 @@ import {
   parsePatchResponse,
   renderPatchReview
 } from "../src/decision-ai.js";
+import { buildOpenApiSpec } from "../src/decision-api-contract.js";
+import {
+  appendAuditEvent,
+  readAuditEvents,
+  renderAuditLog
+} from "../src/decision-audit-log.js";
 import {
   createBackupBundle,
   renderBackupReport,
@@ -652,6 +658,23 @@ test("serves the local product API", async () => {
   const html = renderApp({ root: "examples", asOf: "2026-08-01" });
   assert.match(html, /Operating Loop/);
   assert.match(html, /Decision Ledger/);
+});
+
+test("builds API contracts and audit logs", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-api-contract-test-"));
+  const spec = buildOpenApiSpec({ serverUrl: "http://127.0.0.1:9999" });
+  assert.equal(spec.openapi, "3.1.0");
+  assert.ok(spec.paths["/api/decisions"]);
+  assert.ok(spec.components.securitySchemes.bearerAuth);
+
+  appendAuditEvent(dir, {
+    action: "decision.save",
+    file: "decisions/demo/decision.json",
+    status: "saved"
+  }, { now: "2026-08-01T00:00:00.000Z", actor: "tester" });
+  const events = readAuditEvents(dir);
+  assert.equal(events[0].actor, "tester");
+  assert.match(renderAuditLog(events), /decision.save/);
 });
 
 test("cli validates example", () => {
@@ -1367,6 +1390,21 @@ test("cli backs up, verifies, and restores a decision workspace", () => {
     restoreDir
   ], { encoding: "utf8" }), /Restored 1 file/);
   assert.equal(existsSync(path.join(restoreDir, "decisions", "pricing", "decision.json")), true);
+});
+
+test("cli renders OpenAPI contracts and audit logs", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-saas-cli-test-"));
+  appendAuditEvent(dir, {
+    action: "decision.create",
+    file: "decisions/demo/decision.json",
+    status: "valid"
+  }, { now: "2026-08-01T00:00:00.000Z", actor: "cli-tester" });
+
+  const openapi = execFileSync("node", ["bin/decision-lab.js", "openapi"], { encoding: "utf8" });
+  assert.equal(JSON.parse(openapi).openapi, "3.1.0");
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "audit-log", dir], {
+    encoding: "utf8"
+  }), /cli-tester/);
 });
 
 test("rejects weak decision records", () => {

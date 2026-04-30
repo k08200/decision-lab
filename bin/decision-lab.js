@@ -41,6 +41,11 @@ import {
   verifyBackupBundle
 } from "../src/decision-backup.js";
 import {
+  readAuditEvents,
+  renderAuditLog
+} from "../src/decision-audit-log.js";
+import { buildOpenApiSpec } from "../src/decision-api-contract.js";
+import {
   importEvidenceItems,
   parseEvidenceSourceAsync,
   renderEvidenceImportReport
@@ -183,7 +188,9 @@ Usage:
   decision-lab ledger [directory] [--out ledger.md]
   decision-lab status [directory] [--as-of YYYY-MM-DD] [--out status.md]
   decision-lab dashboard [directory] [--out dashboard.html]
-  decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD]
+  decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD] [--token token] [--actor name]
+  decision-lab openapi [--server-url url] [--out openapi.json]
+  decision-lab audit-log [directory] [--limit 100] [--out audit.md]
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab manifest [directory] [--out manifest.md]
   decision-lab backup [directory] [--out backup.json] [--report report.md] [--include-research yes]
@@ -1036,13 +1043,32 @@ try {
 
   if (command === "serve") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    const token = readFlag(args, "--token") || process.env.DECISION_LAB_TOKEN || "";
     const { url } = startDecisionServer({
       root,
       host: readFlag(args, "--host") || "127.0.0.1",
       port: Number(readFlag(args, "--port") || 8787),
-      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)
+      asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
+      token,
+      actor: readFlag(args, "--actor") || process.env.DECISION_LAB_ACTOR || "local-user"
     });
     console.log(`Decision Lab running at ${url}`);
+    if (token) console.log("API token authentication enabled.");
+  }
+
+  if (command === "openapi") {
+    writeOrPrint(`${JSON.stringify(buildOpenApiSpec({
+      serverUrl: readFlag(args, "--server-url") || "http://127.0.0.1:8787"
+    }), null, 2)}\n`, readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "audit-log") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    writeOrPrint(renderAuditLog(readAuditEvents(root, {
+      limit: Number(readFlag(args, "--limit") || 100)
+    })), readFlag(args, "--out"));
+    process.exit(0);
   }
 
   if (command === "export") {

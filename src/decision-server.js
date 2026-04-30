@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { loadDecisionFile, renderDecisionMemo, validateDecision } from "./decision-core.js";
 import { createDecisionFromQuestion, slugify } from "./decision-agent.js";
+import { buildOpenApiSpec } from "./decision-api-contract.js";
+import { appendAuditEvent, readAuditEvents } from "./decision-audit-log.js";
 import { buildDecisionRows } from "./decision-export.js";
 import {
   renderActionQueue,
@@ -85,24 +87,48 @@ const REPORTS = {
   }
 };
 
-export function createDecisionServer({ root = "decisions", asOf = new Date().toISOString().slice(0, 10) } = {}) {
+export function createDecisionServer({
+  root = "decisions",
+  asOf = new Date().toISOString().slice(0, 10),
+  token = process.env.DECISION_LAB_TOKEN || "",
+  actor = process.env.DECISION_LAB_ACTOR || "local-user",
+  serverUrl = "http://127.0.0.1:8787"
+} = {}) {
   return http.createServer(async (request, response) => {
     try {
       const url = new URL(request.url || "/", "http://localhost");
       if (url.pathname === "/") return sendHtml(response, renderApp({ root, asOf }));
       if (url.pathname === "/healthz") return sendJson(response, { ok: true, root, asOf });
+      if (url.pathname === "/api/openapi.json") return sendJson(response, buildOpenApiSpec({ serverUrl }));
+      if (!authorized(request, token)) return sendJson(response, { error: "Unauthorized" }, 401);
       if (url.pathname === "/api/decisions" && request.method === "GET") return sendJson(response, decisionPayload(root));
       if (url.pathname === "/api/decisions" && request.method === "POST") {
-        return sendJson(response, createDraftDecision(root, await readJson(request)), 201);
+        const result = createDraftDecision(root, await readJson(request));
+        appendAuditEvent(root, {
+          action: "decision.create",
+          file: result.filePath,
+          status: result.validation.valid ? "valid" : "invalid"
+        }, { actor });
+        return sendJson(response, result, 201);
       }
       if (url.pathname === "/api/decision" && request.method === "GET") {
         return sendJson(response, readDecisionRecord(root, url.searchParams.get("file")));
       }
       if (url.pathname === "/api/decision" && request.method === "PUT") {
         const payload = await readJson(request);
-        return sendJson(response, saveDecisionRecord(root, url.searchParams.get("file"), payload.decision || payload));
+        const file = url.searchParams.get("file");
+        const result = saveDecisionRecord(root, file, payload.decision || payload);
+        appendAuditEvent(root, {
+          action: "decision.save",
+          file,
+          status: result.saved ? "saved" : "rejected"
+        }, { actor });
+        return sendJson(response, result);
       }
       if (url.pathname === "/api/reports") return sendJson(response, reportCatalog());
+      if (url.pathname === "/api/audit-log") return sendJson(response, {
+        events: readAuditEvents(root, { limit: Number(url.searchParams.get("limit") || 100) })
+      });
       if (url.pathname.startsWith("/api/report/")) {
         return sendReport(response, root, asOf, url.pathname.replace("/api/report/", ""));
       }
@@ -115,9 +141,12 @@ export function createDecisionServer({ root = "decisions", asOf = new Date().toI
 }
 
 export function startDecisionServer(options = {}) {
-  const server = createDecisionServer(options);
   const port = Number(options.port || 8787);
   const host = options.host || "127.0.0.1";
+  const server = createDecisionServer({
+    ...options,
+    serverUrl: `http://${host}:${port}`
+  });
   server.listen(port, host);
   return { server, url: `http://${host}:${port}` };
 }
@@ -200,6 +229,13 @@ function sendMemo(response, root, filePath) {
   const record = records.find((item) => item.filePath === filePath);
   if (!record) return sendJson(response, { error: "Decision file not found in server root" }, 404);
   return sendText(response, renderDecisionMemo(record.decision));
+}
+
+function authorized(request, token) {
+  if (!token) return true;
+  const authorization = request.headers.authorization || "";
+  const apiKey = request.headers["x-api-key"] || "";
+  return authorization === `Bearer ${token}` || apiKey === token;
 }
 
 function resolveInside(root, filePath) {

@@ -66,7 +66,9 @@ node bin/decision-lab.js extract-evidence https://example.com/research --out res
 node bin/decision-lab.js doctor
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migration-aapl.md
 node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
-node bin/decision-lab.js serve examples --as-of 2026-08-01
+node bin/decision-lab.js serve examples --as-of 2026-08-01 --token local-dev-token --actor "Your Name"
+node bin/decision-lab.js openapi --out outputs/openapi.json
+node bin/decision-lab.js audit-log examples --out outputs/audit-log.md
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest examples --out outputs/manifest.md
 node bin/decision-lab.js backup examples --out outputs/example-backup.json --report outputs/backup.md
@@ -129,7 +131,9 @@ decision-lab review-plan <file.json> [--out review.md]
 decision-lab ledger [directory] [--out ledger.md]
 decision-lab status [directory] [--as-of YYYY-MM-DD] [--out status.md]
 decision-lab dashboard [directory] [--out dashboard.html]
-decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD]
+decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD] [--token token] [--actor name]
+decision-lab openapi [--server-url url] [--out openapi.json]
+decision-lab audit-log [directory] [--limit 100] [--out audit.md]
 decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab manifest [directory] [--out manifest.md]
 decision-lab backup [directory] [--out backup.json] [--report report.md] [--include-research yes]
@@ -355,7 +359,9 @@ Generate a local dashboard or export:
 
 ```bash
 node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
-node bin/decision-lab.js serve decisions --as-of 2026-08-01
+node bin/decision-lab.js serve decisions --as-of 2026-08-01 --token local-dev-token --actor "Your Name"
+node bin/decision-lab.js openapi --out outputs/openapi.json
+node bin/decision-lab.js audit-log decisions --out outputs/audit-log.md
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js export decisions --format json --out outputs/decisions.json
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md
@@ -364,7 +370,7 @@ node bin/decision-lab.js verify-backup outputs/decision-lab-backup.json --report
 node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
 ```
 
-`serve` starts a local product UI with portfolio filters, report tabs, decision creation, JSON editing, validated saves, memo previews, first-run guidance, and operating-loop actions. It also exposes JSON and Markdown endpoints for decisions, reports, and memos.
+`serve` starts a local product UI with portfolio filters, report tabs, decision creation, JSON editing, validated saves, memo previews, first-run guidance, and operating-loop actions. It also exposes JSON and Markdown endpoints for decisions, reports, and memos. Add `--token` or set `DECISION_LAB_TOKEN` to require `Authorization: Bearer <token>` or `x-api-key: <token>` on API requests. Create/save API mutations are written to `.decision-lab/audit.jsonl`.
 
 `backup` creates a portable JSON bundle with file contents, SHA256 hashes, and decision validation status. `verify-backup` checks integrity before storage or restore. `restore` rebuilds a verified bundle into a chosen directory and rejects unsafe paths.
 
