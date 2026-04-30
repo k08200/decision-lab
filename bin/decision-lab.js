@@ -30,6 +30,7 @@ import {
 } from "../src/decision-agent.js";
 import {
   buildPatchPrompt,
+  createOpenAiPatchSuggestion,
   parsePatchResponse,
   renderPatchReview
 } from "../src/decision-ai.js";
@@ -158,6 +159,7 @@ Usage:
   decision-lab patch <file.json> <patch.json> [--out file.json]
   decision-lab set <file.json> <path> <json-value> [--out file.json]
   decision-lab suggest <role> <file.json> [--prompt-out prompt.md] [--response llm-output.txt] [--out patch.json] [--review review.md]
+  decision-lab ai-suggest <role> <file.json> [--model gpt-5.2] [--base-url url] [--out patch.json] [--review review.md] [--raw raw.json]
   decision-lab migrate <file.json> [--out file.json] [--report report.md]
   decision-lab snapshot <file.json> [--out-dir decisions/snapshots] [--label text]
   decision-lab render <file.json> [--out memo.md]
@@ -851,6 +853,23 @@ try {
     writeOrPrint(`${JSON.stringify(patch, null, 2)}\n`, readFlag(args, "--out"));
     const reviewPath = readFlag(args, "--review");
     if (reviewPath) writeOrPrint(renderPatchReview(patch), reviewPath);
+    process.exit(0);
+  }
+
+  if (command === "ai-suggest") {
+    const role = args[0];
+    const filePath = args[1];
+    if (!role || !filePath) throw new Error("Usage: decision-lab ai-suggest <role> <file.json>");
+    const result = await createOpenAiPatchSuggestion(requireFile(filePath), {
+      role,
+      model: readFlag(args, "--model") || undefined,
+      baseUrl: readFlag(args, "--base-url") || undefined
+    });
+    writeOrPrint(`${JSON.stringify(result.patch, null, 2)}\n`, readFlag(args, "--out"));
+    const reviewPath = readFlag(args, "--review");
+    if (reviewPath) writeOrPrint(renderPatchReview(result.patch), reviewPath);
+    const rawPath = readFlag(args, "--raw");
+    if (rawPath) writeOrPrint(`${JSON.stringify(result.raw, null, 2)}\n`, rawPath);
     process.exit(0);
   }
 

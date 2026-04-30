@@ -117,11 +117,14 @@ node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR"
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
 node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --prompt-out outputs/prompts/aapl-skeptic-patch.md
 node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --response outputs/llm/aapl-skeptic.md --out outputs/patches/aapl.patch.json --review outputs/patches/aapl-review.md
+OPENAI_API_KEY=... node bin/decision-lab.js ai-suggest skeptic decisions/drafts/aapl.json --out outputs/patches/aapl.openai.patch.json --review outputs/patches/aapl.openai-review.md --raw outputs/patches/aapl.openai.raw.json
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
 ```
 
-`suggest` is the AI adapter path. It asks a role to return only JSON Patch operations, so the source record remains inspectable and patch application stays explicit.
+`suggest` is the manual AI adapter path. It asks a role to return only JSON Patch operations, so the source record remains inspectable and patch application stays explicit.
+
+`ai-suggest` calls OpenAI directly and preserves the same safety boundary: it saves proposed JSON Patch operations and optional raw responses without applying them.
 
 `migrate` upgrades older records into the current schema and can write a migration report.
 
@@ -289,6 +292,7 @@ node bin/decision-lab.js close decisions/active/pricing.json --outcome "Pilot co
 - generates premortem reports before commitment
 - creates research plans from weak evidence and open questions
 - creates AI patch prompts and parses JSON Patch suggestions
+- calls OpenAI for patch suggestions without auto-applying them
 - applies JSON patch edits safely
 - migrates older records into the current schema
 - attaches evidence without breaking the record shape

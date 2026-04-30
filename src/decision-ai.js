@@ -27,6 +27,41 @@ export function buildPatchPrompt(role, decision) {
   ].join("\n");
 }
 
+export async function createOpenAiPatchSuggestion(decision, {
+  role,
+  apiKey = process.env.OPENAI_API_KEY,
+  model = process.env.OPENAI_MODEL || "gpt-5.2",
+  baseUrl = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
+  fetchImpl = globalThis.fetch
+} = {}) {
+  if (!apiKey) throw new Error("OPENAI_API_KEY is required");
+  if (!role) throw new Error("role is required");
+  if (!fetchImpl) throw new Error("fetch is not available in this Node runtime");
+
+  const response = await fetchImpl(`${baseUrl.replace(/\/$/, "")}/responses`, {
+    method: "POST",
+    headers: {
+      "authorization": `Bearer ${apiKey}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      input: buildPatchPrompt(role, decision)
+    })
+  });
+  const body = await response.json();
+  if (!response.ok) {
+    throw new Error(body.error?.message || `OpenAI request failed with status ${response.status}`);
+  }
+  const text = extractOutputText(body);
+  return {
+    model,
+    raw: body,
+    text,
+    patch: parsePatchResponse(text)
+  };
+}
+
 export function parsePatchResponse(text) {
   const source = extractJsonArray(text);
   const patch = JSON.parse(source);
@@ -58,6 +93,18 @@ export function renderPatchReview(patch) {
     "node bin/decision-lab.js patch decision.json proposed.patch.json",
     "```"
   ].join("\n") + "\n";
+}
+
+function extractOutputText(response) {
+  if (typeof response.output_text === "string") return response.output_text;
+  const chunks = [];
+  for (const item of response.output || []) {
+    for (const content of item.content || []) {
+      if (typeof content.text === "string") chunks.push(content.text);
+    }
+  }
+  if (!chunks.length) throw new Error("OpenAI response did not include output text");
+  return chunks.join("\n");
 }
 
 function extractJsonArray(text) {

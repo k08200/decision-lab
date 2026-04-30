@@ -28,6 +28,7 @@ import {
 } from "../src/decision-agent.js";
 import {
   buildPatchPrompt,
+  createOpenAiPatchSuggestion,
   parsePatchResponse,
   renderPatchReview
 } from "../src/decision-ai.js";
@@ -296,6 +297,27 @@ test("builds and parses AI patch suggestions", () => {
 
 test("rejects invalid AI patch suggestions", () => {
   assert.throws(() => parsePatchResponse('[{"op":"move","path":"/title","value":"x"}]'), /unsupported op/);
+});
+
+test("creates OpenAI patch suggestions through injected fetch", async () => {
+  const result = await createOpenAiPatchSuggestion(business, {
+    role: "skeptic",
+    apiKey: "test-key",
+    model: "test-model",
+    fetchImpl: async (url, options) => {
+      assert.match(url, /\/responses$/);
+      assert.equal(JSON.parse(options.body).model, "test-model");
+      return {
+        ok: true,
+        json: async () => ({
+          output_text: JSON.stringify([
+            { op: "add", path: "/open_questions/-", value: "What would invalidate the pilot?" }
+          ])
+        })
+      };
+    }
+  });
+  assert.equal(result.patch[0].op, "add");
 });
 
 test("renders calibration and doctor reports", () => {

@@ -62,6 +62,7 @@ node bin/decision-lab.js source raw-notes/customer-qbr.md --title "Customer QBR"
 node bin/decision-lab.js source-evidence decisions/drafts/aapl.json research/sources/customer-qbr.md --claim "Claim text"
 node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --prompt-out outputs/prompts/aapl-skeptic-patch.md
 node bin/decision-lab.js suggest skeptic decisions/drafts/aapl.json --response outputs/llm/aapl-skeptic.md --out outputs/patches/aapl.patch.json --review outputs/patches/aapl-review.md
+OPENAI_API_KEY=... node bin/decision-lab.js ai-suggest skeptic decisions/drafts/aapl.json --model gpt-5.2 --out outputs/patches/aapl.openai.patch.json --review outputs/patches/aapl.openai-review.md --raw outputs/patches/aapl.openai.raw.json
 node bin/decision-lab.js patch decisions/drafts/aapl.json proposed-edits.json
 node bin/decision-lab.js set decisions/drafts/aapl.json recommendation.confidence 0.62
 node bin/decision-lab.js migrate decisions/old/aapl.json --report outputs/migrations/aapl.md
@@ -71,6 +72,8 @@ node bin/decision-lab.js snapshot decisions/active/aapl.json --label before-chan
 `patch` accepts JSON patch operations with `add`, `replace`, and `remove`.
 
 `suggest` creates a patch-specific role prompt and parses an LLM response into a reviewable JSON Patch file.
+
+`ai-suggest` calls OpenAI with `OPENAI_API_KEY`, asks the chosen role for JSON Patch operations, and can save the patch, review table, and raw response separately. It does not apply the patch.
 
 `import-evidence` attaches evidence rows from CSV or JSON files and can write an import report.
 

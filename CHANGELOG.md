@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.51.0
+
+### Added
+
+- OpenAI-backed patch suggestions via `decision-lab ai-suggest`
+- Raw OpenAI response capture for audit trails
+- Reviewable JSON Patch output so AI edits stay explicit and manually applied
+
 ## 2.50.0
 
 ### Added
