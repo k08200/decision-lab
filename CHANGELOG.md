@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.67.0
+
+### Changed
+
+- Reworked the README into a practical real-use guide with first-run setup, daily operating loops, common recipes, private/public usage, backups, local UI/API usage, and commercial readiness notes
+
 ## 2.66.0
 
 ### Added
