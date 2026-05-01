@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.65.0
+
+### Added
+
+- `capture` command for quick evidence, question, action, risk, change-my-mind, and lesson updates without editing JSON by hand
+- CLI tests for the quick capture workflow
+
 ## 2.64.0
 
 ### Added

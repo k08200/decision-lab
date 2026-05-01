@@ -173,6 +173,7 @@ Usage:
   decision-lab premortem <file.json> [--out premortem.md]
   decision-lab research-plan <file.json> [--out research-plan.md]
   decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
+  decision-lab capture <file.json> --kind evidence|question|action|risk|change-mind|lesson --text text [--source text] [--strength weak|medium|strong] [--out file.json]
   decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...> [--out evidence.json] [--report report.md]
   decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...> [--out file.json] [--report report.md]
   decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
@@ -698,6 +699,69 @@ function writeSnapshot(filePath, decision, { outDir, label, date }) {
   return snapshotPath;
 }
 
+function captureDecisionItem(decision, {
+  kind,
+  text,
+  source = "",
+  strength = "medium",
+  probability = "medium",
+  impact = "medium",
+  mitigation = "",
+  now = new Date().toISOString().slice(0, 10)
+}) {
+  if (!kind) throw new Error("--kind is required");
+  if (!text) throw new Error("--text is required");
+  const next = structuredClone(decision);
+  next.updated_at = now;
+
+  if (kind === "evidence") {
+    return attachEvidence(next, {
+      claim: text,
+      source: source || "Quick capture",
+      strength,
+      source_type: source ? "quick_capture" : "user_note",
+      recency: "current",
+      notes: "Captured with decision-lab capture."
+    }, { now });
+  }
+
+  if (kind === "question") {
+    next.open_questions = [...(next.open_questions || []), text];
+    return next;
+  }
+
+  if (kind === "action") {
+    next.next_actions = [...(next.next_actions || []), text];
+    return next;
+  }
+
+  if (kind === "risk") {
+    next.risks = [...(next.risks || []), {
+      risk: text,
+      probability,
+      impact,
+      trigger: source || "Captured during decision work.",
+      mitigation: mitigation || "Define mitigation before commitment."
+    }];
+    return next;
+  }
+
+  if (kind === "change-mind") {
+    next.what_would_change_my_mind = [...(next.what_would_change_my_mind || []), text];
+    return next;
+  }
+
+  if (kind === "lesson") {
+    next.post_decision_review = {
+      ...(next.post_decision_review || {}),
+      lessons: [...(next.post_decision_review?.lessons || []), text]
+    };
+    return next;
+  }
+
+  throw new Error("capture --kind must be evidence, question, action, risk, change-mind, or lesson");
+}
+
 function table(headers, rows) {
   return [
     `| ${headers.join(" | ")} |`,
@@ -958,6 +1022,23 @@ try {
     });
     writeDecisionUpdate(filePath, next, readFlag(args, "--out"));
     process.exit(0);
+  }
+
+  if (command === "capture") {
+    const filePath = args[0];
+    if (!filePath) throw new Error("Usage: decision-lab capture <file.json> --kind evidence|question|action|risk|change-mind|lesson --text text");
+    const next = captureDecisionItem(requireFile(filePath), {
+      kind: readFlag(args, "--kind"),
+      text: readFlag(args, "--text"),
+      source: readFlag(args, "--source") || "",
+      strength: readFlag(args, "--strength") || "medium",
+      probability: readFlag(args, "--probability") || "medium",
+      impact: readFlag(args, "--impact") || "medium",
+      mitigation: readFlag(args, "--mitigation") || "",
+      now: readFlag(args, "--date") || new Date().toISOString().slice(0, 10)
+    });
+    writeDecisionUpdate(filePath, next, readFlag(args, "--out"));
+    process.exit(validateDecision(next).valid ? 0 : 1);
   }
 
   if (command === "import-evidence") {

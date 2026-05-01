@@ -962,6 +962,49 @@ test("cli applies evidence and patch commands", () => {
   assert.equal(patched.recommendation.confidence, 0.62);
 });
 
+test("cli captures quick decision updates without JSON editing", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-capture-test-"));
+  const decisionPath = path.join(dir, "decision.json");
+  writeFileSync(decisionPath, `${JSON.stringify(business, null, 2)}\n`);
+
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "capture",
+    decisionPath,
+    "--kind",
+    "question",
+    "--text",
+    "What would make sales reject the pilot?"
+  ]);
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "capture",
+    decisionPath,
+    "--kind",
+    "action",
+    "--text",
+    "Ask finance to validate margin impact by Friday."
+  ]);
+  execFileSync("node", [
+    "bin/decision-lab.js",
+    "capture",
+    decisionPath,
+    "--kind",
+    "evidence",
+    "--text",
+    "Two customers requested invoice-level budget controls.",
+    "--source",
+    "Customer call note",
+    "--strength",
+    "strong"
+  ]);
+
+  const updated = JSON.parse(readFileSync(decisionPath, "utf8"));
+  assert.equal(updated.open_questions.at(-1), "What would make sales reject the pilot?");
+  assert.equal(updated.next_actions.at(-1), "Ask finance to validate margin impact by Friday.");
+  assert.equal(updated.evidence.at(-1).strength, "strong");
+});
+
 test("cli imports evidence files", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-import-evidence-test-"));
   const decisionPath = path.join(dir, "decision.json");

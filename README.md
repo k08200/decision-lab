@@ -54,6 +54,7 @@ node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
 node bin/decision-lab.js privacy-check
 node bin/decision-lab.js decide "Should we change enterprise pricing?" --type business --evidence examples/evidence/customer_qbr_notes.md --slug pricing
+node bin/decision-lab.js capture decisions/active/pricing/decision.json --kind action --text "Ask finance to validate margin impact by Friday."
 node bin/decision-lab.js today decisions --as-of 2026-08-01 --out-dir outputs/today/2026-08-01
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing
@@ -118,6 +119,7 @@ decision-lab graph <file.json> [--out graph.md]
 decision-lab premortem <file.json> [--out premortem.md]
 decision-lab research-plan <file.json> [--out research-plan.md]
 decision-lab evidence <file.json> --claim text --source text [--strength weak|medium|strong] [--out file.json]
+decision-lab capture <file.json> --kind evidence|question|action|risk|change-mind|lesson --text text [--source text] [--strength weak|medium|strong] [--out file.json]
 decision-lab extract-evidence <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...> [--out evidence.json] [--report report.md]
 decision-lab import-evidence <file.json> <evidence.csv|evidence.tsv|evidence.json|notes.md|notes.txt|page.html|file.pdf|sheet.xlsx|https://...> [--out file.json] [--report report.md]
 decision-lab source <source-file> [--title text] [--kind text] [--out source.md]
@@ -285,6 +287,13 @@ node bin/decision-lab.js decide "Should we hire two engineers despite runway pre
 ```
 
 This writes `decision.json`, a session README, `run/memo.md`, the role prompts, quality reports, and a workspace backup unless `--backup no` is passed.
+
+Use `capture` while working so you do not have to hand-edit JSON:
+
+```bash
+node bin/decision-lab.js capture decisions/active/hiring-runway/decision.json --kind question --text "What would make the hiring plan obviously wrong?"
+node bin/decision-lab.js capture decisions/active/hiring-runway/decision.json --kind evidence --text "Pipeline forecast supports one more hire" --source "Finance model" --strength medium
+```
 
 Use `pipeline` when you want the older artifact-only flow:
 
