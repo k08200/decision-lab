@@ -783,6 +783,41 @@ test("cli writes config and uses default owner", () => {
   assert.equal(JSON.parse(output).owner, "personal operator");
 });
 
+test("cli creates one-step decision sessions and today briefs", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-decide-test-"));
+  const cliPath = path.resolve("bin/decision-lab.js");
+  const evidencePath = path.resolve("examples/evidence/customer_qbr_notes.md");
+
+  const output = execFileSync("node", [
+    cliPath,
+    "decide",
+    "Should we change enterprise pricing?",
+    "--type",
+    "business",
+    "--evidence",
+    evidencePath,
+    "--slug",
+    "pricing"
+  ], { cwd: dir, encoding: "utf8" });
+  assert.match(output, /Decision session/);
+  assert.equal(existsSync(path.join(dir, "decisions/active/pricing/decision.json")), true);
+  assert.match(readFileSync(path.join(dir, "decisions/active/pricing/run/memo.md"), "utf8"), /enterprise pricing/i);
+  assert.match(readFileSync(path.join(dir, "decisions/active/pricing/README.md"), "utf8"), /Continue/);
+  assert.equal(existsSync(path.join(dir, "outputs/decision-lab-backup.json")), true);
+
+  assert.match(execFileSync("node", [
+    cliPath,
+    "today",
+    "decisions",
+    "--as-of",
+    "2026-08-01",
+    "--out-dir",
+    "outputs/today"
+  ], { cwd: dir, encoding: "utf8" }), /Wrote today brief/);
+  assert.match(readFileSync(path.join(dir, "outputs/today/index.md"), "utf8"), /Today Brief Index/);
+  assert.match(readFileSync(path.join(dir, "outputs/today/next.md"), "utf8"), /Action Queue/);
+});
+
 test("cli snapshots decision records", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-snapshot-test-"));
   const decisionPath = path.join(dir, "decision.json");

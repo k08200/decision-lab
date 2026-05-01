@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.64.0
+
+### Added
+
+- `decide` command for one-step real-use decision sessions with optional evidence import, run artifacts, README, and backup
+- `today` command for a focused daily operating brief instead of the full operating pack
+- Usage documentation for the low-friction capture and daily review loop
+
 ## 2.63.0
 
 ### Added

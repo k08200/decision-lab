@@ -156,6 +156,7 @@ Usage:
   decision-lab private-workspace <directory> [--owner name] [--overwrite yes]
   decision-lab config [--out .decision-lab.json]
   decision-lab catalog [--out report.md]
+  decision-lab decide [question...] [--type type] [--owner name] [--evidence source] [--slug name] [--out-dir directory] [--backup no]
   decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
   decision-lab inbox <questions.txt> [--type type] [--owner name] [--out-dir decisions/drafts]
   decision-lab run <file.json> [--out-dir directory]
@@ -224,6 +225,7 @@ Usage:
   decision-lab scorecard [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab triage [directory] [--as-of YYYY-MM-DD] [--days 30] [--out report.md]
   decision-lab monthly [directory] [--as-of YYYY-MM-DD] [--out report.md]
+  decision-lab today [directory] [--as-of YYYY-MM-DD] [--out-dir outputs/today/YYYY-MM-DD]
   decision-lab next [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab prioritize [directory] [--as-of YYYY-MM-DD] [--out report.md]
   decision-lab calendar [directory] [--as-of YYYY-MM-DD] [--horizon 30] [--out report.md]
@@ -422,6 +424,34 @@ function renderDemoReadme() {
   ].join("\n");
 }
 
+function renderDecisionSessionReadme({ decision, recordPath, root, evidenceSource }) {
+  return [
+    `# ${decision.title}`,
+    "",
+    `Question: ${decision.question}`,
+    `Type: ${decision.decision_type}`,
+    `Owner: ${decision.owner}`,
+    evidenceSource ? `Evidence source: ${evidenceSource}` : "Evidence source: not attached yet",
+    "",
+    "## Files",
+    "",
+    `- \`${path.relative(root, recordPath)}\`: canonical decision record`,
+    "- `run/memo.md`: readable decision memo",
+    "- `run/checklist.md`: missing fields and type-specific quality checks",
+    "- `run/research-plan.md`: evidence and assumption work queue",
+    "- `run/prompts/`: role prompts for analyst, skeptic, CFO, CEO, operator, risk, and recorder",
+    "",
+    "## Continue",
+    "",
+    "```bash",
+    `node bin/decision-lab.js render ${recordPath}`,
+    `node bin/decision-lab.js import-evidence ${recordPath} research/evidence.csv --report outputs/evidence-import.md`,
+    `node bin/decision-lab.js today decisions --out-dir outputs/today/${new Date().toISOString().slice(0, 10)}`,
+    "```",
+    ""
+  ].join("\n");
+}
+
 function loadWorkspaceConfig(root = ".") {
   const configPath = path.join(path.resolve(root), ".decision-lab.json");
   if (!fs.existsSync(configPath)) return structuredClone(DEFAULT_CONFIG);
@@ -521,6 +551,23 @@ function writeWeeklyPack(records, { outDir, asOf }) {
     "review-pack.md": renderReviewPackIndex(records, asOf)
   };
   artifacts["index.md"] = renderPackIndex("Weekly Pack", artifacts, { asOf });
+  for (const [name, content] of Object.entries(artifacts)) {
+    fs.writeFileSync(path.join(outDir, name), content);
+  }
+}
+
+function writeTodayBrief(records, { outDir, asOf, root = "decisions" }) {
+  fs.mkdirSync(outDir, { recursive: true });
+  const artifacts = {
+    "executive.md": renderExecutiveSummary(records, { asOf }),
+    "agenda.md": renderDecisionAgenda(records, { asOf }),
+    "next.md": renderActionQueue(records, asOf),
+    "debt.md": renderDecisionDebt(records, { asOf }),
+    "status.md": renderRepositoryStatus(records, { asOf }),
+    "triage.md": renderTriageReport(records, { asOf }),
+    "playbook.md": renderOperatingPlaybook(records, { asOf, root })
+  };
+  artifacts["index.md"] = renderPackIndex("Today Brief", artifacts, { asOf });
   for (const [name, content] of Object.entries(artifacts)) {
     fs.writeFileSync(path.join(outDir, name), content);
   }
@@ -704,6 +751,42 @@ try {
   if (command === "catalog") {
     writeOrPrint(renderReportCatalog(), readFlag(args, "--out"));
     process.exit(0);
+  }
+
+  if (command === "decide") {
+    const config = loadWorkspaceConfig();
+    const question = readFlag(args, "--question") || readRestQuestion(args);
+    let decision = createDecisionFromQuestion(question, {
+      type: readFlag(args, "--type") || null,
+      owner: readFlag(args, "--owner") || config.default_owner
+    });
+    const evidenceSource = readFlag(args, "--evidence");
+    if (evidenceSource) {
+      decision = importEvidenceItems(decision, await parseEvidenceSourceAsync(evidenceSource), {
+        now: decision.updated_at
+      });
+    }
+    const slug = readFlag(args, "--slug") || slugify(decision.title);
+    const root = readFlag(args, "--out-dir") || path.join(config.directories.active, slug);
+    fs.mkdirSync(root, { recursive: true });
+    const recordPath = path.join(root, "decision.json");
+    fs.writeFileSync(recordPath, `${JSON.stringify(decision, null, 2)}\n`);
+    writeWorkflowArtifacts(path.join(root, "run"), runDecisionWorkflow(decision));
+    fs.writeFileSync(path.join(root, "README.md"), renderDecisionSessionReadme({
+      decision,
+      recordPath,
+      root,
+      evidenceSource
+    }));
+    if (readFlag(args, "--backup") !== "no") {
+      const backupPath = readFlag(args, "--backup-out") || path.join(config.directories.outputs, "decision-lab-backup.json");
+      const bundle = createBackupBundle(config.directories.active);
+      writeOrPrint(`${JSON.stringify(bundle, null, 2)}\n`, backupPath);
+    }
+    console.log(`Decision session: ${root}`);
+    console.log(`Record: ${recordPath}`);
+    console.log(`Memo: ${path.join(root, "run", "memo.md")}`);
+    process.exit(validateDecision(decision).valid ? 0 : 1);
   }
 
   if (command === "ask") {
@@ -1302,6 +1385,15 @@ try {
   if (command === "monthly") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderMonthlyReview(readDecisionFiles(root), readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10)), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "today") {
+    const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
+    const asOf = readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10);
+    const outDir = readFlag(args, "--out-dir") || path.join("outputs", "today", asOf);
+    writeTodayBrief(readDecisionFiles(root), { outDir, asOf, root });
+    console.log(`Wrote today brief to ${outDir}`);
     process.exit(0);
   }
 

@@ -53,6 +53,8 @@ node bin/decision-lab.js dependencies examples --out outputs/dependencies.md
 node bin/decision-lab.js config --out .decision-lab.json
 node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
 node bin/decision-lab.js privacy-check
+node bin/decision-lab.js decide "Should we change enterprise pricing?" --type business --evidence examples/evidence/customer_qbr_notes.md --slug pricing
+node bin/decision-lab.js today decisions --as-of 2026-08-01 --out-dir outputs/today/2026-08-01
 node bin/decision-lab.js ask "Should I buy AAPL now?" --out decisions/drafts/aapl.json
 node bin/decision-lab.js pipeline "Should we change enterprise pricing?" --type business --slug pricing
 node bin/decision-lab.js new investment --out decisions/drafts/nvda.json
@@ -99,6 +101,7 @@ decision-lab demo [directory]
 decision-lab private-workspace <directory> [--owner name] [--overwrite yes]
 decision-lab config [--out .decision-lab.json]
 decision-lab catalog [--out report.md]
+decision-lab decide [question...] [--type type] [--owner name] [--evidence source] [--slug name] [--out-dir directory] [--backup no]
 decision-lab ask [question...] [--type type] [--owner name] [--out file.json]
 decision-lab inbox <questions.txt> [--type type] [--owner name] [--out-dir decisions/drafts]
 decision-lab run <file.json> [--out-dir directory]
@@ -275,7 +278,15 @@ node bin/decision-lab.js run decisions/drafts/aapl.json --out-dir outputs/runs/a
 
 This writes memo, brief, audit, health, option comparison, checklist, premortem, research plan, graph, review plan, agent report, and role prompts.
 
-Use `pipeline` to do both at once:
+Use `decide` when you want the shortest real-use path from rough question to a working decision folder:
+
+```bash
+node bin/decision-lab.js decide "Should we hire two engineers despite runway pressure?" --type finance --evidence research/evidence/runway-notes.md --slug hiring-runway
+```
+
+This writes `decision.json`, a session README, `run/memo.md`, the role prompts, quality reports, and a workspace backup unless `--backup no` is passed.
+
+Use `pipeline` when you want the older artifact-only flow:
 
 ```bash
 node bin/decision-lab.js pipeline "Should we hire two engineers despite runway pressure?" --type finance --slug hiring-runway
@@ -368,6 +379,7 @@ node bin/decision-lab.js manifest decisions --out outputs/manifest.md
 node bin/decision-lab.js backup decisions --out outputs/decision-lab-backup.json --report outputs/backup.md
 node bin/decision-lab.js verify-backup outputs/decision-lab-backup.json --report outputs/backup-verify.md
 node bin/decision-lab.js status decisions --as-of 2026-08-01 --out outputs/status.md
+node bin/decision-lab.js today decisions --as-of 2026-08-01 --out-dir outputs/today/2026-08-01
 ```
 
 `serve` starts a local product UI with portfolio filters, report tabs, decision creation, JSON editing, validated saves, memo previews, first-run guidance, and operating-loop actions. It also exposes JSON and Markdown endpoints for decisions, reports, and memos. Add `--token` or set `DECISION_LAB_TOKEN` to require `Authorization: Bearer <token>` or `x-api-key: <token>` on API requests. Create/save API mutations are written to `.decision-lab/audit.jsonl`.

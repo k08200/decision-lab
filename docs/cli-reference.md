@@ -34,11 +34,12 @@ node bin/decision-lab.js new investment
 ## Run
 
 ```bash
+node bin/decision-lab.js decide "Should we change pricing?" --type business --evidence examples/evidence/customer_qbr_notes.md --slug pricing
 node bin/decision-lab.js run decisions/drafts/aapl.json --out-dir outputs/runs/aapl
 node bin/decision-lab.js pipeline "Should we change pricing?" --type business --slug pricing
 ```
 
-`run` generates memo, brief, audit, health, option comparison, checklist, premortem, research plan, graph, review plan, agent report, and role prompts from an existing record. `pipeline` creates the record and generates artifacts in one step.
+`decide` is the shortest real-use path: it creates a decision folder, optionally imports evidence, writes run artifacts, adds a session README, and refreshes the backup bundle. `run` generates memo, brief, audit, health, option comparison, checklist, premortem, research plan, graph, review plan, agent report, and role prompts from an existing record. `pipeline` creates the record and generates artifacts in one step.
 
 ## Inspect
 
@@ -150,6 +151,7 @@ node bin/decision-lab.js scorecard decisions --as-of 2026-08-01
 node bin/decision-lab.js triage decisions --as-of 2026-08-01
 node bin/decision-lab.js monthly decisions --as-of 2026-08-01
 node bin/decision-lab.js next decisions --as-of 2026-08-01
+node bin/decision-lab.js today decisions --as-of 2026-08-01 --out-dir outputs/today/2026-08-01
 node bin/decision-lab.js prioritize decisions --as-of 2026-08-01
 node bin/decision-lab.js calendar decisions --as-of 2026-08-01 --horizon 30
 node bin/decision-lab.js ics decisions --as-of 2026-08-01 --out outputs/calendar.ics
