@@ -72,6 +72,7 @@ node bin/decision-lab.js dashboard examples --out outputs/dashboard.html
 node bin/decision-lab.js serve examples --as-of 2026-08-01 --token local-dev-token --actor "Your Name"
 node bin/decision-lab.js openapi --out outputs/openapi.json
 node bin/decision-lab.js audit-log examples --out outputs/audit-log.md
+node bin/decision-lab.js readiness --out outputs/readiness.md
 node bin/decision-lab.js export examples --format csv --out outputs/decisions.csv
 node bin/decision-lab.js manifest examples --out outputs/manifest.md
 node bin/decision-lab.js backup examples --out outputs/example-backup.json --report outputs/backup.md
@@ -139,6 +140,7 @@ decision-lab dashboard [directory] [--out dashboard.html]
 decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD] [--token token] [--actor name]
 decision-lab openapi [--server-url url] [--out openapi.json]
 decision-lab audit-log [directory] [--limit 100] [--out audit.md]
+decision-lab readiness [--out readiness.md]
 decision-lab export [directory] [--format json|csv] [--out file]
 decision-lab manifest [directory] [--out manifest.md]
 decision-lab backup [directory] [--out backup.json] [--report report.md] [--include-research yes]
@@ -382,6 +384,7 @@ node bin/decision-lab.js dashboard decisions --out outputs/dashboard.html
 node bin/decision-lab.js serve decisions --as-of 2026-08-01 --token local-dev-token --actor "Your Name"
 node bin/decision-lab.js openapi --out outputs/openapi.json
 node bin/decision-lab.js audit-log decisions --out outputs/audit-log.md
+node bin/decision-lab.js readiness --out outputs/readiness.md
 node bin/decision-lab.js export decisions --format csv --out outputs/decisions.csv
 node bin/decision-lab.js export decisions --format json --out outputs/decisions.json
 node bin/decision-lab.js manifest decisions --out outputs/manifest.md

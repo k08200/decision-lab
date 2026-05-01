@@ -1,6 +1,6 @@
 {
   "name": "decision-lab",
-  "version": "2.65.0",
+  "version": "2.66.0",
   "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
   "type": "module",
   "bin": {
@@ -35,7 +35,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "check": "node --check bin/decision-lab.js && node --check src/decision-core.js && node --check src/decision-agent.js && node --check src/decision-ai.js && node --check src/decision-api-contract.js && node --check src/decision-audit-log.js && node --check src/decision-backup.js && node --check src/decision-export.js && node --check src/decision-import.js && node --check src/decision-privacy.js && node --check src/decision-server.js && node --check src/decision-tools.js && node --check src/templates.js && node --check test/decision-core.test.js",
+    "check": "node --check bin/decision-lab.js && node --check src/decision-core.js && node --check src/decision-agent.js && node --check src/decision-ai.js && node --check src/decision-api-contract.js && node --check src/decision-audit-log.js && node --check src/decision-backup.js && node --check src/decision-export.js && node --check src/decision-import.js && node --check src/decision-privacy.js && node --check src/decision-readiness.js && node --check src/decision-server.js && node --check src/decision-tools.js && node --check src/templates.js && node --check test/decision-core.test.js",
     "test": "node --test",
     "doctor": "node bin/decision-lab.js doctor",
     "privacy:check": "node bin/decision-lab.js privacy-check",

@@ -65,6 +65,10 @@ import {
   scanPrivacy
 } from "../src/decision-privacy.js";
 import {
+  assessReadiness,
+  renderReadinessReport
+} from "../src/decision-readiness.js";
+import {
   createDraftDecision,
   createDecisionServer,
   decisionPayload,
@@ -675,6 +679,15 @@ test("builds API contracts and audit logs", () => {
   const events = readAuditEvents(dir);
   assert.equal(events[0].actor, "tester");
   assert.match(renderAuditLog(events), /decision.save/);
+});
+
+test("assesses commercial readiness", () => {
+  const assessment = assessReadiness();
+  const report = renderReadinessReport(assessment);
+  assert.ok(assessment.categories.some((item) => item.name === "Hosted SaaS Company"));
+  assert.match(report, /Commercial Readiness Report/);
+  assert.match(report, /Hosted SaaS Company/);
+  assert.match(report, /database/i);
 });
 
 test("cli validates example", () => {
@@ -1483,6 +1496,9 @@ test("cli renders OpenAPI contracts and audit logs", () => {
   assert.match(execFileSync("node", ["bin/decision-lab.js", "audit-log", dir], {
     encoding: "utf8"
   }), /cli-tester/);
+  assert.match(execFileSync("node", ["bin/decision-lab.js", "readiness"], {
+    encoding: "utf8"
+  }), /Commercial Readiness Report/);
 });
 
 test("rejects weak decision records", () => {

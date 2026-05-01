@@ -84,11 +84,14 @@ Decision Lab is meant to grow from a local decision bot into a personal judgment
 - OpenAPI contract, optional API token auth, and append-only audit logs
 - One-step decision sessions and focused daily operating briefs
 - Quick capture updates for evidence, questions, actions, risks, and lessons
+- Commercial readiness report and commercialization notes
 
 ## Next
 
-- Authenticated source connectors for private research systems
-- Optional LLM provider adapters that propose JSON patches instead of rewriting records
+- Hosted deployment target with persistent database
+- Account, organization, and role models
+- Collaboration primitives: comments, approvals, assignments, and notifications
+- Billing and plan enforcement after design-partner validation
 - Publish package to npm after confirming package name and account ownership
 
 ## Principles

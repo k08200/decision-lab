@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.66.0
+
+### Added
+
+- Commercial readiness assessment and report command
+- Commercialization notes covering ICP, packaging, pricing shape, and missing company-grade pieces
+- Doctor and verification coverage for readiness tooling
+
 ## 2.65.0
 
 ### Added

@@ -56,6 +56,10 @@ import {
   scanPrivacy
 } from "../src/decision-privacy.js";
 import {
+  assessReadiness,
+  renderReadinessReport
+} from "../src/decision-readiness.js";
+import {
   renderDashboard,
   renderExport
 } from "../src/decision-export.js";
@@ -193,6 +197,7 @@ Usage:
   decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD] [--token token] [--actor name]
   decision-lab openapi [--server-url url] [--out openapi.json]
   decision-lab audit-log [directory] [--limit 100] [--out audit.md]
+  decision-lab readiness [--out readiness.md]
   decision-lab export [directory] [--format json|csv] [--out file]
   decision-lab manifest [directory] [--out manifest.md]
   decision-lab backup [directory] [--out backup.json] [--report report.md] [--include-research yes]
@@ -1231,6 +1236,13 @@ try {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     writeOrPrint(renderAuditLog(readAuditEvents(root, {
       limit: Number(readFlag(args, "--limit") || 100)
+    })), readFlag(args, "--out"));
+    process.exit(0);
+  }
+
+  if (command === "readiness") {
+    writeOrPrint(renderReadinessReport(assessReadiness({
+      root: readFlag(args, "--root") || "."
     })), readFlag(args, "--out"));
     process.exit(0);
   }
