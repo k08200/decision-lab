@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.69.0
+
+### Added
+
+- npm distribution guide covering package-name availability, login status, publish checks, publish command, post-publish verification, and rollback/deprecation notes
+- `publish:dry-run` and `release:check` scripts for public package release preparation
+
+### Changed
+
+- Refined package description and keywords for local-first decision product positioning
+- README and runbook now point to npm distribution flow and post-publish `npx decision-lab` usage
+
 ## 2.68.0
 
 ### Fixed

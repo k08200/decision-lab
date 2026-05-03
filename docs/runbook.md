@@ -74,13 +74,24 @@ node bin/decision-lab.js privacy-check --out outputs/privacy.md
 2. Run:
 
 ```bash
-npm run verify
-npm run security:audit
+npm run release:check
 ```
 
 3. Commit and push to `main`.
 4. Confirm GitHub Actions passes.
 5. Create a GitHub release with the matching tag.
+6. If this is an npm release, publish with:
+
+```bash
+npm publish --access public --cache .npm-cache
+```
+
+7. Verify the public package:
+
+```bash
+npm view decision-lab version
+npx decision-lab demo decision-lab-demo
+```
 
 ## Local UI Procedure
 

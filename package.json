@@ -1,10 +1,10 @@
 {
   "name": "decision-lab",
-  "version": "2.68.0",
-  "description": "A schema-first personal decision operating system with a local bot workflow for investment, finance, and management judgment.",
+  "version": "2.69.0",
+  "description": "A local-first decision operating system for investment, finance, and management judgment.",
   "type": "module",
   "bin": {
-    "decision-lab": "./bin/decision-lab.js"
+    "decision-lab": "bin/decision-lab.js"
   },
   "homepage": "https://github.com/k08200/decision-lab#readme",
   "repository": {
@@ -41,6 +41,8 @@
     "privacy:check": "node bin/decision-lab.js privacy-check",
     "security:audit": "npm audit --audit-level=moderate",
     "pack:check": "npm pack --dry-run --cache .npm-cache",
+    "publish:dry-run": "npm publish --dry-run --access public --cache .npm-cache",
+    "release:check": "npm run verify && npm run security:audit && npm run publish:dry-run",
     "verify": "npm run check && npm test && npm run doctor && npm run privacy:check && npm run pack:check",
     "demo": "node bin/decision-lab.js demo outputs/demo",
     "prepublishOnly": "npm run verify",
@@ -64,6 +66,11 @@
     "investment",
     "finance",
     "management",
+    "strategy",
+    "local-first",
+    "decision-intelligence",
+    "decision-memo",
+    "business-strategy",
     "openai",
     "schema",
     "json-schema",

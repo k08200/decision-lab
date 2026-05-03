@@ -66,6 +66,14 @@ cd decision-lab-demo
 less outputs/run/memo.md
 ```
 
+After the npm package is published, the same flow becomes:
+
+```bash
+npx decision-lab demo decision-lab-demo
+cd decision-lab-demo
+less outputs/run/memo.md
+```
+
 Or work from a cloned checkout:
 
 ```bash
@@ -511,6 +519,8 @@ For hosted SaaS, the missing pieces are mostly outside this local repo: accounts
 
 For a more direct product scorecard and recommended build order, see [docs/product-assessment.md](docs/product-assessment.md). For operating and release procedures, see [docs/runbook.md](docs/runbook.md).
 
+For npm packaging and public distribution steps, see [docs/distribution.md](docs/distribution.md).
+
 ## Development
 
 Install dependencies:
@@ -530,6 +540,7 @@ Run security and package checks:
 ```bash
 npm run security:audit
 npm run pack:check
+npm run publish:dry-run
 ```
 
 Useful development commands:
