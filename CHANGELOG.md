@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.70.0
+
+### Changed
+
+- Switched npm package name to `@k08200/decision-lab` because npm blocks the unscoped `decision-lab` name as too similar to `decisionlab`
+- Updated npm distribution docs and README examples to use `npx @k08200/decision-lab`
+
 ## 2.69.0
 
 ### Added
@@ -10,7 +17,7 @@
 ### Changed
 
 - Refined package description and keywords for local-first decision product positioning
-- README and runbook now point to npm distribution flow and post-publish `npx decision-lab` usage
+- README and runbook now point to npm distribution flow and post-publish `npx` usage
 
 ## 2.68.0
 

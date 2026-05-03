@@ -89,8 +89,8 @@ npm publish --access public --cache .npm-cache
 7. Verify the public package:
 
 ```bash
-npm view decision-lab version
-npx decision-lab demo decision-lab-demo
+npm view @k08200/decision-lab version
+npx @k08200/decision-lab demo decision-lab-demo
 ```
 
 ## Local UI Procedure

@@ -1,6 +1,6 @@
 {
-  "name": "decision-lab",
-  "version": "2.69.0",
+  "name": "@k08200/decision-lab",
+  "version": "2.70.0",
   "description": "A local-first decision operating system for investment, finance, and management judgment.",
   "type": "module",
   "bin": {

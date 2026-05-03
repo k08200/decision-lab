@@ -69,7 +69,7 @@ less outputs/run/memo.md
 After the npm package is published, the same flow becomes:
 
 ```bash
-npx decision-lab demo decision-lab-demo
+npx @k08200/decision-lab demo decision-lab-demo
 cd decision-lab-demo
 less outputs/run/memo.md
 ```
