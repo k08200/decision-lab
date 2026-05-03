@@ -684,9 +684,13 @@ test("builds API contracts and audit logs", () => {
 test("assesses commercial readiness", () => {
   const assessment = assessReadiness();
   const report = renderReadinessReport(assessment);
+  const hosted = assessment.categories.find((item) => item.name === "Hosted SaaS Company");
   assert.ok(assessment.categories.some((item) => item.name === "Hosted SaaS Company"));
+  assert.equal(assessment.checks.billing, false);
+  assert.ok(hosted.score < 0.55);
   assert.match(report, /Commercial Readiness Report/);
   assert.match(report, /Hosted SaaS Company/);
+  assert.match(report, /\| billing \| missing \|/);
   assert.match(report, /database/i);
 });
 

@@ -509,6 +509,8 @@ node "$DL" readiness --out outputs/readiness.md
 
 For hosted SaaS, the missing pieces are mostly outside this local repo: accounts, teams, permissions, billing, hosted storage, deployment, observability, and compliance operations. See [docs/commercialization.md](docs/commercialization.md).
 
+For a more direct product scorecard and recommended build order, see [docs/product-assessment.md](docs/product-assessment.md). For operating and release procedures, see [docs/runbook.md](docs/runbook.md).
+
 ## Development
 
 Install dependencies:

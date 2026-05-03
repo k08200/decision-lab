@@ -106,14 +106,50 @@ function readinessChecks(root) {
     privacy_check: exists(root, "src/decision-privacy.js"),
     tests: textIncludes(root, "package.json", "\"test\": \"node --test\""),
     security_audit: textIncludes(root, "package.json", "\"security:audit\""),
-    hosted_deployment: exists(root, "deploy") || exists(root, "Dockerfile"),
-    database_layer: exists(root, "src/db") || exists(root, "prisma/schema.prisma"),
-    account_model: exists(root, "src/auth") || exists(root, "schemas/account.schema.json"),
-    organization_model: exists(root, "schemas/organization.schema.json"),
-    rbac: textIncludes(root, "README.md", "RBAC") || exists(root, "src/rbac"),
-    billing: exists(root, "src/billing") || textIncludes(root, "README.md", "billing"),
-    collaboration: textIncludes(root, "README.md", "comments") || exists(root, "src/collaboration"),
-    support_ops: exists(root, "docs/support.md") || exists(root, "docs/runbook.md")
+    hosted_deployment: existsAny(root, [
+      "deploy",
+      "Dockerfile",
+      "fly.toml",
+      "render.yaml",
+      "vercel.json",
+      ".github/workflows/deploy.yml"
+    ]),
+    database_layer: existsAny(root, [
+      "src/db",
+      "src/database",
+      "prisma/schema.prisma"
+    ]),
+    account_model: existsAny(root, [
+      "src/auth",
+      "src/accounts",
+      "schemas/account.schema.json"
+    ]),
+    organization_model: existsAny(root, [
+      "src/organizations",
+      "schemas/organization.schema.json"
+    ]),
+    rbac: existsAny(root, [
+      "src/rbac",
+      "src/permissions",
+      "schemas/role.schema.json"
+    ]),
+    billing: existsAny(root, [
+      "src/billing",
+      "src/stripe",
+      "schemas/subscription.schema.json",
+      "schemas/invoice.schema.json"
+    ]),
+    collaboration: existsAny(root, [
+      "src/collaboration",
+      "src/comments",
+      "schemas/comment.schema.json",
+      "schemas/approval.schema.json"
+    ]),
+    support_ops: existsAny(root, [
+      "docs/support.md",
+      "docs/runbook.md",
+      ".github/ISSUE_TEMPLATE/support.md"
+    ])
   };
 }
 
@@ -178,6 +214,10 @@ function nextMoves(categories) {
 
 function exists(root, relativePath) {
   return fs.existsSync(`${root}/${relativePath}`);
+}
+
+function existsAny(root, relativePaths) {
+  return relativePaths.some((relativePath) => exists(root, relativePath));
 }
 
 function textIncludes(root, relativePath, text) {

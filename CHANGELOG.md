@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.68.0
+
+### Fixed
+
+- Tightened hosted SaaS readiness checks so implementation gaps such as billing, RBAC, collaboration, and support operations are not marked present just because README text mentions them
+
+### Added
+
+- Product assessment scorecard with current gaps, commercial wedges, and recommended build order
+- Local product runbook covering verification, private workspace use, backup/restore, privacy incidents, releases, UI operation, and triage
+
 ## 2.67.0
 
 ### Changed
