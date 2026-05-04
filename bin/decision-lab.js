@@ -1223,6 +1223,7 @@ try {
     });
     console.log(`Decision Lab running at ${url}`);
     if (token) console.log("API token authentication enabled.");
+    await new Promise(() => {});
   }
 
   if (command === "openapi") {

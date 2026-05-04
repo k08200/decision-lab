@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.70.2
+
+### Fixed
+
+- `serve` now stays running instead of falling through to `Unknown command: serve`
+- Evidence capture accepts `--strength high` as an alias for schema-valid `strong`
+
 ## 2.70.1
 
 ### Added

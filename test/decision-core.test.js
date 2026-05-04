@@ -283,7 +283,7 @@ test("attaches evidence to records and hypotheses", () => {
   const next = attachEvidence(investment, {
     claim: "Fresh primary-source evidence exists.",
     source: "Example source",
-    strength: "strong",
+    strength: "high",
     source_type: "primary",
     recency: "current"
   }, { hypothesisId: "H1", now: "2026-04-28" });
@@ -702,6 +702,13 @@ test("cli validates example", () => {
     encoding: "utf8"
   });
   assert.match(output, /OK/);
+});
+
+test("cli serve branch does not fall through to unknown command", () => {
+  const source = readFileSync("bin/decision-lab.js", "utf8");
+  const serveBranch = source.slice(source.indexOf('if (command === "serve")'), source.indexOf('if (command === "openapi")'));
+  assert.match(serveBranch, /Decision Lab running/);
+  assert.match(serveBranch, /await new Promise/);
 });
 
 test("cli compares options", () => {

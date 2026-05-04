@@ -3157,7 +3157,7 @@ function normalizeEvidence(evidence) {
   const normalized = {
     claim: requireText(evidence.claim, "claim"),
     source: requireText(evidence.source, "source"),
-    strength: evidence.strength || "medium",
+    strength: normalizeEvidenceStrength(evidence.strength || "medium"),
     source_type: evidence.source_type || evidence.sourceType || "",
     source_url: evidence.source_url || evidence.sourceUrl || "",
     recency: evidence.recency || "",
@@ -3165,9 +3165,17 @@ function normalizeEvidence(evidence) {
   };
 
   if (!["weak", "medium", "strong"].includes(normalized.strength)) {
-    throw new Error("Evidence strength must be weak, medium, or strong");
+    throw new Error("Evidence strength must be weak, medium, strong, low, or high");
   }
 
+  return normalized;
+}
+
+function normalizeEvidenceStrength(value) {
+  const normalized = String(value || "medium").trim().toLowerCase();
+  if (normalized === "low") return "weak";
+  if (normalized === "med" || normalized === "moderate") return "medium";
+  if (normalized === "high") return "strong";
   return normalized;
 }
 

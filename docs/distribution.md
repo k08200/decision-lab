@@ -88,7 +88,7 @@ npx @k08200/decision-lab decide "Should we change enterprise pricing this quarte
 Pinned version:
 
 ```bash
-npx @k08200/decision-lab@2.70.1 demo decision-lab-demo
+npx @k08200/decision-lab@2.70.2 demo decision-lab-demo
 ```
 
 GitHub fallback if npm is unavailable:
@@ -133,7 +133,7 @@ Avoid unpublishing unless the package contains secrets or legally sensitive mate
 For a bad release, publish a fixed patch version and deprecate the bad version:
 
 ```bash
-npm deprecate @k08200/decision-lab@2.70.1 "Use 2.70.2 or newer."
+npm deprecate @k08200/decision-lab@2.70.2 "Use 2.70.3 or newer."
 ```
 
 If private data is accidentally published:
