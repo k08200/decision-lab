@@ -10,13 +10,11 @@ Decision Lab should be distributed as a local-first npm CLI before any hosted Sa
 | GitHub releases | ready |
 | npm package metadata | ready |
 | npm package name `decision-lab` | blocked by npm similarity policy |
-| npm package name `@k08200/decision-lab` | selected for publication |
-| npm login on this machine | not logged in as of 2026-05-03 |
+| npm package name `@k08200/decision-lab` | published |
+| npm public install path | `npx @k08200/decision-lab` |
 | hosted SaaS deployment | not recommended yet |
 
-The unscoped package name `decision-lab` is blocked by npm because it is too similar to an existing package named `decisionlab`. Publish the scoped package instead.
-
-`npm whoami` returned `E401 Unauthorized`, so publishing needs an npm login first.
+The unscoped package name `decision-lab` is blocked by npm because it is too similar to an existing package named `decisionlab`. The scoped package `@k08200/decision-lab` is the canonical public distribution.
 
 ## Recommended Launch Path
 
@@ -65,6 +63,7 @@ After publishing, verify:
 
 ```bash
 npm view @k08200/decision-lab version
+npm exec --yes --package @k08200/decision-lab@latest -- decision-lab list-types
 npx @k08200/decision-lab demo decision-lab-demo
 cd decision-lab-demo
 less outputs/run/memo.md
@@ -89,10 +88,10 @@ npx @k08200/decision-lab decide "Should we change enterprise pricing this quarte
 Pinned version:
 
 ```bash
-npx @k08200/decision-lab@2.70.0 demo decision-lab-demo
+npx @k08200/decision-lab@2.70.1 demo decision-lab-demo
 ```
 
-GitHub fallback before npm publish:
+GitHub fallback if npm is unavailable:
 
 ```bash
 npx github:k08200/decision-lab demo decision-lab-demo
@@ -134,7 +133,7 @@ Avoid unpublishing unless the package contains secrets or legally sensitive mate
 For a bad release, publish a fixed patch version and deprecate the bad version:
 
 ```bash
-npm deprecate @k08200/decision-lab@2.70.0 "Use 2.70.1 or newer."
+npm deprecate @k08200/decision-lab@2.70.1 "Use 2.70.2 or newer."
 ```
 
 If private data is accidentally published:

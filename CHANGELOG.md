@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.70.1
+
+### Added
+
+- Quickstart and clean-install smoke-test docs for first-time users and release verification
+- README npm, CI, and license badges now that the package is public
+
+### Changed
+
+- Reworked README installation flow to use `npx @k08200/decision-lab` as the primary path
+- Updated distribution and runbook docs with current published-package verification commands
+
 ## 2.70.0
 
 ### Changed

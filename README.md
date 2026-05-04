@@ -1,5 +1,9 @@
 # Decision Lab
 
+[![npm version](https://img.shields.io/npm/v/@k08200/decision-lab.svg)](https://www.npmjs.com/package/@k08200/decision-lab)
+[![CI](https://github.com/k08200/decision-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/k08200/decision-lab/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Decision Lab is a schema-first decision operating system for investment, finance, and management judgment.
 
 It is built for decisions that should not live as vague notes, scattered prompts, or confident one-shot answers. A rough question becomes a structured record with hypotheses, evidence, counterarguments, assumptions, option scoring, a decision memo, review dates, and follow-up reports.
@@ -52,26 +56,33 @@ Keep private:
 - customer notes
 - model responses that contain private context
 
-Before using real data, read [docs/public-private-usage.md](docs/public-private-usage.md) and [SECURITY.md](SECURITY.md).
+Before using real data, read [docs/public-private-usage.md](docs/public-private-usage.md) and [SECURITY.md](SECURITY.md). For a short first-run path, read [docs/quickstart.md](docs/quickstart.md). To verify the published package from a clean machine, read [docs/smoke-test.md](docs/smoke-test.md).
 
 ## Install And Run
 
 Decision Lab is a Node.js CLI. Use Node 22 or newer.
 
-Try the demo without cloning:
-
-```bash
-npx github:k08200/decision-lab demo decision-lab-demo
-cd decision-lab-demo
-less outputs/run/memo.md
-```
-
-After the npm package is published, the same flow becomes:
+Fastest start:
 
 ```bash
 npx @k08200/decision-lab demo decision-lab-demo
 cd decision-lab-demo
 less outputs/run/memo.md
+```
+
+Create a private local workspace for real decisions:
+
+```bash
+npx @k08200/decision-lab private-workspace my-private-decisions --owner "Your Name"
+cd my-private-decisions
+npx @k08200/decision-lab decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
+less decisions/active/pricing/run/memo.md
+```
+
+If npm is unavailable, run from GitHub:
+
+```bash
+npx github:k08200/decision-lab demo decision-lab-demo
 ```
 
 Or work from a cloned checkout:

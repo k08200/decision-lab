@@ -90,6 +90,7 @@ npm publish --access public --cache .npm-cache
 
 ```bash
 npm view @k08200/decision-lab version
+npm exec --yes --package @k08200/decision-lab@latest -- decision-lab list-types
 npx @k08200/decision-lab demo decision-lab-demo
 ```
 
