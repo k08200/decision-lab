@@ -662,6 +662,8 @@ test("serves the local product API", async () => {
   const html = renderApp({ root: "examples", asOf: "2026-08-01" });
   assert.match(html, /Operating Loop/);
   assert.match(html, /Decision Ledger/);
+  assert.match(html, /API token required/);
+  assert.match(html, /x-api-key/);
 });
 
 test("builds API contracts and audit logs", () => {

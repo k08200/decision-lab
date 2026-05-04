@@ -549,6 +549,7 @@ export function renderApp({ root, asOf }) {
   </main>
   <script>
     const state = { rows: [], reports: [], activeReport: "", activeFile: "" };
+    const AUTH_STORAGE_KEY = "decision-lab-api-token";
     const search = document.querySelector("#search");
     const type = document.querySelector("#type");
     const decisionStatus = document.querySelector("#decision-status");
@@ -580,12 +581,62 @@ export function renderApp({ root, asOf }) {
     }
 
     function renderStats(payload) {
+      const safeStats = payload.stats || {
+        total: payload.count || 0,
+        operational: 0,
+        dueReviews: 0,
+        averageScore: 0
+      };
       stats.innerHTML = [
-        metric("Total", payload.stats.total),
-        metric("Operational", payload.stats.operational),
-        metric("Due Reviews", payload.stats.dueReviews),
-        metric("Average Score", payload.stats.averageScore + "%")
+        metric("Total", safeStats.total),
+        metric("Operational", safeStats.operational),
+        metric("Due Reviews", safeStats.dueReviews),
+        metric("Average Score", safeStats.averageScore + "%")
       ].join("");
+    }
+
+    function apiHeaders(extra = {}) {
+      const token = localStorage.getItem(AUTH_STORAGE_KEY) || "";
+      return token ? { ...extra, "x-api-key": token } : extra;
+    }
+
+    async function apiFetch(url, options = {}) {
+      const response = await fetch(url, {
+        ...options,
+        headers: apiHeaders(options.headers || {})
+      });
+      if (response.status === 401) {
+        renderAuthRequired();
+        const error = new Error("API token required");
+        error.authRequired = true;
+        throw error;
+      }
+      return response;
+    }
+
+    function renderAuthRequired() {
+      status.textContent = 'Token required';
+      stats.innerHTML = '';
+      reports.innerHTML = '';
+      onboarding.innerHTML = '<h2>API Token</h2>'
+        + step(1, 'Use the server token', 'Enter the token used when starting the local UI.', 'decision-lab serve decisions --token local-dev-token')
+        + step(2, 'Retry loading', 'The token is stored only in this browser local storage.', 'Token header: x-api-key');
+      view.innerHTML = '<div class="empty">'
+        + '<h2>API token required</h2>'
+        + '<p>This local server was started with token authentication. Enter the same token from your terminal command.</p>'
+        + '<div class="field"><label for="api-token">API Token</label><input id="api-token" type="password" autocomplete="off" placeholder="local-dev-token"></div>'
+        + '<button class="inline" id="save-token">Use token</button>'
+        + '</div>';
+      const input = document.querySelector("#api-token");
+      const button = document.querySelector("#save-token");
+      button.addEventListener("click", () => {
+        localStorage.setItem(AUTH_STORAGE_KEY, input.value.trim());
+        boot();
+      });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") button.click();
+      });
+      input.focus();
     }
 
     function renderOnboarding(payload) {
@@ -670,7 +721,7 @@ export function renderApp({ root, asOf }) {
       state.activeReport = id;
       state.activeFile = "";
       renderReportButtons();
-      const response = await fetch('/api/report/' + encodeURIComponent(id));
+      const response = await apiFetch('/api/report/' + encodeURIComponent(id));
       view.innerHTML = '<div class="report"><pre>' + escapeHtml(await response.text()) + '</pre></div>';
     }
 
@@ -678,7 +729,7 @@ export function renderApp({ root, asOf }) {
       state.activeReport = "";
       state.activeFile = file;
       renderReportButtons();
-      const response = await fetch('/api/decision?file=' + encodeURIComponent(file));
+      const response = await apiFetch('/api/decision?file=' + encodeURIComponent(file));
       const payload = await response.json();
       if (!response.ok || payload.error) {
         view.innerHTML = '<div class="report bad">' + escapeHtml(payload.error || "Could not load decision") + '</div>';
@@ -707,7 +758,7 @@ export function renderApp({ root, asOf }) {
         status.textContent = 'Invalid JSON';
         return;
       }
-      const response = await fetch('/api/decision?file=' + encodeURIComponent(state.activeFile), {
+      const response = await apiFetch('/api/decision?file=' + encodeURIComponent(state.activeFile), {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ decision })
@@ -725,7 +776,7 @@ export function renderApp({ root, asOf }) {
     async function createDecision() {
       const question = newQuestion.value.trim();
       if (!question) return;
-      const response = await fetch('/api/decisions', {
+      const response = await apiFetch('/api/decisions', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ question, type: newType.value || null })
@@ -741,7 +792,7 @@ export function renderApp({ root, asOf }) {
     }
 
     async function refresh() {
-      const decisionResponse = await fetch('/api/decisions');
+      const decisionResponse = await apiFetch('/api/decisions');
       const payload = await decisionResponse.json();
       state.rows = payload.rows;
       renderStats(payload);
@@ -751,8 +802,8 @@ export function renderApp({ root, asOf }) {
 
     async function boot() {
       const [decisionResponse, reportResponse] = await Promise.all([
-        fetch('/api/decisions'),
-        fetch('/api/reports')
+        apiFetch('/api/decisions'),
+        apiFetch('/api/reports')
       ]);
       const payload = await decisionResponse.json();
       state.rows = payload.rows;
@@ -769,6 +820,7 @@ export function renderApp({ root, asOf }) {
     decisionStatus.addEventListener("change", renderTable);
     createButton.addEventListener("click", createDecision);
     boot().catch((error) => {
+      if (error.authRequired) return;
       status.textContent = 'Error';
       view.innerHTML = '<div class="report">' + escapeHtml(error.message) + '</div>';
     });

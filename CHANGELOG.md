@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.70.3
+
+### Fixed
+
+- Local UI now handles token-protected servers by prompting for the API token and sending it with browser API requests
+- Local UI stats rendering now falls back safely when an API error payload is returned
+
 ## 2.70.2
 
 ### Fixed
