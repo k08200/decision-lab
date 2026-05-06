@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.74.0
+
+### Changed
+
+- Local UI operating-loop snippets now use the public `npx @k08200/decision-lab@latest` command path instead of repo-only `node bin/decision-lab.js` commands
+- Token and privacy-check guidance in the local UI now matches the published npm workflow
+
 ## 2.73.0
 
 ### Changed

@@ -679,6 +679,11 @@ test("serves the local product API", async () => {
   assert.equal(typeof server.close, "function");
   const html = renderApp({ root: "examples", asOf: "2026-08-01" });
   assert.match(html, /Operating Loop/);
+  assert.match(html, /CLI_COMMAND = "npx @k08200\/decision-lab@latest"/);
+  assert.match(html, /ROOT_COMMAND_ARG = 'examples'/);
+  assert.match(html, /CLI_COMMAND \+ ' next ' \+ ROOT_COMMAND_ARG \+ ' --out outputs\/next.md'/);
+  assert.match(html, /CLI_COMMAND \+ ' privacy-check'/);
+  assert.doesNotMatch(html, /node bin\/decision-lab\.js next examples/);
   assert.match(html, /Decision Ledger/);
   assert.match(html, /Completeness/);
   assert.match(html, /Evidence Quality/);

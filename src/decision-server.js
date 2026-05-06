@@ -636,6 +636,8 @@ export function renderApp({ root, asOf }) {
   </main>
   <script>
     const state = { rows: [], reports: [], activeReport: "", activeFile: "", activeTab: "summary", activeDecision: null };
+    const CLI_COMMAND = "npx @k08200/decision-lab@latest";
+    const ROOT_COMMAND_ARG = '${escapeJs(shellArg(root))}';
     const AUTH_STORAGE_KEY = "decision-lab-api-token";
     const search = document.querySelector("#search");
     const type = document.querySelector("#type");
@@ -736,7 +738,7 @@ export function renderApp({ root, asOf }) {
       stats.innerHTML = '';
       reports.innerHTML = '';
       onboarding.innerHTML = '<h2>API Token</h2>'
-        + step(1, 'Use the server token', 'Enter the token used when starting the local UI.', 'decision-lab serve decisions --token local-dev-token')
+        + step(1, 'Use the server token', 'Enter the token used when starting the local UI.', CLI_COMMAND + ' serve ' + ROOT_COMMAND_ARG + ' --token local-dev-token')
         + step(2, 'Retry loading', 'The token is stored only in this browser local storage.', 'Token header: x-api-key');
       view.innerHTML = '<div class="empty">'
         + '<h2>API token required</h2>'
@@ -759,10 +761,10 @@ export function renderApp({ root, asOf }) {
     function renderOnboarding(payload) {
       const hasRecords = payload.count > 0;
       onboarding.innerHTML = '<h2>' + (hasRecords ? 'Operating Loop' : 'First Run') + '</h2>'
-        + step(1, hasRecords ? 'Review priority' : 'Create a record', hasRecords ? 'Open the action queue or priority report.' : 'Use the field on the left or run the demo command.', hasRecords ? 'node bin/decision-lab.js next ${escapeJs(root)} --out outputs/next.md' : 'node bin/decision-lab.js demo outputs/demo')
-        + step(2, hasRecords ? 'Strengthen evidence' : 'Read the memo', hasRecords ? 'Attach notes, challenge assumptions, then inspect the memo.' : 'Open the generated memo and audit files.', hasRecords ? 'node bin/decision-lab.js research-plan ${escapeJs(root)} --out outputs/research.md' : 'less outputs/demo/outputs/run/memo.md')
-        + step(3, hasRecords ? 'Schedule review' : 'Start private work', hasRecords ? 'Export dated reviews into a calendar file.' : 'Create a separate private workspace for real decisions.', hasRecords ? 'node bin/decision-lab.js ics ${escapeJs(root)} --out outputs/calendar.ics' : 'node bin/decision-lab.js private-workspace ../my-private-decisions')
-        + step(4, 'Check privacy', 'Run the public-repo leak check before pushing.', 'npm run privacy:check');
+        + step(1, hasRecords ? 'Review priority' : 'Create a record', hasRecords ? 'Open the action queue or priority report.' : 'Use the field on the left or run the demo command.', hasRecords ? CLI_COMMAND + ' next ' + ROOT_COMMAND_ARG + ' --out outputs/next.md' : CLI_COMMAND + ' demo outputs/demo')
+        + step(2, hasRecords ? 'Strengthen evidence' : 'Read the memo', hasRecords ? 'Attach notes, challenge assumptions, then inspect the memo.' : 'Open the generated memo and audit files.', hasRecords ? CLI_COMMAND + ' research-plan ' + ROOT_COMMAND_ARG + ' --out outputs/research.md' : 'less outputs/demo/outputs/run/memo.md')
+        + step(3, hasRecords ? 'Schedule review' : 'Start private work', hasRecords ? 'Export dated reviews into a calendar file.' : 'Create a separate private workspace for real decisions.', hasRecords ? CLI_COMMAND + ' ics ' + ROOT_COMMAND_ARG + ' --out outputs/calendar.ics' : CLI_COMMAND + ' private-workspace ../my-private-decisions')
+        + step(4, 'Check privacy', 'Run the local privacy check before sharing or pushing.', CLI_COMMAND + ' privacy-check');
     }
 
     function step(index, title, copy, command) {
@@ -1279,6 +1281,12 @@ function escapeHtml(value) {
 
 function escapeJs(value) {
   return String(value ?? "").replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+}
+
+function shellArg(value) {
+  const text = String(value ?? "");
+  if (/^[A-Za-z0-9_./:-]+$/.test(text)) return text;
+  return `'${text.replaceAll("'", "'\\''")}'`;
 }
 
 function avg(values) {
