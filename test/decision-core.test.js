@@ -705,7 +705,10 @@ test("serves the local product API", async () => {
   assert.match(html, /CLI_COMMAND \+ ' start "Should we change enterprise pricing this quarter\?"/);
   assert.match(html, /CLI_COMMAND \+ ' privacy-check'/);
   assert.doesNotMatch(html, /node bin\/decision-lab\.js next examples/);
-  assert.match(html, /Decision Ledger/);
+  assert.match(html, /Focus Today/);
+  assert.match(html, /Decision Board/);
+  assert.match(html, /focus-hero/);
+  assert.match(html, /decision-card/);
   assert.match(html, /Completeness/);
   assert.match(html, /Evidence Quality/);
   assert.match(html, /Risks/);

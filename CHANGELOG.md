@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.81.0
+
+### Changed
+
+- Reworked the local UI ledger from a spreadsheet-like table into a focus-first decision board with a prominent focus panel and decision cards
+- Added visible priority, recommendation, review date, completeness, and evidence bars to each decision card so the first screen feels like an operating dashboard
+- Updated the local UI shell with a stronger header, roomier workspace, and clearer primary open buttons
+
 ## 2.80.0
 
 ### Changed

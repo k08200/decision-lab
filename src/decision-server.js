@@ -350,13 +350,16 @@ export function renderApp({ root, asOf }) {
   <title>Decision Lab</title>
   <style>
     :root {
-      --bg: #f6f7f8;
+      --bg: #eef2f2;
       --panel: #ffffff;
       --text: #1d252c;
       --muted: #66727f;
       --line: #d9dee3;
       --accent: #166b57;
       --accent-soft: #dff3ed;
+      --ink: #17211f;
+      --surface: #f8faf9;
+      --amber: #b25e09;
       --warn: #9a5b05;
       --bad: #b42318;
       --good: #067647;
@@ -376,27 +379,38 @@ export function renderApp({ root, asOf }) {
       justify-content: space-between;
       gap: 16px;
       align-items: center;
-      padding: 16px 22px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
+      padding: 18px 24px;
+      background: var(--ink);
+      color: #f7fbf9;
+      border-bottom: 0;
     }
     h1 { margin: 0; font-size: 21px; letter-spacing: 0; }
+    header .meta { color: #b8c5bf; }
     .meta { color: var(--muted); font-size: 12px; }
+    #status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      padding: 3px 10px;
+      color: #f7fbf9;
+    }
     main {
       display: grid;
-      grid-template-columns: 280px 1fr;
-      min-height: calc(100vh - 65px);
+      grid-template-columns: 260px 1fr;
+      min-height: calc(100vh - 73px);
     }
     aside {
       border-right: 1px solid var(--line);
-      background: var(--panel);
-      padding: 16px;
+      background: #fbfcfc;
+      padding: 18px 16px;
     }
-    .content { padding: 18px 22px 34px; overflow: auto; }
+    .content { padding: 22px 24px 36px; overflow: auto; }
     .workspace {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 310px;
-      gap: 14px;
+      grid-template-columns: minmax(0, 1fr) 350px;
+      gap: 16px;
       align-items: start;
     }
     .main-column { min-width: 0; }
@@ -411,7 +425,10 @@ export function renderApp({ root, asOf }) {
       border-radius: 8px;
       background: var(--panel);
     }
-    .metric { padding: 12px; }
+    .metric {
+      padding: 12px;
+      box-shadow: 0 1px 2px rgba(18, 25, 23, 0.04);
+    }
     .metric span { display: block; color: var(--muted); font-size: 12px; }
     .metric strong { display: block; margin-top: 4px; font-size: 24px; line-height: 1; }
     .onboarding {
@@ -497,6 +514,160 @@ export function renderApp({ root, asOf }) {
     .tabs button { width: auto; }
     .nav { display: grid; gap: 6px; margin-top: 16px; }
     .nav button { text-align: left; }
+    .board-shell {
+      display: grid;
+      gap: 14px;
+      padding: 14px;
+    }
+    .focus-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 16px;
+      align-items: stretch;
+      border: 1px solid #abcac0;
+      border-radius: 8px;
+      background: #f6fbf8;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(22, 107, 87, 0.08);
+    }
+    .focus-eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .focus-title {
+      margin: 6px 0 8px;
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 800;
+    }
+    .focus-copy {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 12px;
+    }
+    .focus-stats {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+    .focus-stat {
+      border: 1px solid #cddbd7;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+    }
+    .focus-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+    .focus-stat strong {
+      font-size: 18px;
+      line-height: 1.1;
+    }
+    .board-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+    }
+    .board-toolbar h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+    .ledger-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 12px;
+    }
+    .decision-card {
+      display: grid;
+      gap: 14px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 2px 10px rgba(18, 25, 23, 0.04);
+    }
+    .decision-card.priority-high { border-left-color: var(--bad); }
+    .decision-card.priority-medium { border-left-color: var(--amber); }
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: start;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .card-question {
+      color: var(--muted);
+      margin-top: 5px;
+    }
+    .card-recommendation {
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 10px;
+    }
+    .card-recommendation span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+    .card-recommendation strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .score-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .score-row span {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .score-track {
+      height: 7px;
+      border-radius: 999px;
+      background: #e8edf0;
+      overflow: hidden;
+    }
+    .score-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
+    .score-fill.warn { background: #d98b22; }
+    .score-fill.bad { background: #d92d20; }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .open-button {
+      min-width: 108px;
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
     .detail { padding: 14px; }
     .focus-panel {
       display: grid;
@@ -717,6 +888,9 @@ export function renderApp({ root, asOf }) {
       .stats { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
       .workspace { grid-template-columns: 1fr; }
       .onboarding { position: static; }
+      .focus-hero { grid-template-columns: 1fr; }
+      .ledger-grid { grid-template-columns: 1fr; }
+      .score-pair { grid-template-columns: 1fr; }
       .focus-panel { grid-template-columns: 1fr; }
       .health-strip { grid-template-columns: 1fr; }
       .detail-grid { grid-template-columns: 1fr; }
@@ -844,6 +1018,80 @@ export function renderApp({ root, asOf }) {
       if ((decision.open_questions || []).length) return "Answer the highest-risk open question before changing the recommendation.";
       if ((decision.next_actions || []).length) return decision.next_actions[0];
       return "Review the memo and capture the next observable action.";
+    }
+
+    function priorityClass(row) {
+      if ((row.priority || 0) >= 50) return "priority-high";
+      if ((row.priority || 0) >= 25) return "priority-medium";
+      return "priority-low";
+    }
+
+    function scoreTone(value) {
+      if (value >= 80) return "good";
+      if (value >= 50) return "warn";
+      return "bad";
+    }
+
+    function scoreBar(label, value, grade) {
+      const score = Math.max(0, Math.min(100, Number(value) || 0));
+      const tone = scoreTone(score);
+      return '<div class="score-row"><span><b>' + escapeHtml(label) + '</b><b>' + escapeHtml(score + "% " + (grade || "")) + '</b></span><div class="score-track"><div class="score-fill ' + tone + '" style="width:' + score + '%"></div></div></div>';
+    }
+
+    function focusRow(rows) {
+      return [...rows].sort((a, b) => {
+        if (!!b.due_review !== !!a.due_review) return Number(!!b.due_review) - Number(!!a.due_review);
+        if ((a.evidence_quality_score || 0) !== (b.evidence_quality_score || 0)) return (a.evidence_quality_score || 0) - (b.evidence_quality_score || 0);
+        return (b.priority || 0) - (a.priority || 0);
+      })[0];
+    }
+
+    function rowNextMove(row) {
+      if ((row.evidence_quality_score || 0) < 60) return "Add one concrete evidence item, then re-run the memo.";
+      if (row.due_review) return "Open the review and record the outcome.";
+      if ((row.priority || 0) >= 50) return "Resolve the highest-risk open question.";
+      return "Open the memo and capture the next useful signal.";
+    }
+
+    function renderFocusHero(row, count) {
+      return '<section class="focus-hero">'
+        + '<div>'
+        + '<div class="focus-eyebrow">Focus Today</div>'
+        + '<div class="focus-title">' + escapeHtml(row.title || row.question) + '</div>'
+        + '<p class="focus-copy">' + escapeHtml(rowNextMove(row)) + '</p>'
+        + '<div class="focus-meta">'
+        + badge(row.type, "")
+        + badge(row.status, "")
+        + badge((row.evidence_quality_score || 0) + "% evidence", scorePercentClass(row.evidence_quality_score || 0))
+        + badge("priority " + (row.priority || 0), row.priority >= 50 ? "bad" : row.priority >= 25 ? "warn" : "good")
+        + '</div>'
+        + '</div>'
+        + '<div class="focus-stats">'
+        + '<div class="focus-stat"><span>Visible Decisions</span><strong>' + escapeHtml(count) + '</strong></div>'
+        + '<div class="focus-stat"><span>Review Date</span><strong>' + escapeHtml(row.review_date || "Not set") + '</strong></div>'
+        + '<button class="open-button" data-open="' + escapeHtml(row.file) + '">Open Focus</button>'
+        + '</div>'
+        + '</section>';
+    }
+
+    function renderDecisionCard(row) {
+      const completeness = row.completeness_percent ?? Math.round(row.score / row.max_score * 100);
+      const evidence = row.evidence_quality_score || 0;
+      return '<article class="decision-card ' + priorityClass(row) + '">'
+        + '<div class="card-title-row">'
+        + '<div><div class="card-title">' + escapeHtml(row.title) + '</div><div class="card-question">' + escapeHtml(row.question) + '</div></div>'
+        + '<span class="pill ' + (row.priority >= 50 ? "bad" : row.priority >= 25 ? "warn" : "good") + '">' + escapeHtml(row.priority) + '</span>'
+        + '</div>'
+        + '<div class="card-recommendation"><span>Recommendation</span><strong>' + escapeHtml(row.decision || "Not decided") + '</strong><div class="small">' + escapeHtml(row.owner || "") + '</div></div>'
+        + '<div class="score-pair">'
+        + scoreBar("Completeness", completeness, row.completeness_grade || row.grade)
+        + scoreBar("Evidence", evidence, row.evidence_quality_grade || "F")
+        + '</div>'
+        + '<div class="card-footer">'
+        + '<div><span class="pill">' + escapeHtml(row.type) + '</span> <span class="pill">' + escapeHtml(row.status) + '</span><div class="small">Review ' + escapeHtml(row.review_date || "not set") + '</div></div>'
+        + '<button class="open-button" data-open="' + escapeHtml(row.file) + '">Open</button>'
+        + '</div>'
+        + '</article>';
     }
 
     function formatDate() {
@@ -984,20 +1232,12 @@ export function renderApp({ root, asOf }) {
         });
         return;
       }
-      view.innerHTML = '<div class="toolbar"><div><strong>Decision Ledger</strong><div class="small">Start with weak evidence, due reviews, and high priority.</div></div><span class="small">' + rows.length + ' visible</span></div>'
-        + '<table><thead><tr><th>Decision</th><th>Type</th><th>Status</th><th>Recommendation</th><th>Priority</th><th>Completeness</th><th>Evidence Quality</th><th>Review</th><th></th></tr></thead><tbody>'
-        + rows.map((row) => '<tr>'
-          + '<td><div class="title">' + escapeHtml(row.title) + '</div><div class="small">' + escapeHtml(row.question) + '</div><div class="small">' + escapeHtml(row.file) + '</div></td>'
-          + '<td><span class="pill">' + escapeHtml(row.type) + '</span></td>'
-          + '<td><span class="pill">' + escapeHtml(row.status) + '</span></td>'
-          + '<td>' + escapeHtml(row.decision) + '<div class="small">' + escapeHtml(row.owner || "") + '</div></td>'
-          + '<td><span class="pill ' + (row.priority >= 50 ? "bad" : row.priority >= 25 ? "warn" : "good") + '">' + escapeHtml(row.priority) + '</span></td>'
-          + '<td><span class="pill ' + scoreClass(row) + '">' + escapeHtml((row.completeness_percent ?? Math.round(row.score / row.max_score * 100)) + "% " + (row.completeness_grade || row.grade)) + '</span></td>'
-          + '<td><span class="pill ' + scorePercentClass(row.evidence_quality_score || 0) + '">' + escapeHtml((row.evidence_quality_score || 0) + "% " + (row.evidence_quality_grade || "F")) + '</span></td>'
-          + '<td>' + escapeHtml(row.review_date || "") + (row.due_review ? '<div class="small">due</div>' : "") + '</td>'
-          + '<td><button class="inline secondary" data-open="' + escapeHtml(row.file) + '">Open</button></td>'
-          + '</tr>').join("")
-        + '</tbody></table>';
+      const focus = focusRow(rows);
+      view.innerHTML = '<div class="board-shell">'
+        + renderFocusHero(focus, rows.length)
+        + '<div class="board-toolbar"><div><h2>Decision Board</h2><div class="small">Cards are ordered by the current filters. Open the focus item first.</div></div><span class="small">' + rows.length + ' visible</span></div>'
+        + '<div class="ledger-grid">' + rows.map(renderDecisionCard).join("") + '</div>'
+        + '</div>';
       view.querySelectorAll("[data-open]").forEach((button) => {
         button.addEventListener("click", () => openDecision(button.dataset.open));
       });
