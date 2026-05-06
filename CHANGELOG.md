@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.75.0
+
+### Changed
+
+- `serve` now waits for the local server to bind before printing the running URL
+- When the default local UI port is busy, `serve` automatically tries the next ports and reports the fallback URL instead of crashing with a Node stack trace
+- Explicit busy ports now fail with a short actionable message suggesting `--port`
+
 ## 2.74.0
 
 ### Changed

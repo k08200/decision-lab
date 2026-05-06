@@ -1213,14 +1213,17 @@ try {
   if (command === "serve") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : "decisions";
     const token = readFlag(args, "--token") || process.env.DECISION_LAB_TOKEN || "";
-    const { url } = startDecisionServer({
+    const portFlag = readFlag(args, "--port");
+    const { url, fallbackFromPort } = await startDecisionServer({
       root,
       host: readFlag(args, "--host") || "127.0.0.1",
-      port: Number(readFlag(args, "--port") || 8787),
+      port: Number(portFlag || 8787),
+      allowPortFallback: !portFlag,
       asOf: readFlag(args, "--as-of") || new Date().toISOString().slice(0, 10),
       token,
       actor: readFlag(args, "--actor") || process.env.DECISION_LAB_ACTOR || "local-user"
     });
+    if (fallbackFromPort) console.log(`Port ${fallbackFromPort} was busy; using ${url} instead.`);
     console.log(`Decision Lab running at ${url}`);
     if (token) console.log("API token authentication enabled.");
     await new Promise(() => {});

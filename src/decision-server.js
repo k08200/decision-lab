@@ -140,15 +140,65 @@ export function createDecisionServer({
   });
 }
 
-export function startDecisionServer(options = {}) {
+export async function startDecisionServer(options = {}) {
   const port = Number(options.port || 8787);
   const host = options.host || "127.0.0.1";
-  const server = createDecisionServer({
-    ...options,
-    serverUrl: `http://${host}:${port}`
+  const allowPortFallback = options.allowPortFallback === true;
+  const maxAttempts = allowPortFallback ? 10 : 1;
+  const serverFactory = options.serverFactory || createDecisionServer;
+  const listenFn = options.listen || listen;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const candidatePort = port + attempt;
+    const server = serverFactory({
+      ...options,
+      serverUrl: `http://${host}:${candidatePort}`
+    });
+    try {
+      await listenFn(server, candidatePort, host);
+      const address = server.address();
+      const actualPort = typeof address === "object" && address ? address.port : candidatePort;
+      return {
+        server,
+        url: `http://${host}:${actualPort}`,
+        port: actualPort,
+        fallbackFromPort: candidatePort === port ? null : port
+      };
+    } catch (error) {
+      if (error.code === "EADDRINUSE" && allowPortFallback && attempt < maxAttempts - 1) continue;
+      throw friendlyListenError(error, host, port, candidatePort, maxAttempts);
+    }
+  }
+
+  throw new Error(`Could not start Decision Lab on ${host}:${port}. Try --port ${port + maxAttempts}.`);
+}
+
+function listen(server, port, host) {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      server.off("error", onError);
+      server.off("listening", onListening);
+    };
+    const onError = (error) => {
+      cleanup();
+      reject(error);
+    };
+    const onListening = () => {
+      cleanup();
+      resolve();
+    };
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(port, host);
   });
-  server.listen(port, host);
-  return { server, url: `http://${host}:${port}` };
+}
+
+function friendlyListenError(error, host, requestedPort, failedPort, attempts) {
+  if (error.code === "EADDRINUSE") {
+    const nextPort = requestedPort + attempts;
+    return new Error(`Port ${failedPort} is already in use on ${host}. Stop the other local server or run with --port ${nextPort}.`);
+  }
+  return error;
 }
 
 export function decisionPayload(root = "decisions") {

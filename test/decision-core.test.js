@@ -75,7 +75,8 @@ import {
   readDecisionRecord,
   renderApp,
   reportCatalog,
-  saveDecisionRecord
+  saveDecisionRecord,
+  startDecisionServer
 } from "../src/decision-server.js";
 import {
   applyJsonPatch,
@@ -694,6 +695,46 @@ test("serves the local product API", async () => {
   assert.match(html, /x-api-key/);
 });
 
+test("serve falls back to the next port when the default is busy", async () => {
+  const attempts = [];
+  const fakeServer = (options) => ({
+    address: () => ({ port: Number(options.serverUrl.match(/:(\d+)$/)[1]) })
+  });
+  const fakeListen = async (_server, port) => {
+    attempts.push(port);
+    if (port === 8787) {
+      const error = new Error("busy");
+      error.code = "EADDRINUSE";
+      throw error;
+    }
+  };
+
+  const result = await startDecisionServer({
+    root: "examples",
+    host: "127.0.0.1",
+    port: 8787,
+    allowPortFallback: true,
+    serverFactory: fakeServer,
+    listen: fakeListen
+  });
+
+  assert.deepEqual(attempts, [8787, 8788]);
+  assert.equal(result.fallbackFromPort, 8787);
+  assert.equal(result.port, 8788);
+  assert.equal(result.url, "http://127.0.0.1:8788");
+
+  await assert.rejects(
+    startDecisionServer({
+      root: "examples",
+      host: "127.0.0.1",
+      port: 8787,
+      serverFactory: fakeServer,
+      listen: fakeListen
+    }),
+    /Port 8787 is already in use .* --port 8788/
+  );
+});
+
 test("builds API contracts and audit logs", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-api-contract-test-"));
   const spec = buildOpenApiSpec({ serverUrl: "http://127.0.0.1:9999" });
@@ -738,6 +779,8 @@ test("cli serve branch does not fall through to unknown command", () => {
   const source = readFileSync("bin/decision-lab.js", "utf8");
   const serveBranch = source.slice(source.indexOf('if (command === "serve")'), source.indexOf('if (command === "openapi")'));
   assert.match(serveBranch, /Decision Lab running/);
+  assert.match(serveBranch, /await startDecisionServer/);
+  assert.match(serveBranch, /allowPortFallback: !portFlag/);
   assert.match(serveBranch, /await new Promise/);
 });
 

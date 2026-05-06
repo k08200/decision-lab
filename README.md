@@ -146,7 +146,7 @@ Start the local product UI:
 npx @k08200/decision-lab@latest serve decisions --as-of $(date +%F) --token local-dev-token --actor "Your Name"
 ```
 
-Open the printed local URL. The UI lets you browse decisions, create records, inspect memo and evidence tabs, add evidence/questions/actions/risks, and open Raw JSON only when you need low-level control. API mutations are logged to `.decision-lab/audit.jsonl`.
+Open the printed local URL. If port `8787` is already busy, the CLI will print the fallback URL it selected. The UI lets you browse decisions, create records, inspect memo and evidence tabs, add evidence/questions/actions/risks, and open Raw JSON only when you need low-level control. API mutations are logged to `.decision-lab/audit.jsonl`.
 
 In the memo and UI, read the scores separately:
 
