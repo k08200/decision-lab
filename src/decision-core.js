@@ -887,7 +887,9 @@ function table(rows, headers = ["Field", "Value"]) {
 
 function renderMemoAtAGlance(decision, audit, evidenceQuality, labels = memoLabels(false)) {
   const bestOption = audit.strongest_option?.name || decision.recommendation?.selected_option || "N/A";
-  const nextAction = (decision.next_actions || [])[0] || audit.next_actions[0] || labels.addConcreteEvidence;
+  const nextAction = evidenceQuality.score < 60
+    ? labels.addConcreteEvidence
+    : (decision.next_actions || [])[0] || audit.next_actions[0] || labels.addConcreteEvidence;
   const evidenceReason = localizeEvidenceReason(evidenceQuality.reasons[0], labels) || labels.reviewEvidenceFirst;
   return table([
     [labels.currentCall, `${decision.recommendation?.decision || labels.undecided} (${labels.selectedOption}: ${bestOption})`],

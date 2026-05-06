@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.79.0
+
+### Changed
+
+- Beginner memo `At A Glance` now prioritizes adding concrete evidence when evidence quality is still weak, instead of sending first-time users to analyst/skeptic prompt work
+
 ## 2.78.0
 
 ### Changed

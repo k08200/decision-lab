@@ -234,6 +234,7 @@ test("localizes generated records for Korean questions", () => {
   assert.match(memo, /## 한눈에 보기/);
   assert.match(memo, /현재 판단/);
   assert.match(memo, /강한 근거/);
+  assert.match(memo, /구체적인 근거 하나/);
   assert.match(memo, /결정 전 추가 조사/);
   assert.match(memo, /파일럿/);
 });
