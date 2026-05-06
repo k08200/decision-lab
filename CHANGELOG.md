@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.71.0
+
+### Added
+
+- Local UI decision detail workspace with Summary, Memo, Evidence, Questions, Actions, and Raw JSON tabs
+- Browser-based capture forms for evidence, open questions, and next actions, saved back to the local decision record
+- Lightweight markdown rendering for local UI reports and memos so tables, headings, lists, and code blocks are easier to inspect
+
+### Changed
+
+- Local UI score card now labels aggregate record scoring as completeness to avoid confusing it with evidence confidence
+
 ## 2.70.3
 
 ### Fixed

@@ -408,8 +408,49 @@ export function renderApp({ root, asOf }) {
     .field { margin-bottom: 12px; }
     .actions { display: flex; gap: 8px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line); }
     .actions button { width: auto; }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfd;
+    }
+    .tabs button { width: auto; }
     .nav { display: grid; gap: 6px; margin-top: 16px; }
     .nav button { text-align: left; }
+    .detail { padding: 14px; }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .detail-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+    .detail-card h3 { margin: 0 0 8px; font-size: 13px; }
+    .detail-card p { margin: 0; color: var(--muted); }
+    .list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .list li {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+    }
+    .capture-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px 110px 86px;
+      gap: 8px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+    .capture-grid.compact {
+      grid-template-columns: minmax(0, 1fr) 86px;
+    }
     textarea {
       width: 100%;
       min-height: 520px;
@@ -453,6 +494,41 @@ export function renderApp({ root, asOf }) {
       font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
     .report { padding: 14px; }
+    .markdown {
+      padding: 14px;
+      font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .markdown h1, .markdown h2, .markdown h3 {
+      margin: 16px 0 8px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+    .markdown h1:first-child, .markdown h2:first-child, .markdown h3:first-child { margin-top: 0; }
+    .markdown h1 { font-size: 18px; }
+    .markdown h2 { font-size: 15px; }
+    .markdown h3 { font-size: 13px; }
+    .markdown p { margin: 8px 0; }
+    .markdown ul { margin: 8px 0 12px 18px; padding: 0; }
+    .markdown code {
+      border-radius: 4px;
+      background: #eef1f4;
+      padding: 1px 4px;
+    }
+    .markdown pre {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 6px;
+      background: #101828;
+      color: #f9fafb;
+      overflow-x: auto;
+    }
+    .markdown table {
+      display: table;
+      margin: 10px 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
     .empty {
       padding: 36px 18px;
       text-align: center;
@@ -483,6 +559,8 @@ export function renderApp({ root, asOf }) {
       .stats { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
       .workspace { grid-template-columns: 1fr; }
       .onboarding { position: static; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .capture-grid, .capture-grid.compact { grid-template-columns: 1fr; }
       table { display: block; overflow-x: auto; }
     }
   </style>
@@ -548,7 +626,7 @@ export function renderApp({ root, asOf }) {
     </section>
   </main>
   <script>
-    const state = { rows: [], reports: [], activeReport: "", activeFile: "" };
+    const state = { rows: [], reports: [], activeReport: "", activeFile: "", activeTab: "summary", activeDecision: null };
     const AUTH_STORAGE_KEY = "decision-lab-api-token";
     const search = document.querySelector("#search");
     const type = document.querySelector("#type");
@@ -580,6 +658,28 @@ export function renderApp({ root, asOf }) {
       return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
     }
 
+    function formatDate() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatPercent(value) {
+      if (typeof value !== "number") return "";
+      return Math.round(value * 100) + "%";
+    }
+
+    function badge(value, className = "") {
+      return '<span class="pill ' + className + '">' + escapeHtml(value || "") + '</span>';
+    }
+
+    function field(label, value) {
+      return '<div class="detail-card"><h3>' + escapeHtml(label) + '</h3><p>' + escapeHtml(value || "Not set") + '</p></div>';
+    }
+
+    function renderList(items, emptyText, renderItem = (item) => escapeHtml(item)) {
+      if (!items || !items.length) return '<div class="empty"><p>' + escapeHtml(emptyText) + '</p></div>';
+      return '<ul class="list">' + items.map((item) => '<li>' + renderItem(item) + '</li>').join("") + '</ul>';
+    }
+
     function renderStats(payload) {
       const safeStats = payload.stats || {
         total: payload.count || 0,
@@ -591,7 +691,7 @@ export function renderApp({ root, asOf }) {
         metric("Total", safeStats.total),
         metric("Operational", safeStats.operational),
         metric("Due Reviews", safeStats.dueReviews),
-        metric("Average Score", safeStats.averageScore + "%")
+        metric("Completeness", safeStats.averageScore + "%")
       ].join("");
     }
 
@@ -722,12 +822,13 @@ export function renderApp({ root, asOf }) {
       state.activeFile = "";
       renderReportButtons();
       const response = await apiFetch('/api/report/' + encodeURIComponent(id));
-      view.innerHTML = '<div class="report"><pre>' + escapeHtml(await response.text()) + '</pre></div>';
+      view.innerHTML = renderMarkdown(await response.text());
     }
 
-    async function openDecision(file) {
+    async function openDecision(file, tab = "summary") {
       state.activeReport = "";
       state.activeFile = file;
+      state.activeTab = tab;
       renderReportButtons();
       const response = await apiFetch('/api/decision?file=' + encodeURIComponent(file));
       const payload = await response.json();
@@ -735,18 +836,146 @@ export function renderApp({ root, asOf }) {
         view.innerHTML = '<div class="report bad">' + escapeHtml(payload.error || "Could not load decision") + '</div>';
         return;
       }
-      view.innerHTML = '<div class="actions">'
-        + '<button id="save" class="inline">Save</button>'
-        + '<button id="memo" class="inline secondary">Memo</button>'
-        + '<span class="small">' + escapeHtml(file) + '</span>'
-        + '</div>'
-        + '<textarea id="editor" spellcheck="false">' + escapeHtml(JSON.stringify(payload.decision, null, 2)) + '</textarea>';
-      document.querySelector("#save").addEventListener("click", saveDecision);
-      document.querySelector("#memo").addEventListener("click", () => {
-        view.innerHTML = '<div class="actions"><button id="back" class="inline secondary">Back</button><span class="small">' + escapeHtml(file) + '</span></div>'
-          + '<div class="report"><pre>' + escapeHtml(payload.memo) + '</pre></div>';
-        document.querySelector("#back").addEventListener("click", () => openDecision(file));
+      state.activeDecision = payload;
+      renderDecisionDetail(payload, tab);
+    }
+
+    function renderDecisionDetail(payload, tab) {
+      const decision = payload.decision;
+      const tabs = [
+        ["summary", "Summary"],
+        ["memo", "Memo"],
+        ["evidence", "Evidence"],
+        ["questions", "Questions"],
+        ["actions", "Actions"],
+        ["raw", "Raw JSON"]
+      ];
+      view.innerHTML = '<div class="toolbar"><div><strong>' + escapeHtml(decision.title) + '</strong><div class="small">' + escapeHtml(payload.filePath) + '</div></div>'
+        + '<button class="inline secondary" id="back-ledger">Ledger</button></div>'
+        + '<div class="tabs">' + tabs.map(([id, label]) => '<button class="secondary ' + (tab === id ? "active" : "") + '" data-tab="' + id + '">' + label + '</button>').join("") + '</div>'
+        + renderDecisionTab(payload, tab);
+      document.querySelector("#back-ledger").addEventListener("click", renderTable);
+      view.querySelectorAll("[data-tab]").forEach((button) => {
+        button.addEventListener("click", () => renderDecisionDetail(payload, button.dataset.tab));
       });
+      attachDecisionTabHandlers(tab);
+    }
+
+    function renderDecisionTab(payload, tab) {
+      const decision = payload.decision;
+      if (tab === "memo") return renderMarkdown(payload.memo);
+      if (tab === "evidence") return renderEvidenceTab(decision);
+      if (tab === "questions") return renderQuestionsTab(decision);
+      if (tab === "actions") return renderActionsTab(decision);
+      if (tab === "raw") {
+        return '<div class="actions"><button id="save" class="inline">Save JSON</button><span class="small">' + escapeHtml(payload.validation.valid ? "Valid record" : "Needs fixes") + '</span></div>'
+          + '<textarea id="editor" spellcheck="false">' + escapeHtml(JSON.stringify(decision, null, 2)) + '</textarea>';
+      }
+      return renderSummaryTab(decision, payload.validation);
+    }
+
+    function renderSummaryTab(decision, validation) {
+      const recommendation = decision.recommendation || {};
+      const frame = decision.decision_frame || {};
+      const option = (decision.options || []).find((item) => item.id === recommendation.selected_option);
+      const strongEvidence = (decision.evidence || []).filter((item) => item.strength === "strong").length;
+      return '<div class="detail">'
+        + '<div class="detail-grid">'
+        + field("Question", decision.question)
+        + field("Recommendation", recommendation.decision || recommendation.summary)
+        + field("Selected Option", option ? option.name + " (" + option.id + ")" : recommendation.selected_option)
+        + field("Confidence", formatPercent(recommendation.confidence))
+        + field("Status", decision.status)
+        + field("Evidence", strongEvidence + " strong / " + (decision.evidence || []).length + " total")
+        + '</div>'
+        + '<div class="detail-card"><h3>Decision Frame</h3><p>'
+        + [frame.decision_class, frame.default_action && "default: " + frame.default_action, frame.reversibility && "reversibility: " + frame.reversibility, frame.urgency && "urgency: " + frame.urgency].filter(Boolean).map(escapeHtml).join(" · ")
+        + '</p></div>'
+        + '<div class="detail-card" style="margin-top:10px"><h3>Options</h3>'
+        + renderList(decision.options || [], "No options yet.", (item) => '<div class="title">' + escapeHtml(item.id + ". " + item.name) + '</div><div class="small">' + escapeHtml(item.description || "") + '</div>')
+        + '</div>'
+        + '<div class="detail-card" style="margin-top:10px"><h3>Validation</h3><p>' + escapeHtml(validation.valid ? "Ready to operate. Keep improving evidence before final commitment." : validation.errors.join(", ")) + '</p></div>'
+        + '</div>';
+    }
+
+    function renderEvidenceTab(decision) {
+      return '<div class="detail">'
+        + '<div class="capture-grid">'
+        + '<div><label for="capture-claim">Evidence claim</label><input id="capture-claim" type="text" placeholder="What did we learn?"></div>'
+        + '<div><label for="capture-source">Source</label><input id="capture-source" type="text" placeholder="customer call, metric, release check"></div>'
+        + '<div><label for="capture-strength">Strength</label><select id="capture-strength"><option value="strong">Strong</option><option value="medium">Medium</option><option value="weak">Weak</option></select></div>'
+        + '<button id="add-evidence" class="secondary">Add</button>'
+        + '</div>'
+        + renderList(decision.evidence || [], "No evidence captured yet.", (item) => '<div class="title">' + escapeHtml(item.claim || item) + '</div><div class="small">' + badge(item.strength || "unknown", item.strength === "strong" ? "good" : item.strength === "weak" ? "bad" : "warn") + ' ' + escapeHtml(item.source || "") + '</div>')
+        + '</div>';
+    }
+
+    function renderQuestionsTab(decision) {
+      return '<div class="detail">'
+        + '<div class="capture-grid compact"><div><label for="capture-question">Open question</label><input id="capture-question" type="text" placeholder="What would change the decision?"></div><button id="add-question" class="secondary">Add</button></div>'
+        + renderList(decision.open_questions || [], "No open questions yet.")
+        + '</div>';
+    }
+
+    function renderActionsTab(decision) {
+      return '<div class="detail">'
+        + '<div class="capture-grid compact"><div><label for="capture-action">Next action</label><input id="capture-action" type="text" placeholder="Smallest next move"></div><button id="add-action" class="secondary">Add</button></div>'
+        + '<div class="detail-grid">'
+        + '<div class="detail-card"><h3>Next Actions</h3>' + renderList(decision.next_actions || [], "No next actions yet.") + '</div>'
+        + '<div class="detail-card"><h3>Risks</h3>' + renderList(decision.risks || [], "No risks captured yet.", (item) => '<div class="title">' + escapeHtml(item.risk || item) + '</div><div class="small">' + escapeHtml([item.probability, item.impact].filter(Boolean).join(" / ")) + '</div>') + '</div>'
+        + '</div></div>';
+    }
+
+    function attachDecisionTabHandlers(tab) {
+      if (tab === "raw") {
+        document.querySelector("#save").addEventListener("click", saveDecision);
+      }
+      if (tab === "evidence") {
+        document.querySelector("#add-evidence").addEventListener("click", addEvidence);
+      }
+      if (tab === "questions") {
+        document.querySelector("#add-question").addEventListener("click", addQuestion);
+      }
+      if (tab === "actions") {
+        document.querySelector("#add-action").addEventListener("click", addAction);
+      }
+    }
+
+    async function addEvidence() {
+      const claim = document.querySelector("#capture-claim").value.trim();
+      if (!claim) return;
+      const source = document.querySelector("#capture-source").value.trim();
+      const strength = document.querySelector("#capture-strength").value;
+      const decision = structuredClone(state.activeDecision.decision);
+      decision.updated_at = formatDate();
+      decision.evidence = [...(decision.evidence || []), {
+        claim,
+        source: source || "UI capture",
+        strength,
+        source_type: source ? "quick_capture" : "user_note",
+        source_url: "",
+        recency: "current",
+        notes: "Captured in the local Decision Lab UI."
+      }];
+      await persistDecision(decision, "evidence");
+    }
+
+    async function addQuestion() {
+      const text = document.querySelector("#capture-question").value.trim();
+      if (!text) return;
+      const decision = structuredClone(state.activeDecision.decision);
+      decision.updated_at = formatDate();
+      decision.open_questions = [...(decision.open_questions || []), text];
+      await persistDecision(decision, "questions");
+    }
+
+    async function addAction() {
+      const text = document.querySelector("#capture-action").value.trim();
+      if (!text) return;
+      const decision = structuredClone(state.activeDecision.decision);
+      decision.updated_at = formatDate();
+      decision.next_actions = [...(decision.next_actions || []), text];
+      await persistDecision(decision, "actions");
     }
 
     async function saveDecision() {
@@ -758,6 +987,10 @@ export function renderApp({ root, asOf }) {
         status.textContent = 'Invalid JSON';
         return;
       }
+      await persistDecision(decision, "raw");
+    }
+
+    async function persistDecision(decision, tab) {
       const response = await apiFetch('/api/decision?file=' + encodeURIComponent(state.activeFile), {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
@@ -770,7 +1003,112 @@ export function renderApp({ root, asOf }) {
       }
       status.textContent = 'Saved';
       await refresh();
-      await openDecision(state.activeFile);
+      await openDecision(state.activeFile, tab);
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = String(markdown || "").split("\\n");
+      let html = '<div class="markdown">';
+      let paragraph = [];
+      let list = [];
+      let inCode = false;
+      let code = [];
+
+      function flushParagraph() {
+        if (!paragraph.length) return;
+        html += '<p>' + inlineMarkdown(paragraph.join(" ")) + '</p>';
+        paragraph = [];
+      }
+      function flushList() {
+        if (!list.length) return;
+        html += '<ul>' + list.map((item) => '<li>' + inlineMarkdown(item) + '</li>').join("") + '</ul>';
+        list = [];
+      }
+      function flushCode() {
+        html += '<pre>' + escapeHtml(code.join("\\n")) + '</pre>';
+        code = [];
+      }
+      function isTableStart(index) {
+        return lines[index]?.trim().startsWith("|")
+          && /^\\|?\\s*:?-{3,}:?\\s*(\\|\\s*:?-{3,}:?\\s*)+\\|?$/.test(lines[index + 1]?.trim() || "");
+      }
+      function cells(line) {
+        return line.trim().replace(/^\\|/, "").replace(/\\|$/, "").split("|").map((cell) => cell.trim());
+      }
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+        const trimmed = line.trim();
+        if (trimmed.startsWith("\`\`\`")) {
+          flushParagraph();
+          flushList();
+          if (inCode) {
+            flushCode();
+            inCode = false;
+          } else {
+            inCode = true;
+          }
+          continue;
+        }
+        if (inCode) {
+          code.push(line);
+          continue;
+        }
+        if (!trimmed) {
+          flushParagraph();
+          flushList();
+          continue;
+        }
+        if (isTableStart(index)) {
+          flushParagraph();
+          flushList();
+          const headers = cells(lines[index]);
+          index += 2;
+          const rows = [];
+          while (index < lines.length && lines[index].trim().startsWith("|")) {
+            rows.push(cells(lines[index]));
+            index += 1;
+          }
+          index -= 1;
+          html += '<table><thead><tr>' + headers.map((header) => '<th>' + inlineMarkdown(header) + '</th>').join("") + '</tr></thead><tbody>'
+            + rows.map((row) => '<tr>' + row.map((cell) => '<td>' + inlineMarkdown(cell) + '</td>').join("") + '</tr>').join("")
+            + '</tbody></table>';
+          continue;
+        }
+        if (trimmed.startsWith("# ")) {
+          flushParagraph();
+          flushList();
+          html += '<h1>' + inlineMarkdown(trimmed.slice(2)) + '</h1>';
+          continue;
+        }
+        if (trimmed.startsWith("## ")) {
+          flushParagraph();
+          flushList();
+          html += '<h2>' + inlineMarkdown(trimmed.slice(3)) + '</h2>';
+          continue;
+        }
+        if (trimmed.startsWith("### ")) {
+          flushParagraph();
+          flushList();
+          html += '<h3>' + inlineMarkdown(trimmed.slice(4)) + '</h3>';
+          continue;
+        }
+        if (trimmed.startsWith("- ")) {
+          flushParagraph();
+          list.push(trimmed.slice(2));
+          continue;
+        }
+        paragraph.push(trimmed);
+      }
+      flushParagraph();
+      flushList();
+      if (inCode) flushCode();
+      return html + '</div>';
+    }
+
+    function inlineMarkdown(value) {
+      const tick = String.fromCharCode(96);
+      return escapeHtml(value).replace(new RegExp(tick + "([^" + tick + "]+)" + tick, "g"), '<code>$1</code>');
     }
 
     async function createDecision() {
