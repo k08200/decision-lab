@@ -157,6 +157,7 @@ function printHelp() {
 Usage:
   decision-lab init [directory]
   decision-lab demo [directory]
+  decision-lab start [question...] [--type type] [--owner name] [--slug name] [--workspace directory]
   decision-lab private-workspace <directory> [--owner name] [--overwrite yes]
   decision-lab config [--out .decision-lab.json]
   decision-lab catalog [--out report.md]
@@ -262,9 +263,9 @@ function printFirstRunGuide() {
   console.log(`Decision Lab
 
 First run from npm:
-  npx @k08200/decision-lab@latest private-workspace my-decisions --owner "Your Name"
+  mkdir my-decisions
   cd my-decisions
-  npx @k08200/decision-lab@latest decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
+  npx @k08200/decision-lab@latest start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing
   less decisions/active/pricing/run/memo.md
 
 Add one piece of evidence:
@@ -304,6 +305,19 @@ Keep this folder out of public repositories.
 Example:
   npx @k08200/decision-lab@latest private-workspace my-decisions --owner "Your Name"
   cd my-decisions
+`,
+    start: `Decision Lab start
+
+Usage:
+  decision-lab start [question...] [--type general|investment|business|finance] [--owner name] [--slug name] [--workspace directory]
+
+Creates a private local workspace when needed, then writes decision.json and run/memo.md for the first decision.
+
+Example:
+  mkdir my-decisions
+  cd my-decisions
+  npx @k08200/decision-lab@latest start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing
+  less decisions/active/pricing/run/memo.md
 `,
     decide: `Decision Lab decide
 
@@ -417,10 +431,11 @@ function positional(argv) {
   return values;
 }
 
-function readDecisionFiles(root) {
+function readDecisionFiles(root, { includeArchive = false } = {}) {
   const files = walk(root).filter((filePath) => filePath.endsWith(".json"));
   const records = [];
   for (const filePath of files) {
+    if (!includeArchive && isArchivedDecisionPath(root, filePath)) continue;
     try {
       const decision = loadDecisionFile(filePath);
       if (decision && typeof decision === "object" && decision.decision_type) {
@@ -431,6 +446,13 @@ function readDecisionFiles(root) {
     }
   }
   return records;
+}
+
+function isArchivedDecisionPath(root, filePath) {
+  const rootPath = path.resolve(root);
+  if (path.basename(rootPath) === "archive") return false;
+  const relativePath = path.relative(rootPath, path.resolve(filePath));
+  return relativePath.split(path.sep).includes("archive");
 }
 
 function walk(root) {
@@ -466,6 +488,63 @@ function initWorkspace(directory = ".") {
     fs.writeFileSync(configPath, `${JSON.stringify(DEFAULT_CONFIG, null, 2)}\n`);
   }
   console.log(`Initialized Decision Lab workspace in ${root}`);
+}
+
+function startFirstDecisionSession(argv) {
+  const workspace = path.resolve(readFlag(argv, "--workspace") || ".");
+  fs.mkdirSync(workspace, { recursive: true });
+  const requestedOwner = readFlag(argv, "--owner") || "decision owner";
+  if (!fs.existsSync(path.join(workspace, ".decision-lab.json"))) {
+    const result = createPrivateWorkspace(workspace, {
+      owner: requestedOwner,
+      overwrite: false
+    });
+    console.log(`Created private Decision Lab workspace in ${result.root}`);
+  }
+
+  const originalCwd = process.cwd();
+  process.chdir(workspace);
+  try {
+    const config = loadWorkspaceConfig();
+    const question = readFlag(argv, "--question") || readRestQuestion(argv);
+    if (!question) {
+      throw new Error("Usage: decision-lab start <question> [--type type] [--owner name] [--slug name] [--workspace directory]");
+    }
+    const owner = readFlag(argv, "--owner") || config.default_owner;
+    const decision = createDecisionFromQuestion(question, {
+      type: readFlag(argv, "--type") || null,
+      owner
+    });
+    const slug = readFlag(argv, "--slug") || slugify(decision.title);
+    const root = uniqueDirectory(path.join(config.directories.active, slug));
+    fs.mkdirSync(root, { recursive: true });
+    const recordPath = path.join(root, "decision.json");
+    const runDir = path.join(root, "run");
+    fs.writeFileSync(recordPath, `${JSON.stringify(decision, null, 2)}\n`);
+    writeWorkflowArtifacts(runDir, runDecisionWorkflow(decision));
+    fs.writeFileSync(path.join(root, "README.md"), renderDecisionSessionReadme({
+      decision,
+      recordPath,
+      root,
+      evidenceSource: ""
+    }));
+    if (readFlag(argv, "--backup") !== "no") {
+      const backupPath = readFlag(argv, "--backup-out") || path.join(config.directories.outputs, "decision-lab-backup.json");
+      fs.mkdirSync(path.dirname(path.resolve(backupPath)), { recursive: true });
+      fs.writeFileSync(backupPath, `${JSON.stringify(createBackupBundle(config.directories.active), null, 2)}\n`);
+    }
+
+    return {
+      workspace,
+      root,
+      recordPath,
+      memoPath: path.join(runDir, "memo.md"),
+      owner,
+      valid: validateDecision(decision).valid
+    };
+  } finally {
+    process.chdir(originalCwd);
+  }
 }
 
 function createDemoWorkspace(directory = "outputs/demo") {
@@ -777,6 +856,13 @@ function writeReviewPack(records, { outDir, asOf }) {
   return due.length;
 }
 
+function uniqueDirectory(base) {
+  if (!fs.existsSync(base)) return base;
+  let counter = 2;
+  while (fs.existsSync(`${base}-${counter}`)) counter += 1;
+  return `${base}-${counter}`;
+}
+
 function uniqueFileName(fileName, usedNames) {
   if (!usedNames.has(fileName)) {
     usedNames.add(fileName);
@@ -909,6 +995,19 @@ try {
     console.log(`Run artifacts: ${result.runDir}`);
     console.log(`Weekly pack: ${result.weeklyDir}`);
     process.exit(0);
+  }
+
+  if (command === "start") {
+    const result = startFirstDecisionSession(args);
+    console.log(`Decision Lab workspace: ${result.workspace}`);
+    console.log(`Decision session: ${result.root}`);
+    console.log(`Record: ${result.recordPath}`);
+    console.log(`Memo: ${result.memoPath}`);
+    console.log("Next:");
+    console.log(`  less ${result.memoPath}`);
+    console.log(`  npx @k08200/decision-lab@latest capture ${result.recordPath} --kind evidence --text "What did you learn?" --source "First source" --strength medium`);
+    console.log(`  npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "${result.owner}"`);
+    process.exit(result.valid ? 0 : 1);
   }
 
   if (command === "private-workspace") {

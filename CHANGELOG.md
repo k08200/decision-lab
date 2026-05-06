@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.77.0
+
+### Added
+
+- Added `decision-lab start` as a beginner one-command path that initializes a local workspace when needed and writes the first memo
+- Local UI now includes an `Include archive` toggle for reviewing archived records intentionally
+
+### Changed
+
+- Local UI and portfolio report scans now exclude `archive` folders by default so active quality metrics are not diluted by parked records
+- First-run help now points beginners to `start` before introducing lower-level workspace and decision commands
+
 ## 2.76.0
 
 ### Changed

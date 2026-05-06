@@ -20,22 +20,15 @@ less outputs/run/memo.md
 
 The demo creates a complete workspace with example decisions, evidence, memos, review outputs, and local operating reports.
 
-## 2. Create A Private Workspace
+## 2. Create A Private Workspace And First Decision
 
-Use a separate folder for real decisions. Do not store private decisions in a public framework repo.
+Use a separate folder for real decisions. Do not store private decisions in a public framework repo. The `start` command initializes the local workspace if needed and writes the first memo.
 
 ```bash
 cd ..
-npx @k08200/decision-lab private-workspace my-private-decisions --owner "Your Name"
+mkdir my-private-decisions
 cd my-private-decisions
-```
-
-The private workspace starts with ignore rules for real decision data, research, outputs, local config, and secrets.
-
-## 3. Create Your First Decision
-
-```bash
-npx @k08200/decision-lab decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
+npx @k08200/decision-lab start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing
 ```
 
 Read the generated memo:
@@ -44,7 +37,7 @@ Read the generated memo:
 less decisions/active/pricing/run/memo.md
 ```
 
-## 4. Add Evidence And Open Questions
+## 3. Add Evidence And Open Questions
 
 Capture evidence without editing JSON by hand:
 
@@ -64,7 +57,7 @@ Regenerate the memo and review artifacts:
 npx @k08200/decision-lab run decisions/active/pricing/decision.json --out-dir decisions/active/pricing/run
 ```
 
-## 5. Review Your Operating Loop
+## 4. Review Your Operating Loop
 
 Create a daily brief:
 
@@ -78,7 +71,7 @@ Start the local UI:
 npx @k08200/decision-lab serve decisions --as-of 2026-08-01 --token local-dev-token --actor "Your Name"
 ```
 
-Open the printed local URL. The UI lets you browse decisions, create records, edit JSON, validate saves, preview memos, and review portfolio reports.
+Open the printed local URL. The UI lets you browse active decisions, create records, inspect memo and evidence tabs, add evidence/questions/actions/risks, and review portfolio reports. Records under an `archive` folder are hidden from active metrics by default; turn on `Include archive` only when you want to inspect parked records.
 
 ## Public And Private Rule
 

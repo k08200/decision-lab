@@ -663,6 +663,15 @@ test("serves the local product API", async () => {
   assert.equal(typeof payload.rows[0].evidence_quality_score, "number");
   assert.ok(reportCatalog().some((report) => report.id === "executive"));
 
+  const archiveDir = mkdtempSync(path.join(tmpdir(), "decision-lab-archive-scan-test-"));
+  const activeDecision = createDecisionFromQuestion("Should we keep this active?", { type: "business" });
+  const archivedDecision = createDecisionFromQuestion("Should archived records affect active scores?", { type: "business" });
+  writeFileSyncRecursive(path.join(archiveDir, "active/keep/decision.json"), `${JSON.stringify(activeDecision, null, 2)}\n`);
+  writeFileSyncRecursive(path.join(archiveDir, "archive/old/decision.json"), `${JSON.stringify(archivedDecision, null, 2)}\n`);
+  assert.equal(decisionPayload(archiveDir).count, 1);
+  assert.equal(decisionPayload(archiveDir, { includeArchive: true }).count, 2);
+  assert.equal(decisionPayload(path.join(archiveDir, "archive")).count, 1);
+
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-server-test-"));
   const created = createDraftDecision(dir, {
     question: "Should we change enterprise pricing?",
@@ -693,6 +702,8 @@ test("serves the local product API", async () => {
   assert.match(html, /Evidence claim/);
   assert.match(html, /API token required/);
   assert.match(html, /x-api-key/);
+  assert.match(html, /Include archive/);
+  assert.match(html, /includeArchive=yes/);
 });
 
 test("serve falls back to the next port when the default is busy", async () => {
@@ -780,7 +791,7 @@ test("cli prints first-run and command-specific help", () => {
     encoding: "utf8"
   });
   assert.match(firstRun, /First run from npm/);
-  assert.match(firstRun, /private-workspace my-decisions/);
+  assert.match(firstRun, /start "Should we change enterprise pricing/);
   assert.match(firstRun, /Open the local UI/);
 
   const serveHelp = execFileSync("node", ["bin/decision-lab.js", "serve", "--help"], {
@@ -795,6 +806,12 @@ test("cli prints first-run and command-specific help", () => {
   });
   assert.match(captureHelp, /Decision Lab capture/);
   assert.match(captureHelp, /without opening or editing JSON/);
+
+  const startHelp = execFileSync("node", ["bin/decision-lab.js", "help", "start"], {
+    encoding: "utf8"
+  });
+  assert.match(startHelp, /Decision Lab start/);
+  assert.match(startHelp, /Creates a private local workspace/);
 });
 
 test("cli serve branch does not fall through to unknown command", () => {
@@ -900,6 +917,50 @@ test("cli writes config and uses default owner", () => {
     encoding: "utf8"
   });
   assert.equal(JSON.parse(output).owner, "personal operator");
+});
+
+test("cli starts a beginner session and excludes archive from active reports", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-start-test-"));
+  const cliPath = path.resolve("bin/decision-lab.js");
+
+  const output = execFileSync("node", [
+    cliPath,
+    "start",
+    "Should I keep productizing this tool?",
+    "--type",
+    "business",
+    "--owner",
+    "Beginner",
+    "--slug",
+    "productize"
+  ], { cwd: dir, encoding: "utf8" });
+
+  assert.match(output, /Decision Lab workspace/);
+  assert.match(output, /Next:/);
+  assert.equal(existsSync(path.join(dir, ".decision-lab.json")), true);
+  assert.equal(existsSync(path.join(dir, "decisions/active/productize/decision.json")), true);
+  assert.equal(existsSync(path.join(dir, "outputs/decision-lab-backup.json")), true);
+  assert.match(readFileSync(path.join(dir, "decisions/active/productize/run/memo.md"), "utf8"), /productizing/i);
+
+  const archived = createDecisionFromQuestion("Should archived records affect active score?", {
+    type: "business",
+    owner: "Archive"
+  });
+  archived.title = "Archived Noise";
+  writeFileSyncRecursive(path.join(dir, "decisions/archive/noise/decision.json"), `${JSON.stringify(archived, null, 2)}\n`);
+
+  const activeLedger = execFileSync("node", [cliPath, "ledger", "decisions"], {
+    cwd: dir,
+    encoding: "utf8"
+  });
+  assert.match(activeLedger, /productizing/i);
+  assert.doesNotMatch(activeLedger, /Archived Noise/);
+
+  const archiveLedger = execFileSync("node", [cliPath, "ledger", "decisions/archive"], {
+    cwd: dir,
+    encoding: "utf8"
+  });
+  assert.match(archiveLedger, /Archived Noise/);
 });
 
 test("cli creates one-step decision sessions and today briefs", () => {

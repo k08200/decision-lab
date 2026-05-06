@@ -68,7 +68,7 @@ If you are not sure where to start, run:
 npx @k08200/decision-lab@latest
 ```
 
-It prints the shortest first-run path: create a private workspace, create a first decision, read the memo, add evidence, and open the local UI.
+It prints the shortest first-run path: create a first decision, read the memo, add evidence, and open the local UI.
 
 Fastest start:
 
@@ -78,12 +78,12 @@ cd decision-lab-demo
 less outputs/run/memo.md
 ```
 
-Create a private local workspace for real decisions:
+Create a private local workspace and first real decision:
 
 ```bash
-npx @k08200/decision-lab private-workspace my-private-decisions --owner "Your Name"
+mkdir my-private-decisions
 cd my-private-decisions
-npx @k08200/decision-lab decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
+npx @k08200/decision-lab start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing
 less decisions/active/pricing/run/memo.md
 ```
 
@@ -97,19 +97,12 @@ npx github:k08200/decision-lab demo decision-lab-demo
 
 Use this path when you want one real decision to become a working folder. It does not require cloning this repository.
 
-Create a private workspace:
+Create a private workspace and first decision:
 
 ```bash
 mkdir decision-lab-test
 cd decision-lab-test
-npx @k08200/decision-lab@latest private-workspace my-decisions --owner "Your Name"
-cd my-decisions
-```
-
-Create your first real decision:
-
-```bash
-npx @k08200/decision-lab@latest decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
+npx @k08200/decision-lab@latest start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing
 ```
 
 This creates:
@@ -154,7 +147,7 @@ Start the local product UI:
 npx @k08200/decision-lab@latest serve decisions --as-of $(date +%F) --token local-dev-token --actor "Your Name"
 ```
 
-Open the printed local URL. If port `8787` is already busy, the CLI will print the fallback URL it selected. The UI lets you browse decisions, create records, inspect memo and evidence tabs, add evidence/questions/actions/risks, and open Raw JSON only when you need low-level control. API mutations are logged to `.decision-lab/audit.jsonl`.
+Open the printed local URL. If port `8787` is already busy, the CLI will print the fallback URL it selected. The UI lets you browse active decisions, create records, inspect memo and evidence tabs, add evidence/questions/actions/risks, and open Raw JSON only when you need low-level control. Records under an `archive` folder are hidden from active metrics by default; use the `Include archive` toggle when you want to inspect parked records. API mutations are logged to `.decision-lab/audit.jsonl`.
 
 For command-specific help:
 

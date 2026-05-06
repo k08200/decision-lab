@@ -101,7 +101,8 @@ export function createDecisionServer({
       if (url.pathname === "/healthz") return sendJson(response, { ok: true, root, asOf });
       if (url.pathname === "/api/openapi.json") return sendJson(response, buildOpenApiSpec({ serverUrl }));
       if (!authorized(request, token)) return sendJson(response, { error: "Unauthorized" }, 401);
-      if (url.pathname === "/api/decisions" && request.method === "GET") return sendJson(response, decisionPayload(root));
+      const includeArchive = readsIncludeArchive(url);
+      if (url.pathname === "/api/decisions" && request.method === "GET") return sendJson(response, decisionPayload(root, { includeArchive }));
       if (url.pathname === "/api/decisions" && request.method === "POST") {
         const result = createDraftDecision(root, await readJson(request));
         appendAuditEvent(root, {
@@ -130,9 +131,9 @@ export function createDecisionServer({
         events: readAuditEvents(root, { limit: Number(url.searchParams.get("limit") || 100) })
       });
       if (url.pathname.startsWith("/api/report/")) {
-        return sendReport(response, root, asOf, url.pathname.replace("/api/report/", ""));
+        return sendReport(response, root, asOf, url.pathname.replace("/api/report/", ""), { includeArchive });
       }
-      if (url.pathname === "/api/memo") return sendMemo(response, root, url.searchParams.get("file"));
+      if (url.pathname === "/api/memo") return sendMemo(response, root, url.searchParams.get("file"), { includeArchive });
       return sendJson(response, { error: "Not found" }, 404);
     } catch (error) {
       return sendJson(response, { error: error.message }, 500);
@@ -201,8 +202,8 @@ function friendlyListenError(error, host, requestedPort, failedPort, attempts) {
   return error;
 }
 
-export function decisionPayload(root = "decisions") {
-  const records = loadDecisionRecords(root);
+export function decisionPayload(root = "decisions", options = {}) {
+  const records = loadDecisionRecords(root, options);
   const rows = buildDecisionRows(records);
   return {
     root,
@@ -219,9 +220,10 @@ export function reportCatalog() {
   }));
 }
 
-export function loadDecisionRecords(root = "decisions") {
+export function loadDecisionRecords(root = "decisions", { includeArchive = false } = {}) {
   return walk(root)
     .filter((filePath) => filePath.endsWith(".json"))
+    .filter((filePath) => includeArchive || !isArchivedDecisionPath(root, filePath))
     .flatMap((filePath) => {
       try {
         const decision = loadDecisionFile(filePath);
@@ -269,17 +271,28 @@ export function createDraftDecision(root, { question, type = null, owner = "deci
   };
 }
 
-function sendReport(response, root, asOf, id) {
+function sendReport(response, root, asOf, id, options = {}) {
   const report = REPORTS[id];
   if (!report) return sendJson(response, { error: `Unknown report: ${id}` }, 404);
-  return sendText(response, report.render(loadDecisionRecords(root), { asOf }));
+  return sendText(response, report.render(loadDecisionRecords(root, options), { asOf }));
 }
 
-function sendMemo(response, root, filePath) {
-  const records = loadDecisionRecords(root);
+function sendMemo(response, root, filePath, options = {}) {
+  const records = loadDecisionRecords(root, options);
   const record = records.find((item) => item.filePath === filePath);
   if (!record) return sendJson(response, { error: "Decision file not found in server root" }, 404);
   return sendText(response, renderDecisionMemo(record.decision));
+}
+
+function readsIncludeArchive(url) {
+  return ["yes", "true", "1"].includes(String(url.searchParams.get("includeArchive") || "").toLowerCase());
+}
+
+function isArchivedDecisionPath(root, filePath) {
+  const rootPath = path.resolve(root);
+  if (path.basename(rootPath) === "archive") return false;
+  const relativePath = path.relative(rootPath, path.resolve(filePath));
+  return relativePath.split(path.sep).includes("archive");
 }
 
 function authorized(request, token) {
@@ -457,6 +470,20 @@ export function renderApp({ root, asOf }) {
     button.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
     button.inline { width: auto; min-width: 74px; }
     .field { margin-bottom: 12px; }
+    .checkbox-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 0;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .checkbox-row input {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      padding: 0;
+    }
     .actions { display: flex; gap: 8px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line); }
     .actions button { width: auto; }
     .tabs {
@@ -659,6 +686,12 @@ export function renderApp({ root, asOf }) {
         </select>
       </div>
       <div class="field">
+        <label class="checkbox-row" for="include-archive">
+          <input id="include-archive" type="checkbox">
+          <span>Include archive</span>
+        </label>
+      </div>
+      <div class="field">
         <label for="new-question">New Decision</label>
         <input id="new-question" type="text">
       </div>
@@ -685,13 +718,14 @@ export function renderApp({ root, asOf }) {
     </section>
   </main>
   <script>
-    const state = { rows: [], reports: [], activeReport: "", activeFile: "", activeTab: "summary", activeDecision: null };
+    const state = { rows: [], reports: [], activeReport: "", activeFile: "", activeTab: "summary", activeDecision: null, includeArchive: false };
     const CLI_COMMAND = "npx @k08200/decision-lab@latest";
     const ROOT_COMMAND_ARG = '${escapeJs(shellArg(root))}';
     const AUTH_STORAGE_KEY = "decision-lab-api-token";
     const search = document.querySelector("#search");
     const type = document.querySelector("#type");
     const decisionStatus = document.querySelector("#decision-status");
+    const includeArchive = document.querySelector("#include-archive");
     const newQuestion = document.querySelector("#new-question");
     const newType = document.querySelector("#new-type");
     const createButton = document.querySelector("#create");
@@ -767,6 +801,10 @@ export function renderApp({ root, asOf }) {
     function apiHeaders(extra = {}) {
       const token = localStorage.getItem(AUTH_STORAGE_KEY) || "";
       return token ? { ...extra, "x-api-key": token } : extra;
+    }
+
+    function archiveQuery() {
+      return state.includeArchive ? '?includeArchive=yes' : '';
     }
 
     async function apiFetch(url, options = {}) {
@@ -891,7 +929,7 @@ export function renderApp({ root, asOf }) {
       state.activeReport = id;
       state.activeFile = "";
       renderReportButtons();
-      const response = await apiFetch('/api/report/' + encodeURIComponent(id));
+      const response = await apiFetch('/api/report/' + encodeURIComponent(id) + archiveQuery());
       view.innerHTML = renderMarkdown(await response.text());
     }
 
@@ -1244,17 +1282,17 @@ export function renderApp({ root, asOf }) {
     }
 
     async function refresh() {
-      const decisionResponse = await apiFetch('/api/decisions');
+      const decisionResponse = await apiFetch('/api/decisions' + archiveQuery());
       const payload = await decisionResponse.json();
       state.rows = payload.rows;
       renderStats(payload);
       renderOnboarding(payload);
-      status.textContent = payload.count + ' records';
+      status.textContent = payload.count + ' records' + (state.includeArchive ? ' including archive' : '');
     }
 
     async function boot() {
       const [decisionResponse, reportResponse] = await Promise.all([
-        apiFetch('/api/decisions'),
+        apiFetch('/api/decisions' + archiveQuery()),
         apiFetch('/api/reports')
       ]);
       const payload = await decisionResponse.json();
@@ -1264,12 +1302,17 @@ export function renderApp({ root, asOf }) {
       renderOnboarding(payload);
       renderReportButtons();
       renderTable();
-      status.textContent = payload.count + ' records';
+      status.textContent = payload.count + ' records' + (state.includeArchive ? ' including archive' : '');
     }
 
     search.addEventListener("input", renderTable);
     type.addEventListener("change", renderTable);
     decisionStatus.addEventListener("change", renderTable);
+    includeArchive.addEventListener("change", async () => {
+      state.includeArchive = includeArchive.checked;
+      await refresh();
+      renderTable();
+    });
     createButton.addEventListener("click", createDecision);
     boot().catch((error) => {
       if (error.authRequired) return;
