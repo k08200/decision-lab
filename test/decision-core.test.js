@@ -699,6 +699,10 @@ test("serves the local product API", async () => {
   assert.match(html, /CLI_COMMAND = "npx @k08200\/decision-lab@latest"/);
   assert.match(html, /ROOT_COMMAND_ARG = 'examples'/);
   assert.match(html, /CLI_COMMAND \+ ' next ' \+ ROOT_COMMAND_ARG \+ ' --out outputs\/next.md'/);
+  assert.match(html, /Focus Now/);
+  assert.match(html, /Needs Evidence/);
+  assert.match(html, /Add Evidence/);
+  assert.match(html, /CLI_COMMAND \+ ' start "Should we change enterprise pricing this quarter\?"/);
   assert.match(html, /CLI_COMMAND \+ ' privacy-check'/);
   assert.doesNotMatch(html, /node bin\/decision-lab\.js next examples/);
   assert.match(html, /Decision Ledger/);

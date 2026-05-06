@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.80.0
+
+### Changed
+
+- Local UI now surfaces a `Focus Now` panel, quick action buttons, and compact health meters on each decision summary
+- Local UI metrics now call out decisions that still need evidence, while preserving completeness and evidence quality at the top level
+- First-run and empty-state guidance now points beginners to the `start` workflow instead of the older demo-first path
+
 ## 2.79.0
 
 ### Changed

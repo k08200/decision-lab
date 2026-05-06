@@ -402,7 +402,7 @@ export function renderApp({ root, asOf }) {
     .main-column { min-width: 0; }
     .stats {
       display: grid;
-      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 10px;
       margin-bottom: 14px;
     }
@@ -498,6 +498,78 @@ export function renderApp({ root, asOf }) {
     .nav { display: grid; gap: 6px; margin-top: 16px; }
     .nav button { text-align: left; }
     .detail { padding: 14px; }
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 14px;
+      align-items: stretch;
+      margin-bottom: 14px;
+      border: 1px solid #bfd9d0;
+      border-radius: 8px;
+      background: #f7fbf9;
+      padding: 14px;
+    }
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      color: var(--accent);
+    }
+    .focus-panel p {
+      margin: 0;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .focus-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .quick-actions {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+    .quick-actions button {
+      text-align: left;
+      background: #fff;
+    }
+    .health-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .health-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+    }
+    .health-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .health-item strong {
+      display: block;
+      font-size: 19px;
+      line-height: 1.1;
+    }
+    .meter {
+      height: 7px;
+      border-radius: 999px;
+      background: #e8edf0;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .meter-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
     .detail-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -645,6 +717,8 @@ export function renderApp({ root, asOf }) {
       .stats { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
       .workspace { grid-template-columns: 1fr; }
       .onboarding { position: static; }
+      .focus-panel { grid-template-columns: 1fr; }
+      .health-strip { grid-template-columns: 1fr; }
       .detail-grid { grid-template-columns: 1fr; }
       .capture-grid, .capture-grid.compact { grid-template-columns: 1fr; }
       table { display: block; overflow-x: auto; }
@@ -759,6 +833,19 @@ export function renderApp({ root, asOf }) {
       return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
     }
 
+    function healthItem(label, value, score) {
+      const width = Math.max(0, Math.min(100, Number(score) || 0));
+      return '<div class="health-item"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong><div class="meter"><div class="meter-fill" style="width:' + width + '%"></div></div></div>';
+    }
+
+    function nextMoveFor(decision, row) {
+      const evidenceScore = row.evidence_quality_score ?? 0;
+      if (evidenceScore < 60) return "Add one concrete evidence item, then regenerate the memo.";
+      if ((decision.open_questions || []).length) return "Answer the highest-risk open question before changing the recommendation.";
+      if ((decision.next_actions || []).length) return decision.next_actions[0];
+      return "Review the memo and capture the next observable action.";
+    }
+
     function formatDate() {
       return new Date().toISOString().slice(0, 10);
     }
@@ -789,12 +876,15 @@ export function renderApp({ root, asOf }) {
         averageCompleteness: 0,
         averageEvidenceQuality: 0
       };
+      const rows = payload.rows || [];
+      const needsEvidence = rows.filter((row) => (row.evidence_quality_score || 0) < 60).length;
       stats.innerHTML = [
         metric("Total", safeStats.total),
         metric("Operational", safeStats.operational),
         metric("Due Reviews", safeStats.dueReviews),
         metric("Completeness", (safeStats.averageCompleteness ?? safeStats.averageScore ?? 0) + "%"),
-        metric("Evidence Quality", (safeStats.averageEvidenceQuality ?? 0) + "%")
+        metric("Evidence Quality", (safeStats.averageEvidenceQuality ?? 0) + "%"),
+        metric("Needs Evidence", needsEvidence)
       ].join("");
     }
 
@@ -849,10 +939,11 @@ export function renderApp({ root, asOf }) {
     function renderOnboarding(payload) {
       const hasRecords = payload.count > 0;
       onboarding.innerHTML = '<h2>' + (hasRecords ? 'Operating Loop' : 'First Run') + '</h2>'
-        + step(1, hasRecords ? 'Review priority' : 'Create a record', hasRecords ? 'Open the action queue or priority report.' : 'Use the field on the left or run the demo command.', hasRecords ? CLI_COMMAND + ' next ' + ROOT_COMMAND_ARG + ' --out outputs/next.md' : CLI_COMMAND + ' demo outputs/demo')
-        + step(2, hasRecords ? 'Strengthen evidence' : 'Read the memo', hasRecords ? 'Attach notes, challenge assumptions, then inspect the memo.' : 'Open the generated memo and audit files.', hasRecords ? CLI_COMMAND + ' research-plan ' + ROOT_COMMAND_ARG + ' --out outputs/research.md' : 'less outputs/demo/outputs/run/memo.md')
-        + step(3, hasRecords ? 'Schedule review' : 'Start private work', hasRecords ? 'Export dated reviews into a calendar file.' : 'Create a separate private workspace for real decisions.', hasRecords ? CLI_COMMAND + ' ics ' + ROOT_COMMAND_ARG + ' --out outputs/calendar.ics' : CLI_COMMAND + ' private-workspace ../my-private-decisions')
-        + step(4, 'Check privacy', 'Run the local privacy check before sharing or pushing.', CLI_COMMAND + ' privacy-check');
+        + step(1, hasRecords ? 'Review priority' : 'Start a decision', hasRecords ? 'Open the ledger, then pick the lowest evidence quality decision first.' : 'Create a private workspace and first memo in one command.', hasRecords ? CLI_COMMAND + ' next ' + ROOT_COMMAND_ARG + ' --out outputs/next.md' : CLI_COMMAND + ' start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing')
+        + step(2, hasRecords ? 'Strengthen evidence' : 'Read the memo', hasRecords ? 'Add one concrete source, observation, or customer note before changing the call.' : 'Open the memo before editing JSON or starting the server.', hasRecords ? CLI_COMMAND + ' capture decisions/active/pricing/decision.json --kind evidence --text "What did you learn?" --source "First source" --strength medium' : 'less decisions/active/pricing/run/memo.md')
+        + step(3, hasRecords ? 'Regenerate memo' : 'Add one signal', hasRecords ? 'Re-run the workflow after each useful signal so the memo stays current.' : 'Capture the first question or evidence item from the command line.', hasRecords ? CLI_COMMAND + ' run decisions/active/pricing/decision.json --out-dir decisions/active/pricing/run' : CLI_COMMAND + ' capture decisions/active/pricing/decision.json --kind question --text "What evidence would change this decision?"')
+        + step(4, hasRecords ? 'Open local UI' : 'Open local UI', 'Use a local token when the browser UI is running.', CLI_COMMAND + ' serve ' + ROOT_COMMAND_ARG + ' --token local-dev-token --actor "Your Name"')
+        + step(5, 'Check privacy', 'Run the local privacy check before sharing or pushing.', CLI_COMMAND + ' privacy-check');
     }
 
     function step(index, title, copy, command) {
@@ -882,7 +973,7 @@ export function renderApp({ root, asOf }) {
         const hasAny = state.rows.length > 0;
         view.innerHTML = '<div class="empty">'
           + '<h2>' + (hasAny ? 'No matching decisions' : 'No decisions yet') + '</h2>'
-          + '<p>' + (hasAny ? 'Adjust the filters or open a report from the left rail.' : 'Create the first decision from the left rail, or generate a disposable demo workspace from the command line.') + '</p>'
+          + '<p>' + (hasAny ? 'Adjust the filters or open a report from the left rail.' : 'Create the first decision from the left rail, or run the start command from the First Run guide.') + '</p>'
           + (hasAny ? '' : '<button class="inline secondary" id="seed-question">Seed question</button>')
           + '</div>';
         const seed = document.querySelector("#seed-question");
@@ -893,7 +984,7 @@ export function renderApp({ root, asOf }) {
         });
         return;
       }
-      view.innerHTML = '<div class="toolbar"><strong>Decision Ledger</strong><span class="small">' + rows.length + ' visible</span></div>'
+      view.innerHTML = '<div class="toolbar"><div><strong>Decision Ledger</strong><div class="small">Start with weak evidence, due reviews, and high priority.</div></div><span class="small">' + rows.length + ' visible</span></div>'
         + '<table><thead><tr><th>Decision</th><th>Type</th><th>Status</th><th>Recommendation</th><th>Priority</th><th>Completeness</th><th>Evidence Quality</th><th>Review</th><th></th></tr></thead><tbody>'
         + rows.map((row) => '<tr>'
           + '<td><div class="title">' + escapeHtml(row.title) + '</div><div class="small">' + escapeHtml(row.question) + '</div><div class="small">' + escapeHtml(row.file) + '</div></td>'
@@ -967,6 +1058,9 @@ export function renderApp({ root, asOf }) {
       view.querySelectorAll("[data-tab]").forEach((button) => {
         button.addEventListener("click", () => renderDecisionDetail(payload, button.dataset.tab));
       });
+      view.querySelectorAll("[data-jump-tab]").forEach((button) => {
+        button.addEventListener("click", () => renderDecisionDetail(payload, button.dataset.jumpTab));
+      });
       attachDecisionTabHandlers(tab);
     }
 
@@ -989,7 +1083,28 @@ export function renderApp({ root, asOf }) {
       const frame = decision.decision_frame || {};
       const option = (decision.options || []).find((item) => item.id === recommendation.selected_option);
       const strongEvidence = (decision.evidence || []).filter((item) => item.strength === "strong").length;
+      const evidenceScore = row.evidence_quality_score ?? 0;
+      const completenessScore = row.completeness_percent ?? 0;
+      const confidenceScore = Math.round((recommendation.confidence || 0) * 100);
+      const nextMove = nextMoveFor(decision, row);
       return '<div class="detail">'
+        + '<div class="focus-panel">'
+        + '<div><h3>Focus Now</h3><p>' + escapeHtml(nextMove) + '</p><div class="focus-meta">'
+        + badge((row.evidence_quality_grade || "F") + ' evidence', scorePercentClass(evidenceScore))
+        + badge((row.completeness_grade || "") + ' completeness', scorePercentClass(completenessScore))
+        + badge((decision.status || "draft"), "")
+        + '</div></div>'
+        + '<div class="quick-actions">'
+        + '<button class="secondary" data-jump-tab="evidence">Add Evidence</button>'
+        + '<button class="secondary" data-jump-tab="questions">Open Questions</button>'
+        + '<button class="secondary" data-jump-tab="actions">Next Actions</button>'
+        + '</div>'
+        + '</div>'
+        + '<div class="health-strip">'
+        + healthItem("Evidence Quality", evidenceScore + "% " + (row.evidence_quality_grade || "F"), evidenceScore)
+        + healthItem("Completeness", completenessScore + "% " + (row.completeness_grade || ""), completenessScore)
+        + healthItem("Confidence", confidenceScore + "%", confidenceScore)
+        + '</div>'
         + '<div class="detail-grid">'
         + field("Question", decision.question)
         + field("Recommendation", recommendation.decision || recommendation.summary)
