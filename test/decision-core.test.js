@@ -775,6 +775,28 @@ test("cli validates example", () => {
   assert.match(output, /OK/);
 });
 
+test("cli prints first-run and command-specific help", () => {
+  const firstRun = execFileSync("node", ["bin/decision-lab.js"], {
+    encoding: "utf8"
+  });
+  assert.match(firstRun, /First run from npm/);
+  assert.match(firstRun, /private-workspace my-decisions/);
+  assert.match(firstRun, /Open the local UI/);
+
+  const serveHelp = execFileSync("node", ["bin/decision-lab.js", "serve", "--help"], {
+    encoding: "utf8"
+  });
+  assert.match(serveHelp, /Decision Lab serve/);
+  assert.match(serveHelp, /--port 8787/);
+  assert.doesNotMatch(serveHelp, /Decision Lab running/);
+
+  const captureHelp = execFileSync("node", ["bin/decision-lab.js", "help", "capture"], {
+    encoding: "utf8"
+  });
+  assert.match(captureHelp, /Decision Lab capture/);
+  assert.match(captureHelp, /without opening or editing JSON/);
+});
+
 test("cli serve branch does not fall through to unknown command", () => {
   const source = readFileSync("bin/decision-lab.js", "utf8");
   const serveBranch = source.slice(source.indexOf('if (command === "serve")'), source.indexOf('if (command === "openapi")'));

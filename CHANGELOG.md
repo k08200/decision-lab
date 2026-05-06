@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.76.0
+
+### Changed
+
+- Running `decision-lab` with no command now prints a short first-run guide instead of the full command catalog
+- Common command help such as `decision-lab serve --help` and `decision-lab help capture` now prints focused usage without starting the command
+- README now points new npm users to the first-run guide and command-specific help
+
 ## 2.75.0
 
 ### Changed

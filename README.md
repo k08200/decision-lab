@@ -62,6 +62,14 @@ Before using real data, read [docs/public-private-usage.md](docs/public-private-
 
 Decision Lab is a Node.js CLI. Use Node 22 or newer.
 
+If you are not sure where to start, run:
+
+```bash
+npx @k08200/decision-lab@latest
+```
+
+It prints the shortest first-run path: create a private workspace, create a first decision, read the memo, add evidence, and open the local UI.
+
 Fastest start:
 
 ```bash
@@ -147,6 +155,13 @@ npx @k08200/decision-lab@latest serve decisions --as-of $(date +%F) --token loca
 ```
 
 Open the printed local URL. If port `8787` is already busy, the CLI will print the fallback URL it selected. The UI lets you browse decisions, create records, inspect memo and evidence tabs, add evidence/questions/actions/risks, and open Raw JSON only when you need low-level control. API mutations are logged to `.decision-lab/audit.jsonl`.
+
+For command-specific help:
+
+```bash
+npx @k08200/decision-lab@latest serve --help
+npx @k08200/decision-lab@latest help capture
+```
 
 In the memo and UI, read the scores separately:
 

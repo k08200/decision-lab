@@ -258,6 +258,106 @@ Usage:
 `);
 }
 
+function printFirstRunGuide() {
+  console.log(`Decision Lab
+
+First run from npm:
+  npx @k08200/decision-lab@latest private-workspace my-decisions --owner "Your Name"
+  cd my-decisions
+  npx @k08200/decision-lab@latest decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
+  less decisions/active/pricing/run/memo.md
+
+Add one piece of evidence:
+  npx @k08200/decision-lab@latest capture decisions/active/pricing/decision.json --kind evidence --text "Three customer notes mentioned this problem." --source "Customer notes" --strength medium
+  npx @k08200/decision-lab@latest run decisions/active/pricing/decision.json --out-dir decisions/active/pricing/run
+
+Open the local UI:
+  npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "Your Name"
+
+Run "decision-lab help" for every command.
+Run "decision-lab help serve" or "decision-lab serve --help" for a command.
+`);
+}
+
+function printCommandHelp(topic) {
+  const guides = {
+    demo: `Decision Lab demo
+
+Usage:
+  decision-lab demo [directory]
+
+Creates a sanitized demo workspace with an example decision, memo, and weekly pack.
+
+Example:
+  npx @k08200/decision-lab@latest demo decision-lab-demo
+  cd decision-lab-demo
+  less outputs/run/memo.md
+`,
+    "private-workspace": `Decision Lab private-workspace
+
+Usage:
+  decision-lab private-workspace <directory> [--owner name] [--overwrite yes]
+
+Creates a local private folder for real decisions, outputs, research, and config.
+Keep this folder out of public repositories.
+
+Example:
+  npx @k08200/decision-lab@latest private-workspace my-decisions --owner "Your Name"
+  cd my-decisions
+`,
+    decide: `Decision Lab decide
+
+Usage:
+  decision-lab decide [question...] [--type general|investment|business|finance] [--owner name] [--slug name] [--out-dir directory] [--backup no]
+
+Creates a decision session with decision.json, run/memo.md, run/brief.md, audit data, and role prompts.
+
+Example:
+  npx @k08200/decision-lab@latest decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
+  less decisions/active/pricing/run/memo.md
+`,
+    capture: `Decision Lab capture
+
+Usage:
+  decision-lab capture <file.json> --kind evidence|question|action|risk|change-mind|lesson --text text [--source text] [--strength weak|medium|strong] [--out file.json]
+
+Adds decision signal without opening or editing JSON by hand.
+
+Examples:
+  npx @k08200/decision-lab@latest capture decisions/active/pricing/decision.json --kind question --text "What evidence would prove this too risky?"
+  npx @k08200/decision-lab@latest capture decisions/active/pricing/decision.json --kind evidence --text "Three customer notes mentioned packaging confusion." --source "Customer notes" --strength medium
+`,
+    run: `Decision Lab run
+
+Usage:
+  decision-lab run <file.json> [--out-dir directory]
+
+Regenerates memo, brief, audit, checklist, research plan, and role prompts from a decision record.
+
+Example:
+  npx @k08200/decision-lab@latest run decisions/active/pricing/decision.json --out-dir decisions/active/pricing/run
+`,
+    serve: `Decision Lab serve
+
+Usage:
+  decision-lab serve [directory] [--host 127.0.0.1] [--port 8787] [--as-of YYYY-MM-DD] [--token token] [--actor name]
+
+Starts the local browser UI for a decisions folder. If the default port 8787 is busy and you did not pass --port, Decision Lab automatically tries the next local ports and prints the URL it selected.
+
+Examples:
+  npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "Your Name"
+  npx @k08200/decision-lab@latest serve decisions --port 8788 --token local-dev-token --actor "Your Name"
+`
+  };
+  if (!guides[topic]) return false;
+  console.log(guides[topic]);
+  return true;
+}
+
+function hasHelpFlag(argv) {
+  return argv.includes("--help") || argv.includes("-h");
+}
+
 function readFlag(argv, flag) {
   const index = argv.indexOf(flag);
   if (index === -1) return null;
@@ -780,7 +880,19 @@ function escapeCell(value) {
 }
 
 try {
-  if (!command || command === "help" || command === "--help" || command === "-h") {
+  if (!command) {
+    printFirstRunGuide();
+    process.exit(0);
+  }
+
+  if (command === "help" || command === "--help" || command === "-h") {
+    if (args[0] && printCommandHelp(args[0])) process.exit(0);
+    printHelp();
+    process.exit(0);
+  }
+
+  if (hasHelpFlag(args)) {
+    if (printCommandHelp(command)) process.exit(0);
     printHelp();
     process.exit(0);
   }
