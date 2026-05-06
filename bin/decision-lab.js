@@ -1005,7 +1005,9 @@ try {
     console.log(`Memo: ${result.memoPath}`);
     console.log("Next:");
     console.log(`  less ${result.memoPath}`);
+    console.log(`  npx @k08200/decision-lab@latest capture ${result.recordPath} --kind question --text "What evidence would change this decision?"`);
     console.log(`  npx @k08200/decision-lab@latest capture ${result.recordPath} --kind evidence --text "What did you learn?" --source "First source" --strength medium`);
+    console.log(`  npx @k08200/decision-lab@latest run ${result.recordPath} --out-dir ${path.join(result.root, "run")}`);
     console.log(`  npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "${result.owner}"`);
     process.exit(result.valid ? 0 : 1);
   }

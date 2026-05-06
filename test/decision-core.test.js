@@ -183,6 +183,9 @@ test("renders a markdown memo", () => {
   assert.match(memo, /# Add to NVIDIA Position/);
   assert.match(memo, /## What Would Change My Mind/);
   assert.match(memo, /## Option Scorecard/);
+  assert.match(memo, /## At A Glance/);
+  assert.match(memo, /Current call/);
+  assert.match(memo, /Next move/);
   assert.match(memo, /Completeness/);
   assert.match(memo, /Evidence Quality/);
   assert.match(memo, /not whether the decision is correct/);
@@ -228,6 +231,9 @@ test("localizes generated records for Korean questions", () => {
   assert.equal(result.valid, true, JSON.stringify(result.issues, null, 2));
   assert.match(decision.context, /원본 결정 요청/);
   assert.match(decision.recommendation.summary, /최종 결론이 아니라/);
+  assert.match(memo, /## 한눈에 보기/);
+  assert.match(memo, /현재 판단/);
+  assert.match(memo, /강한 근거/);
   assert.match(memo, /결정 전 추가 조사/);
   assert.match(memo, /파일럿/);
 });
@@ -937,6 +943,8 @@ test("cli starts a beginner session and excludes archive from active reports", (
 
   assert.match(output, /Decision Lab workspace/);
   assert.match(output, /Next:/);
+  assert.match(output, /--kind question/);
+  assert.match(output, / run decisions\/active\/productize\/decision\.json --out-dir decisions\/active\/productize\/run/);
   assert.equal(existsSync(path.join(dir, ".decision-lab.json")), true);
   assert.equal(existsSync(path.join(dir, "decisions/active/productize/decision.json")), true);
   assert.equal(existsSync(path.join(dir, "outputs/decision-lab-backup.json")), true);

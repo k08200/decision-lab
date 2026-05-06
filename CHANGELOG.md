@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.78.0
+
+### Changed
+
+- Decision memos now open with an `At A Glance` / `한눈에 보기` section so new users see the current call, evidence gap, and next move before the full record
+- `decision-lab start` now prints a complete beginner loop: read memo, add a question, add evidence, regenerate the memo, then open the local UI
+
 ## 2.77.0
 
 ### Added

@@ -239,6 +239,8 @@ export function renderDecisionMemo(decision) {
       [labels.scoreMeaning, labels.scoreMeaningText],
       [labels.maturity, audit.maturity]
     ], labels.fieldValue),
+    `## ${labels.atAGlance}`,
+    renderMemoAtAGlance(decision, audit, evidenceQuality, labels),
     `## ${labels.recommendation}`,
     decision.recommendation?.summary || labels.noRecommendation,
     `## ${labels.decisionFrame}`,
@@ -754,6 +756,13 @@ function memoLabels(korean) {
       postDecisionReview: "Post-Decision Review",
       audit: "Audit",
       qualityChecks: "Quality Checks",
+      atAGlance: "At A Glance",
+      currentCall: "Current call",
+      whyConfidenceIsLow: "Why confidence is low",
+      nextMove: "Next move",
+      readNext: "Read next",
+      addConcreteEvidence: "Add one concrete evidence item, then regenerate the memo.",
+      reviewEvidenceFirst: "Review Evidence, Open Questions, and Next Actions before treating this as decided.",
       noRecommendation: "No recommendation summary provided.",
       noContext: "No context provided.",
       unassigned: "Unassigned",
@@ -822,6 +831,13 @@ function memoLabels(korean) {
     postDecisionReview: "사후 리뷰",
     audit: "감사",
     qualityChecks: "품질 체크",
+    atAGlance: "한눈에 보기",
+    currentCall: "현재 판단",
+    whyConfidenceIsLow: "확신도가 낮은 이유",
+    nextMove: "다음 행동",
+    readNext: "다음에 볼 것",
+    addConcreteEvidence: "구체적인 근거 하나를 추가한 뒤 memo를 다시 생성하세요.",
+    reviewEvidenceFirst: "결정했다고 보기 전에 근거, 열린 질문, 다음 행동을 먼저 확인하세요.",
     noRecommendation: "추천 요약이 아직 없습니다.",
     noContext: "맥락이 아직 없습니다.",
     unassigned: "미지정",
@@ -867,6 +883,30 @@ function table(rows, headers = ["Field", "Value"]) {
     "| --- | --- |",
     ...rows.map(([key, value]) => `| ${escapeCell(key)} | ${escapeCell(value)} |`)
   ].join("\n");
+}
+
+function renderMemoAtAGlance(decision, audit, evidenceQuality, labels = memoLabels(false)) {
+  const bestOption = audit.strongest_option?.name || decision.recommendation?.selected_option || "N/A";
+  const nextAction = (decision.next_actions || [])[0] || audit.next_actions[0] || labels.addConcreteEvidence;
+  const evidenceReason = localizeEvidenceReason(evidenceQuality.reasons[0], labels) || labels.reviewEvidenceFirst;
+  return table([
+    [labels.currentCall, `${decision.recommendation?.decision || labels.undecided} (${labels.selectedOption}: ${bestOption})`],
+    [labels.whyConfidenceIsLow, evidenceReason],
+    [labels.nextMove, nextAction],
+    [labels.readNext, labels.reviewEvidenceFirst]
+  ], labels.fieldValue);
+}
+
+function localizeEvidenceReason(reason, labels = memoLabels(false)) {
+  if (!reason || labels.fieldValue[0] !== "항목") return reason;
+  const strongMatch = reason.match(/^(\d+)\/(\d+) strong evidence$/);
+  if (strongMatch) return `강한 근거 ${strongMatch[1]}/${strongMatch[2]}개`;
+  const primaryMatch = reason.match(/^(\d+)% primary or observed$/);
+  if (primaryMatch) return `1차 출처 또는 직접 관찰 근거 ${primaryMatch[1]}%`;
+  if (reason === "generic framework evidence still dominates") return "일반적인 프레임워크 근거가 아직 많습니다";
+  if (reason === "needs more direct user or product evidence") return "직접 사용자 또는 제품 사용 근거가 더 필요합니다";
+  if (reason === "No evidence items are attached.") return "아직 근거가 없습니다";
+  return reason;
 }
 
 function escapeCell(value) {
@@ -957,12 +997,15 @@ function renderReview(review = {}, labels = memoLabels(false)) {
 }
 
 function renderAudit(audit, evidenceQuality, labels = memoLabels(false)) {
+  const evidenceNotes = evidenceQuality.reasons
+    .map((reason) => localizeEvidenceReason(reason, labels))
+    .join("; ");
   return [
     `${labels.maturity}: ${audit.maturity}`,
     `${labels.validation}: ${audit.validation.valid ? "valid" : "invalid"}`,
     `${labels.completeness}: ${Math.round(audit.score.ratio * 100)}% ${audit.score.grade} (${audit.score.score}/${audit.score.max_score} structure points)`,
     `${labels.evidenceQuality}: ${evidenceQuality.score}% ${evidenceQuality.grade}`,
-    `${labels.evidenceNotes}: ${evidenceQuality.reasons.join("; ")}`,
+    `${labels.evidenceNotes}: ${evidenceNotes}`,
     `${labels.warnings}:\n${bulletList(audit.warnings)}`,
     `${labels.nextActions}:\n${bulletList(audit.next_actions)}`
   ].join("\n\n");
