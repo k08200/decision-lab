@@ -1,9 +1,11 @@
-import { auditDecision } from "./decision-core.js";
+import { auditDecision, scoreEvidenceQuality as coreScoreEvidenceQuality } from "./decision-core.js";
+
+export { coreScoreEvidenceQuality as scoreEvidenceQuality };
 
 export function buildDecisionRows(records) {
   return records.map(({ filePath, decision }) => {
     const audit = auditDecision(decision);
-    const evidenceQuality = scoreEvidenceQuality(decision);
+    const evidenceQuality = coreScoreEvidenceQuality(decision);
     return {
       file: filePath,
       status: decision.status || "draft",
@@ -354,68 +356,6 @@ function summarizeRows(rows) {
     averageScore: averageCompleteness,
     averageConfidence: total ? Math.round(avg(rows.map((row) => row.confidence).filter((value) => value !== null)) * 100) : 0
   };
-}
-
-export function scoreEvidenceQuality(decision) {
-  const evidenceItems = Array.isArray(decision.evidence) ? decision.evidence : [];
-  if (!evidenceItems.length) {
-    return { score: 0, grade: "D", reasons: ["no evidence items"] };
-  }
-
-  const strengthAverage = avg(evidenceItems.map((item) => strengthValue(item.strength)));
-  const sourcedShare = evidenceItems.filter((item) => Boolean(item.source)).length / evidenceItems.length;
-  const decisionSpecificShare = evidenceItems.filter(isDecisionSpecificEvidence).length / evidenceItems.length;
-  const primaryShare = evidenceItems.filter(isPrimaryOrObservedEvidence).length / evidenceItems.length;
-  const score = Math.round((strengthAverage * 45) + (sourcedShare * 20) + (decisionSpecificShare * 20) + (primaryShare * 15));
-  const reasons = [];
-  reasons.push(`${evidenceItems.filter((item) => item.strength === "strong").length}/${evidenceItems.length} strong evidence`);
-  reasons.push(`${Math.round(primaryShare * 100)}% primary or observed`);
-  if (decisionSpecificShare < 0.5) reasons.push("generic framework evidence still dominates");
-  if (primaryShare < 0.34) reasons.push("needs more direct user or product evidence");
-  return { score, grade: evidenceGrade(score), reasons };
-}
-
-function strengthValue(strength) {
-  if (strength === "strong") return 1;
-  if (strength === "medium") return 0.55;
-  if (strength === "weak") return 0.2;
-  return 0.35;
-}
-
-function isDecisionSpecificEvidence(item) {
-  const source = String(item.source || "").toLowerCase();
-  const sourceType = String(item.source_type || "").toLowerCase();
-  const claim = String(item.claim || "").toLowerCase();
-  if (source.includes("decision lab evidence quality rule")) return false;
-  if (source.includes("decision lab operating framework")) return false;
-  if (sourceType.includes("framework")) return false;
-  if (claim.includes("decision has been identified")) return false;
-  if (claim.includes("record still needs primary")) return false;
-  return true;
-}
-
-function isPrimaryOrObservedEvidence(item) {
-  const haystack = [item.source, item.source_type, item.notes].join(" ").toLowerCase();
-  return [
-    "manual test",
-    "install test",
-    "operator observation",
-    "user test",
-    "customer",
-    "usage",
-    "bug report",
-    "release check",
-    "smoke test",
-    "registry"
-  ].some((needle) => haystack.includes(needle));
-}
-
-function evidenceGrade(score) {
-  if (score >= 85) return "A";
-  if (score >= 70) return "B";
-  if (score >= 50) return "C";
-  if (score >= 30) return "D";
-  return "F";
 }
 
 function dashboardPriority(decision, audit) {

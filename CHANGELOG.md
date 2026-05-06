@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.73.0
+
+### Changed
+
+- README first-run path now uses an `npx @k08200/decision-lab@latest` flow from workspace creation to first memo without requiring a clone
+- Decision memos now label structure scoring as Completeness and show Evidence Quality separately to avoid treating a filled schema as a correct decision
+- Korean rough questions now generate more Korean default framing, recommendation, hypotheses, options, risks, questions, actions, and review text
+- Ledger and agent reports now refer to record scoring as completeness instead of a generic quality score
+
 ## 2.72.0
 
 ### Added

@@ -83,6 +83,7 @@ export function createDecisionFromQuestion(question, options = {}) {
   if (type === "investment") fillInvestment(decision, question);
   if (type === "business") fillBusiness(decision);
   if (type === "finance") fillFinance(decision);
+  if (hasKorean(question)) localizeKoreanDecision(decision, type, question);
 
   return decision;
 }
@@ -194,7 +195,7 @@ export function renderLedger(records) {
   return [
     "# Decision Ledger",
     "",
-    "| File | Status | Type | Title | Decision | Maturity | Score | Review |",
+    "| File | Status | Type | Title | Decision | Maturity | Completeness | Review |",
     "| --- | --- | --- | --- | --- | --- | ---: | --- |",
     ...rows.map((row) => `| ${row.map(escapeCell).join(" | ")} |`)
   ].join("\n") + "\n";
@@ -235,7 +236,7 @@ function renderAgentReport(decision, audit, prompts) {
     `Decision type: ${decision.decision_type}`,
     `Maturity: ${audit.maturity}`,
     `Validation: ${audit.validation.valid ? "valid" : "invalid"}`,
-    `Score: ${audit.score.score}/${audit.score.max_score}`,
+    `Completeness: ${audit.score.score}/${audit.score.max_score}`,
     "",
     "## Generated Artifacts",
     "- audit.json",
@@ -276,6 +277,278 @@ function titleFromQuestion(question) {
 function normalizeQuestion(question) {
   const clean = question.trim();
   return /[?？]$/.test(clean) ? clean : `${clean}?`;
+}
+
+function hasKorean(text) {
+  return /[가-힣]/.test(text);
+}
+
+function localizeKoreanDecision(decision, type, question) {
+  decision.context = `원본 결정 요청: ${question}`;
+  decision.decision_frame = koreanFrameFor(type);
+  decision.recommendation = {
+    ...decision.recommendation,
+    decision: "결정 전 추가 조사",
+    summary: "이 기록은 최종 결론이 아니라, 근거를 더 모아 작은 파일럿으로 검증하라는 초안입니다."
+  };
+  decision.hypotheses = koreanHypothesesFor(type);
+  decision.options = koreanOptionsFor(type);
+  decision.evidence = koreanEvidenceFor(question);
+  decision.assumption_register = koreanAssumptionsFor(type);
+  decision.risks = koreanRisksFor(type);
+  decision.decision_criteria = koreanCriteriaFor(type);
+  decision.option_scores = optionScoresFor(decision.options, decision.decision_criteria)
+    .map((item) => ({ ...item, rationale: "초기 점수입니다. 실제 근거와 역할별 검토 후 수정하세요." }));
+  decision.what_would_change_my_mind = koreanChangeMindFor(type);
+  decision.open_questions = koreanOpenQuestionsFor(type);
+  decision.next_actions = koreanNextActionsFor(type);
+  decision.post_decision_review = koreanReviewFor(type);
+
+  if (type === "business") {
+    decision.strategic_goal = "이 결정과 연결된 가장 중요한 사업 성과를 명확히 하고 개선한다.";
+    decision.stakeholders = ["결정권자", "고객 또는 사용자", "재무 담당자", "실행 팀"];
+    decision.constraints = ["파일럿 성공 기준이 명확해지기 전에는 넓게 적용하지 않는다."];
+    decision.financial_impact = {
+      revenue: "미정",
+      cost: "미정",
+      cash_flow: "미정",
+      payback_period: "미정"
+    };
+    decision.execution_plan = {
+      owner: decision.owner || "decision owner",
+      milestones: ["파일럿 정의", "근거 수집", "신호 검토", "확대 또는 중단 결정"],
+      dependencies: ["근거 출처", "담당자 시간", "측정 계획"],
+      smallest_useful_pilot: "성공 기준과 중단 기준이 있는 가장 작은 실험을 실행한다.",
+      kill_criteria: ["파일럿이 성공 지표를 충족하지 못함", "실행 비용이 계획을 초과함", "고객 또는 이해관계자 리스크가 허용 범위를 넘음"]
+    };
+    decision.operating_cadence = {
+      cadence: "결정 기한까지 매주 검토하고, 예정된 날짜에 사후 리뷰를 진행한다.",
+      review_owner: decision.owner || "decision owner",
+      decision_log_channel: "decision-lab"
+    };
+  }
+}
+
+function koreanFrameFor(type) {
+  const map = {
+    investment: {
+      decision_class: "자본 배분",
+      desired_outcome: "영구 손실 위험을 통제하면서 포트폴리오의 기대수익을 개선한다.",
+      default_action: "기다리기"
+    },
+    business: {
+      decision_class: "운영 전략",
+      desired_outcome: "실행 가능하고 측정 가능하며, 신호에 따라 되돌리거나 확대할 수 있는 선택을 만든다.",
+      default_action: "파일럿"
+    },
+    finance: {
+      decision_class: "재무 배분",
+      desired_outcome: "현금과 런웨이 위험을 과도하게 만들지 않으면서 성장 또는 실행력을 높인다.",
+      default_action: "단계적 집행"
+    },
+    general: {
+      decision_class: "일반 의사결정",
+      desired_outcome: "위험 대비 기대 결과가 가장 좋은 선택지를 고른다.",
+      default_action: "기다리기"
+    }
+  };
+  const item = map[type] || map.general;
+  return {
+    decision_class: item.decision_class,
+    reversibility: "medium",
+    urgency: "medium",
+    default_action: item.default_action,
+    desired_outcome: item.desired_outcome,
+    constraints: ["핵심 가정이 검증되기 전에는 최종 결정을 내리지 않는다."],
+    non_goals: ["근거보다 그럴듯한 확신을 우선하지 않는다."]
+  };
+}
+
+function koreanHypothesesFor(type) {
+  return [
+    {
+      id: "H1",
+      statement: koreanHypothesisStatement(type, true),
+      why_it_matters: "이 결정이 의미 있는 이유를 설명하는 핵심 가설입니다.",
+      confidence: 0.45,
+      evidence: ["초기 질문은 이 결정이 검토할 가치가 있음을 보여줍니다."],
+      assumptions: ["원하는 결과가 정확히 정의되어 있다.", "가장 중요한 제약 조건이 식별되어 있다."],
+      counterarguments: ["직접 근거를 모으면 기회가 생각보다 작을 수 있다."],
+      disconfirming_signals: ["주요 근거가 핵심 가설을 지지하지 않는다."]
+    },
+    {
+      id: "H2",
+      statement: koreanHypothesisStatement(type, false),
+      why_it_matters: "이 결정을 미루거나 작게 실험해야 하는 이유를 설명하는 핵심 가설입니다.",
+      confidence: 0.55,
+      evidence: ["현재 기록은 높은 확신을 갖기 전에 더 강한 근거가 필요합니다."],
+      assumptions: ["기다리거나 단계적으로 진행하면 유용한 선택권이 보존된다."],
+      counterarguments: ["기다리는 동안 기회비용이나 실행 지연이 커질 수 있다."],
+      disconfirming_signals: ["지연 비용이 실행 리스크보다 더 커진다."]
+    }
+  ];
+}
+
+function koreanHypothesisStatement(type, positive) {
+  if (type === "investment") {
+    return positive
+      ? "보수적인 가정에서도 위험 대비 기대수익이 매력적일 수 있다."
+      : "밸류에이션, 포지션 크기, 투자 논리가 아직 취약해 즉시 행동하기 이르다.";
+  }
+  if (type === "finance") {
+    return positive
+      ? "이 재무 배분은 비용을 정당화할 만큼 실행 역량을 높일 수 있다."
+      : "매출 근거가 충분하지 않은 상태에서 런웨이나 유연성을 줄일 수 있다.";
+  }
+  if (type === "business") {
+    return positive
+      ? "이 결정은 중요한 사업 또는 운영 병목을 개선할 수 있다."
+      : "실행 비용, 고객 영향, 조직 산만함이 기대효과보다 클 수 있다.";
+  }
+  return positive ? "행동하면 기본 경로보다 나은 결과를 만들 수 있다." : "근거가 더 쌓일 때까지 기본 경로가 더 안전할 수 있다.";
+}
+
+function koreanOptionsFor(type) {
+  if (type === "business") {
+    return [
+      option("A", "전면 실행", "관련 영역 전체에 결정을 적용한다.", "가장 빠른 전략적 효과.", "실행 리스크와 신뢰 리스크가 가장 큼.", "팀 집중도와 운영 복잡도.", "low"),
+      option("B", "파일럿", "성공 기준과 중단 기준이 있는 가장 작은 실험을 실행한다.", "작은 범위에서 신호를 얻을 수 있음.", "전면 실행보다 느림.", "파일럿 설계와 조율 비용.", "medium"),
+      option("C", "보류", "현재 운영 방식을 유지하고 결정을 미룬다.", "불필요한 혼란을 피함.", "병목이 계속 남을 수 있음.", "기회비용.", "high")
+    ];
+  }
+  return optionsFor(type);
+}
+
+function koreanEvidenceFor(question) {
+  return [
+    {
+      claim: "검토해야 할 결정이 식별되었다.",
+      source: `사용자 요청: ${question}`,
+      strength: "weak",
+      source_type: "user input",
+      recency: "current",
+      notes: "이 항목은 결정의 존재를 보여줄 뿐, 결론을 증명하지는 않는다."
+    },
+    {
+      claim: "높은 확신을 갖기 전에 직접 측정되거나 1차 출처에 가까운 근거가 더 필요하다.",
+      source: "Decision Lab evidence quality rule.",
+      strength: "medium",
+      source_type: "framework rule",
+      recency: "current",
+      notes: "도구는 외부 사실을 임의로 만들어내지 않도록 설계되어 있다."
+    },
+    {
+      claim: "불확실성이 크고 되돌릴 수 있는 여지가 있을 때는 단계적 선택지가 유용하다.",
+      source: "Decision Lab operating framework.",
+      strength: "medium",
+      source_type: "framework rule",
+      recency: "current",
+      notes: "도메인 사실이 아니라 의사결정 프로세스에 대한 근거다."
+    }
+  ];
+}
+
+function koreanAssumptionsFor(type) {
+  return [
+    {
+      assumption: "이 질문은 증상이 아니라 올바른 결정 자체를 다루고 있다.",
+      importance: "high",
+      test: "기본 행동과 최소 두 개의 대안을 비교한다.",
+      owner: "decision owner"
+    },
+    {
+      assumption: "결정 전에 표적 근거를 모으면 판단의 질이 개선된다.",
+      importance: "high",
+      test: `${type} 결정에 가장 중요한 근거를 next_actions 기준으로 수집한다.`,
+      owner: "decision owner"
+    }
+  ];
+}
+
+function koreanRisksFor(type) {
+  return [
+    {
+      risk: "거짓 확신",
+      probability: "medium",
+      impact: "high",
+      trigger: "근거 품질이 좋아지기 전에 추천 확신도가 올라간다.",
+      mitigation: "근거, 가정, 반론이 보강되기 전까지 확신도를 낮게 유지한다."
+    },
+    {
+      risk: "기회비용",
+      probability: "medium",
+      impact: "medium",
+      trigger: "단계적 진행이나 보류가 시간 민감한 기회를 늦춘다.",
+      mitigation: "결정 기한과 최소 근거 기준을 정한다."
+    },
+    {
+      risk: type === "finance" ? "현금 유연성 감소" : "실행 산만함",
+      probability: "medium",
+      impact: "high",
+      trigger: "예상보다 더 많은 시간, 비용, 집중력이 필요해진다.",
+      mitigation: "명확한 중단 기준과 리뷰 기준이 있는 단계적 선택지를 사용한다."
+    }
+  ];
+}
+
+function koreanCriteriaFor(type) {
+  const first = type === "finance" ? "현금과 런웨이 보호" : "전략적 기대효과";
+  const second = type === "business" ? "실행 가능성" : "하방 보호";
+  return [
+    { id: "C1", name: first, weight: 2, description: "가장 중요한 기대효과 또는 생존 기준." },
+    { id: "C2", name: second, weight: 2, description: "감당하기 어려운 하방을 피할 수 있는지." },
+    { id: "C3", name: "근거 품질", weight: 1, description: "결론을 지지할 만큼 근거가 강한지." }
+  ];
+}
+
+function koreanChangeMindFor(type) {
+  return [
+    "직접 근거가 핵심 가설과 반대로 나온다.",
+    "하방 리스크가 예상보다 크거나 되돌리기 어렵다.",
+    type === "finance" ? "업데이트된 모델에서 런웨이 또는 현금 리스크가 기준을 넘는다." : "추천 경로를 실행할 역량이 부족하다."
+  ];
+}
+
+function koreanOpenQuestionsFor(type) {
+  return [
+    "반대 결정을 지지하는 가장 강한 근거는 무엇인가?",
+    "어떤 가정이 틀리면 추천이 무너지는가?",
+    type === "finance" ? "하방 시나리오에서 가장 중요한 모델 변수는 무엇인가?" : "가장 작은 유용한 파일럿은 무엇이고 누가 책임지는가?"
+  ];
+}
+
+function koreanNextActionsFor(type) {
+  return [
+    "이 기록을 analyst와 skeptic 관점으로 검토한다.",
+    "1차 출처 또는 직접 측정한 근거를 추가한다.",
+    "근거 수집 후 선택지 점수를 다시 매긴다.",
+    type === "finance" ? "재무 모델과 하방 민감도 체크를 업데이트한다." : "파일럿 담당자, 마일스톤, 의존성, 중단 기준을 정의한다."
+  ];
+}
+
+function koreanReviewFor(type) {
+  return {
+    success_metrics: [
+      "선택한 경로가 기본 행동보다 나은 결과를 낸다.",
+      "핵심 가정이 리뷰 날짜까지 확인되거나 반증된다.",
+      "하방 리스크가 정한 가드레일 안에 머문다."
+    ],
+    expected_signals: [
+      "최종 결정 전에 근거 품질이 개선된다.",
+      "역할별 검토 후에도 선택지 점수가 크게 흔들리지 않는다."
+    ],
+    failure_signals: [
+      "근거 품질은 약한데 확신도만 올라간다.",
+      type === "finance" ? "현금 또는 런웨이 가드레일을 침범한다." : "실행 비용이나 시간이 계획을 초과한다."
+    ],
+    review_questions: [
+      "원래 의사결정 과정은 sound했는가?",
+      "가장 중요했던 가정은 무엇인가?",
+      "다음 결정 기록에서 무엇을 바꿔야 하는가?"
+    ],
+    actual_outcome: "",
+    lessons: []
+  };
 }
 
 function frameFor(type) {

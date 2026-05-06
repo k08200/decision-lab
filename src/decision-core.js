@@ -127,6 +127,26 @@ export function scoreDecision(decision) {
   };
 }
 
+export function scoreEvidenceQuality(decision) {
+  const evidenceItems = Array.isArray(decision.evidence) ? decision.evidence : [];
+  if (!evidenceItems.length) {
+    return { score: 0, grade: "F", reasons: ["No evidence items are attached."] };
+  }
+
+  const strengthAverage = average(evidenceItems.map((item) => evidenceStrengthValue(item.strength)));
+  const sourcedShare = evidenceItems.filter((item) => Boolean(item.source)).length / evidenceItems.length;
+  const decisionSpecificShare = evidenceItems.filter(isDecisionSpecificEvidence).length / evidenceItems.length;
+  const primaryShare = evidenceItems.filter(isPrimaryOrObservedEvidence).length / evidenceItems.length;
+  const score = Math.round((strengthAverage * 45) + (sourcedShare * 20) + (decisionSpecificShare * 20) + (primaryShare * 15));
+  const reasons = [
+    `${evidenceItems.filter((item) => item.strength === "strong").length}/${evidenceItems.length} strong evidence`,
+    `${Math.round(primaryShare * 100)}% primary or observed`
+  ];
+  if (decisionSpecificShare < 0.5) reasons.push("generic framework evidence still dominates");
+  if (primaryShare < 0.34) reasons.push("needs more direct user or product evidence");
+  return { score, grade: evidenceGrade(score), reasons };
+}
+
 export function auditDecision(decision) {
   const validation = validateDecision(decision);
   const score = scoreDecision(decision);
@@ -200,52 +220,57 @@ export function scoreOptions(decision) {
 
 export function renderDecisionMemo(decision) {
   const score = scoreDecision(decision);
+  const evidenceQuality = scoreEvidenceQuality(decision);
   const audit = auditDecision(decision);
+  const korean = isKoreanDecision(decision);
+  const labels = memoLabels(korean);
   const sections = [
     `# ${decision.title}`,
     table([
-      ["Type", decision.decision_type],
-      ["Status", decision.status || "draft"],
-      ["Question", decision.question],
-      ["Owner", decision.owner || "Unassigned"],
-      ["Decision", decision.recommendation?.decision || "undecided"],
-      ["Selected Option", decision.recommendation?.selected_option || "N/A"],
-      ["Confidence", percent(decision.recommendation?.confidence)],
-      ["Quality Score", `${score.score}/${score.max_score} (${score.grade})`],
-      ["Maturity", audit.maturity]
-    ]),
-    "## Recommendation",
-    decision.recommendation?.summary || "No recommendation summary provided.",
-    "## Decision Frame",
-    renderDecisionFrame(decision.decision_frame),
-    "## Context",
-    decision.context || "No context provided.",
-    renderTypeSpecific(decision),
-    "## Options",
-    bulletList((decision.options || []).map(renderOption)),
-    "## Option Scorecard",
-    renderOptionScorecard(decision),
-    "## Hypotheses",
-    (decision.hypotheses || []).map(renderHypothesis).join("\n\n"),
-    "## Evidence",
-    bulletList((decision.evidence || []).map(renderEvidence)),
-    "## Assumption Register",
-    renderAssumptionRegister(decision.assumption_register),
-    "## Risks",
-    bulletList((decision.risks || []).map(renderRisk)),
-    "## Decision Criteria",
+      [labels.type, decision.decision_type],
+      [labels.status, decision.status || "draft"],
+      [labels.question, decision.question],
+      [labels.owner, decision.owner || labels.unassigned],
+      [labels.decision, decision.recommendation?.decision || labels.undecided],
+      [labels.selectedOption, decision.recommendation?.selected_option || "N/A"],
+      [labels.confidence, percent(decision.recommendation?.confidence)],
+      [labels.completeness, `${Math.round(score.ratio * 100)}% ${score.grade} (${score.score}/${score.max_score} structure points)`],
+      [labels.evidenceQuality, `${evidenceQuality.score}% ${evidenceQuality.grade}`],
+      [labels.scoreMeaning, labels.scoreMeaningText],
+      [labels.maturity, audit.maturity]
+    ], labels.fieldValue),
+    `## ${labels.recommendation}`,
+    decision.recommendation?.summary || labels.noRecommendation,
+    `## ${labels.decisionFrame}`,
+    renderDecisionFrame(decision.decision_frame, labels),
+    `## ${labels.context}`,
+    decision.context || labels.noContext,
+    renderTypeSpecific(decision, labels),
+    `## ${labels.options}`,
+    bulletList((decision.options || []).map((item) => renderOption(item, labels))),
+    `## ${labels.optionScorecard}`,
+    renderOptionScorecard(decision, labels),
+    `## ${labels.hypotheses}`,
+    (decision.hypotheses || []).map((item) => renderHypothesis(item, labels)).join("\n\n"),
+    `## ${labels.evidence}`,
+    bulletList((decision.evidence || []).map((item) => renderEvidence(item, labels))),
+    `## ${labels.assumptionRegister}`,
+    renderAssumptionRegister(decision.assumption_register, labels),
+    `## ${labels.risks}`,
+    bulletList((decision.risks || []).map((item) => renderRisk(item, labels))),
+    `## ${labels.decisionCriteria}`,
     bulletList(normalizeCriteria(decision.decision_criteria).map(renderCriterion)),
-    "## What Would Change My Mind",
+    `## ${labels.changeMind}`,
     bulletList(decision.what_would_change_my_mind || []),
-    "## Open Questions",
+    `## ${labels.openQuestions}`,
     bulletList(decision.open_questions || []),
-    "## Next Actions",
+    `## ${labels.nextActions}`,
     bulletList(decision.next_actions || []),
-    "## Post-Decision Review",
-    renderReview(decision.post_decision_review),
-    "## Audit",
-    renderAudit(audit),
-    "## Quality Checks",
+    `## ${labels.postDecisionReview}`,
+    renderReview(decision.post_decision_review, labels),
+    `## ${labels.audit}`,
+    renderAudit(audit, evidenceQuality, labels),
+    `## ${labels.qualityChecks}`,
     bulletList(score.checks.map((item) => `${item.passed ? "PASS" : "FAIL"} ${item.name}: ${item.description}`))
   ].filter(Boolean);
 
@@ -598,6 +623,50 @@ function highRiskWithoutControls(decision) {
   ));
 }
 
+function evidenceStrengthValue(strength) {
+  if (strength === "strong") return 1;
+  if (strength === "medium") return 0.55;
+  if (strength === "weak") return 0.2;
+  return 0.35;
+}
+
+function isDecisionSpecificEvidence(item) {
+  const source = String(item.source || "").toLowerCase();
+  const sourceType = String(item.source_type || "").toLowerCase();
+  const claim = String(item.claim || "").toLowerCase();
+  if (source.includes("decision lab evidence quality rule")) return false;
+  if (source.includes("decision lab operating framework")) return false;
+  if (sourceType.includes("framework")) return false;
+  if (claim.includes("decision has been identified")) return false;
+  if (claim.includes("record still needs primary")) return false;
+  return true;
+}
+
+function isPrimaryOrObservedEvidence(item) {
+  const haystack = [item.source, item.source_type, item.notes].join(" ").toLowerCase();
+  return [
+    "manual test",
+    "install test",
+    "operator observation",
+    "user test",
+    "customer",
+    "usage",
+    "bug report",
+    "release check",
+    "smoke test",
+    "registry",
+    "observed"
+  ].some((needle) => haystack.includes(needle));
+}
+
+function evidenceGrade(score) {
+  if (score >= 85) return "A";
+  if (score >= 70) return "B";
+  if (score >= 50) return "C";
+  if (score >= 30) return "D";
+  return "F";
+}
+
 function strongestOption(decision) {
   return scoreOptions(decision)[0] || null;
 }
@@ -640,13 +709,161 @@ function round(value, digits) {
   return Number(value.toFixed(digits));
 }
 
+function average(values) {
+  if (!values.length) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
 function percent(value) {
   return typeof value === "number" ? `${Math.round(value * 100)}%` : "N/A";
 }
 
-function table(rows) {
+function isKoreanDecision(decision) {
+  return /[가-힣]/.test([decision.title, decision.question, decision.context].join(" "));
+}
+
+function memoLabels(korean) {
+  if (!korean) {
+    return {
+      fieldValue: ["Field", "Value"],
+      type: "Type",
+      status: "Status",
+      question: "Question",
+      owner: "Owner",
+      decision: "Decision",
+      selectedOption: "Selected Option",
+      confidence: "Confidence",
+      completeness: "Completeness",
+      evidenceQuality: "Evidence Quality",
+      scoreMeaning: "Score Meaning",
+      scoreMeaningText: "Completeness measures record structure, not whether the decision is correct.",
+      maturity: "Maturity",
+      recommendation: "Recommendation",
+      decisionFrame: "Decision Frame",
+      context: "Context",
+      options: "Options",
+      optionScorecard: "Option Scorecard",
+      hypotheses: "Hypotheses",
+      evidence: "Evidence",
+      assumptionRegister: "Assumption Register",
+      risks: "Risks",
+      decisionCriteria: "Decision Criteria",
+      changeMind: "What Would Change My Mind",
+      openQuestions: "Open Questions",
+      nextActions: "Next Actions",
+      postDecisionReview: "Post-Decision Review",
+      audit: "Audit",
+      qualityChecks: "Quality Checks",
+      noRecommendation: "No recommendation summary provided.",
+      noContext: "No context provided.",
+      unassigned: "Unassigned",
+      undecided: "undecided",
+      class: "Class",
+      reversibility: "Reversibility",
+      urgency: "Urgency",
+      defaultAction: "Default Action",
+      desiredOutcome: "Desired Outcome",
+      constraints: "Constraints",
+      nonGoals: "Non-Goals",
+      upside: "Upside",
+      downside: "Downside",
+      whyItMatters: "Why it matters",
+      assumptions: "Assumptions",
+      counterarguments: "Counterarguments",
+      disconfirmingSignals: "Disconfirming signals",
+      source: "Source",
+      strength: "Strength",
+      sourceType: "Type",
+      recency: "Recency",
+      notes: "Notes",
+      probability: "Probability",
+      impact: "Impact",
+      trigger: "Trigger",
+      mitigation: "Mitigation",
+      successMetrics: "Success metrics",
+      expectedSignals: "Expected signals",
+      failureSignals: "Failure signals",
+      reviewQuestions: "Review questions",
+      actualOutcome: "Actual outcome",
+      lessons: "Lessons",
+      notReviewed: "Not reviewed yet.",
+      validation: "Validation",
+      evidenceNotes: "Evidence Notes",
+      warnings: "Warnings"
+    };
+  }
+  return {
+    fieldValue: ["항목", "값"],
+    type: "유형",
+    status: "상태",
+    question: "질문",
+    owner: "담당자",
+    decision: "판단",
+    selectedOption: "선택지",
+    confidence: "확신도",
+    completeness: "완성도",
+    evidenceQuality: "근거 품질",
+    scoreMeaning: "점수 의미",
+    scoreMeaningText: "완성도는 기록 구조 점수이며, 결정이 맞다는 뜻이 아닙니다.",
+    maturity: "성숙도",
+    recommendation: "추천",
+    decisionFrame: "결정 프레임",
+    context: "맥락",
+    options: "선택지",
+    optionScorecard: "선택지 점수표",
+    hypotheses: "가설",
+    evidence: "근거",
+    assumptionRegister: "가정 목록",
+    risks: "리스크",
+    decisionCriteria: "판단 기준",
+    changeMind: "생각을 바꿀 조건",
+    openQuestions: "열린 질문",
+    nextActions: "다음 행동",
+    postDecisionReview: "사후 리뷰",
+    audit: "감사",
+    qualityChecks: "품질 체크",
+    noRecommendation: "추천 요약이 아직 없습니다.",
+    noContext: "맥락이 아직 없습니다.",
+    unassigned: "미지정",
+    undecided: "미정",
+    class: "분류",
+    reversibility: "되돌릴 수 있음",
+    urgency: "긴급도",
+    defaultAction: "기본 행동",
+    desiredOutcome: "원하는 결과",
+    constraints: "제약",
+    nonGoals: "하지 않을 것",
+    upside: "기대효과",
+    downside: "하방",
+    whyItMatters: "중요한 이유",
+    assumptions: "가정",
+    counterarguments: "반론",
+    disconfirmingSignals: "반증 신호",
+    source: "출처",
+    strength: "강도",
+    sourceType: "출처 유형",
+    recency: "시점",
+    notes: "메모",
+    probability: "확률",
+    impact: "영향",
+    trigger: "트리거",
+    mitigation: "완화책",
+    successMetrics: "성공 지표",
+    expectedSignals: "기대 신호",
+    failureSignals: "실패 신호",
+    reviewQuestions: "리뷰 질문",
+    actualOutcome: "실제 결과",
+    lessons: "교훈",
+    notReviewed: "아직 리뷰하지 않음",
+    validation: "검증",
+    evidenceNotes: "근거 메모",
+    warnings: "경고"
+  };
+}
+
+function table(rows, headers = ["Field", "Value"]) {
   return [
-    "| Field | Value |",
+    `| ${escapeCell(headers[0])} | ${escapeCell(headers[1])} |`,
     "| --- | --- |",
     ...rows.map(([key, value]) => `| ${escapeCell(key)} | ${escapeCell(value)} |`)
   ].join("\n");
@@ -661,27 +878,28 @@ function bulletList(items) {
   return items.map((item) => `- ${item}`).join("\n");
 }
 
-function renderDecisionFrame(frame = {}) {
+function renderDecisionFrame(frame = {}, labels = memoLabels(false)) {
   return table([
-    ["Class", frame.decision_class || ""],
-    ["Reversibility", frame.reversibility || ""],
-    ["Urgency", frame.urgency || ""],
-    ["Default Action", frame.default_action || ""],
-    ["Desired Outcome", frame.desired_outcome || ""],
-    ["Constraints", (frame.constraints || []).join("; ")],
-    ["Non-Goals", (frame.non_goals || []).join("; ")]
-  ]);
+    [labels.class, frame.decision_class || ""],
+    [labels.reversibility, frame.reversibility || ""],
+    [labels.urgency, frame.urgency || ""],
+    [labels.defaultAction, frame.default_action || ""],
+    [labels.desiredOutcome, frame.desired_outcome || ""],
+    [labels.constraints, (frame.constraints || []).join("; ")],
+    [labels.nonGoals, (frame.non_goals || []).join("; ")]
+  ], labels.fieldValue);
 }
 
-function renderOption(option) {
-  return `${option.id}: ${option.name} - ${option.description} Upside: ${option.upside || "N/A"} Downside: ${option.downside || "N/A"} Reversibility: ${option.reversibility || "N/A"}`;
+function renderOption(option, labels = memoLabels(false)) {
+  return `${option.id}: ${option.name} - ${option.description} ${labels.upside}: ${option.upside || "N/A"} ${labels.downside}: ${option.downside || "N/A"} ${labels.reversibility}: ${option.reversibility || "N/A"}`;
 }
 
-function renderOptionScorecard(decision) {
+function renderOptionScorecard(decision, labels = memoLabels(false)) {
   const scored = scoreOptions(decision);
   if (!scored.length) return "- None";
+  const korean = labels.fieldValue[0] === "항목";
   return [
-    "| Option | Score | Notes |",
+    korean ? "| 선택지 | 점수 | 메모 |" : "| Option | Score | Notes |",
     "| --- | ---: | --- |",
     ...scored.map((item) => {
       const notes = item.breakdown
@@ -692,26 +910,26 @@ function renderOptionScorecard(decision) {
   ].join("\n");
 }
 
-function renderHypothesis(hypothesis) {
+function renderHypothesis(hypothesis, labels = memoLabels(false)) {
   return [
     `### ${hypothesis.id}: ${hypothesis.statement}`,
-    hypothesis.why_it_matters ? `Why it matters: ${hypothesis.why_it_matters}` : "",
-    `Confidence: ${percent(hypothesis.confidence)}`,
-    `Evidence:\n${bulletList(hypothesis.evidence || [])}`,
-    `Assumptions:\n${bulletList(hypothesis.assumptions || [])}`,
-    `Counterarguments:\n${bulletList(hypothesis.counterarguments || [])}`,
-    `Disconfirming signals:\n${bulletList(hypothesis.disconfirming_signals || [])}`
+    hypothesis.why_it_matters ? `${labels.whyItMatters}: ${hypothesis.why_it_matters}` : "",
+    `${labels.confidence}: ${percent(hypothesis.confidence)}`,
+    `${labels.evidence}:\n${bulletList(hypothesis.evidence || [])}`,
+    `${labels.assumptions}:\n${bulletList(hypothesis.assumptions || [])}`,
+    `${labels.counterarguments}:\n${bulletList(hypothesis.counterarguments || [])}`,
+    `${labels.disconfirmingSignals}:\n${bulletList(hypothesis.disconfirming_signals || [])}`
   ].filter(Boolean).join("\n\n");
 }
 
-function renderEvidence(evidence) {
-  return `${evidence.claim} Source: ${evidence.source}. Strength: ${evidence.strength}. Type: ${evidence.source_type || "N/A"}. Recency: ${evidence.recency || "N/A"}. Notes: ${evidence.notes || "N/A"}`;
+function renderEvidence(evidence, labels = memoLabels(false)) {
+  return `${evidence.claim} ${labels.source}: ${evidence.source}. ${labels.strength}: ${evidence.strength}. ${labels.sourceType}: ${evidence.source_type || "N/A"}. ${labels.recency}: ${evidence.recency || "N/A"}. ${labels.notes}: ${evidence.notes || "N/A"}`;
 }
 
-function renderAssumptionRegister(assumptions = []) {
+function renderAssumptionRegister(assumptions = [], labels = memoLabels(false)) {
   if (!assumptions.length) return "- None";
   return [
-    "| Assumption | Importance | Test | Owner |",
+    labels.fieldValue[0] === "항목" ? "| 가정 | 중요도 | 테스트 | 담당자 |" : "| Assumption | Importance | Test | Owner |",
     "| --- | --- | --- | --- |",
     ...assumptions.map((item) => (
       `| ${escapeCell(item.assumption)} | ${escapeCell(item.importance)} | ${escapeCell(item.test)} | ${escapeCell(item.owner || "")} |`
@@ -719,36 +937,39 @@ function renderAssumptionRegister(assumptions = []) {
   ].join("\n");
 }
 
-function renderRisk(risk) {
-  return `${risk.risk} Probability: ${risk.probability || "N/A"}. Impact: ${risk.impact || "N/A"}. Trigger: ${risk.trigger || "N/A"}. Mitigation: ${risk.mitigation}`;
+function renderRisk(risk, labels = memoLabels(false)) {
+  return `${risk.risk} ${labels.probability}: ${risk.probability || "N/A"}. ${labels.impact}: ${risk.impact || "N/A"}. ${labels.trigger}: ${risk.trigger || "N/A"}. ${labels.mitigation}: ${risk.mitigation}`;
 }
 
 function renderCriterion(criterion) {
   return `${criterion.id}: ${criterion.name} (weight ${criterion.weight ?? 1})${criterion.description ? ` - ${criterion.description}` : ""}`;
 }
 
-function renderReview(review = {}) {
+function renderReview(review = {}, labels = memoLabels(false)) {
   return [
-    `Success metrics:\n${bulletList(review.success_metrics || [])}`,
-    `Expected signals:\n${bulletList(review.expected_signals || [])}`,
-    `Failure signals:\n${bulletList(review.failure_signals || [])}`,
-    `Review questions:\n${bulletList(review.review_questions || [])}`,
-    `Actual outcome: ${review.actual_outcome || "Not reviewed yet."}`,
-    `Lessons:\n${bulletList(review.lessons || [])}`
+    `${labels.successMetrics}:\n${bulletList(review.success_metrics || [])}`,
+    `${labels.expectedSignals}:\n${bulletList(review.expected_signals || [])}`,
+    `${labels.failureSignals}:\n${bulletList(review.failure_signals || [])}`,
+    `${labels.reviewQuestions}:\n${bulletList(review.review_questions || [])}`,
+    `${labels.actualOutcome}: ${review.actual_outcome || labels.notReviewed}`,
+    `${labels.lessons}:\n${bulletList(review.lessons || [])}`
   ].join("\n\n");
 }
 
-function renderAudit(audit) {
+function renderAudit(audit, evidenceQuality, labels = memoLabels(false)) {
   return [
-    `Maturity: ${audit.maturity}`,
-    `Validation: ${audit.validation.valid ? "valid" : "invalid"}`,
-    `Score: ${audit.score.score}/${audit.score.max_score} (${audit.score.grade})`,
-    `Warnings:\n${bulletList(audit.warnings)}`,
-    `Next actions:\n${bulletList(audit.next_actions)}`
+    `${labels.maturity}: ${audit.maturity}`,
+    `${labels.validation}: ${audit.validation.valid ? "valid" : "invalid"}`,
+    `${labels.completeness}: ${Math.round(audit.score.ratio * 100)}% ${audit.score.grade} (${audit.score.score}/${audit.score.max_score} structure points)`,
+    `${labels.evidenceQuality}: ${evidenceQuality.score}% ${evidenceQuality.grade}`,
+    `${labels.evidenceNotes}: ${evidenceQuality.reasons.join("; ")}`,
+    `${labels.warnings}:\n${bulletList(audit.warnings)}`,
+    `${labels.nextActions}:\n${bulletList(audit.next_actions)}`
   ].join("\n\n");
 }
 
-function renderTypeSpecific(decision) {
+function renderTypeSpecific(decision, labels = memoLabels(false)) {
+  const korean = labels.fieldValue[0] === "항목";
   if (decision.decision_type === "investment") {
     return [
       "## Investment Snapshot",
@@ -773,22 +994,22 @@ function renderTypeSpecific(decision) {
 
   if (decision.decision_type === "business") {
     return [
-      "## Business Snapshot",
+      `## ${korean ? "사업 스냅샷" : "Business Snapshot"}`,
       table([
-        ["Strategic Goal", decision.strategic_goal || ""],
-        ["Stakeholders", (decision.stakeholders || []).join(", ")],
-        ["Revenue Impact", decision.financial_impact?.revenue || ""],
-        ["Cost Impact", decision.financial_impact?.cost || ""],
-        ["Cash Flow Impact", decision.financial_impact?.cash_flow || ""],
-        ["Payback", decision.financial_impact?.payback_period || ""],
-        ["Execution Owner", decision.execution_plan?.owner || ""],
-        ["Cadence", decision.operating_cadence?.cadence || ""]
-      ]),
-      "## Constraints",
+        [korean ? "전략 목표" : "Strategic Goal", decision.strategic_goal || ""],
+        [korean ? "이해관계자" : "Stakeholders", (decision.stakeholders || []).join(", ")],
+        [korean ? "매출 영향" : "Revenue Impact", decision.financial_impact?.revenue || ""],
+        [korean ? "비용 영향" : "Cost Impact", decision.financial_impact?.cost || ""],
+        [korean ? "현금흐름 영향" : "Cash Flow Impact", decision.financial_impact?.cash_flow || ""],
+        [korean ? "회수 기간" : "Payback", decision.financial_impact?.payback_period || ""],
+        [korean ? "실행 담당자" : "Execution Owner", decision.execution_plan?.owner || ""],
+        [korean ? "운영 리듬" : "Cadence", decision.operating_cadence?.cadence || ""]
+      ], labels.fieldValue),
+      `## ${korean ? "제약" : "Constraints"}`,
       bulletList(decision.constraints || []),
-      "## Milestones",
+      `## ${korean ? "마일스톤" : "Milestones"}`,
       bulletList(decision.execution_plan?.milestones || []),
-      "## Dependencies",
+      `## ${korean ? "의존성" : "Dependencies"}`,
       bulletList(decision.execution_plan?.dependencies || [])
     ].join("\n\n");
   }

@@ -2282,7 +2282,7 @@ export function renderDecisionDiff(before, after) {
     fieldChange("Status", before.status, after.status),
     fieldChange("Recommendation", before.recommendation?.decision, after.recommendation?.decision),
     fieldChange("Confidence", percent(before.recommendation?.confidence), percent(after.recommendation?.confidence)),
-    fieldChange("Quality Score", qualityScore(before), qualityScore(after)),
+    fieldChange("Completeness Score", qualityScore(before), qualityScore(after)),
     fieldChange("Evidence Count", countItems(before.evidence), countItems(after.evidence)),
     fieldChange("Hypothesis Count", countItems(before.hypotheses), countItems(after.hypotheses)),
     fieldChange("Risk Count", countItems(before.risks), countItems(after.risks)),

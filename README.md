@@ -85,42 +85,23 @@ If npm is unavailable, run from GitHub:
 npx github:k08200/decision-lab demo decision-lab-demo
 ```
 
-Or work from a cloned checkout:
-
-```bash
-git clone https://github.com/k08200/decision-lab.git
-cd decision-lab
-npm install
-npm run verify
-```
-
-From a cloned checkout, run commands with:
-
-```bash
-export DL="bin/decision-lab.js"
-node "$DL" help
-```
-
-If you create a separate private workspace next to the repo, a convenient pattern is:
-
-```bash
-cd decision-lab
-node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
-cd ../my-private-decisions
-export DL="../decision-lab/bin/decision-lab.js"
-node "$DL" list-types
-```
-
-After that, run `node "$DL" ...` from your private workspace. If you stay inside the cloned repo instead, keep `DL="bin/decision-lab.js"`.
-
 ## First 10 Minutes
 
-Use this path when you want one real decision to become a working folder.
+Use this path when you want one real decision to become a working folder. It does not require cloning this repository.
 
-Create a decision from a rough question:
+Create a private workspace:
 
 ```bash
-node "$DL" decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
+mkdir decision-lab-test
+cd decision-lab-test
+npx @k08200/decision-lab@latest private-workspace my-decisions --owner "Your Name"
+cd my-decisions
+```
+
+Create your first real decision:
+
+```bash
+npx @k08200/decision-lab@latest decide "Should we change enterprise pricing this quarter?" --type business --slug pricing
 ```
 
 This creates:
@@ -144,34 +125,69 @@ less decisions/active/pricing/run/memo.md
 Capture a missing question without editing JSON by hand:
 
 ```bash
-node "$DL" capture decisions/active/pricing/decision.json --kind question --text "What evidence would prove this pricing change is too risky?"
+npx @k08200/decision-lab@latest capture decisions/active/pricing/decision.json --kind question --text "What evidence would prove this pricing change is too risky?"
 ```
 
 Capture evidence:
 
 ```bash
-node "$DL" capture decisions/active/pricing/decision.json --kind evidence --text "Three enterprise QBRs mentioned packaging confusion." --source "Customer QBR notes" --strength medium
+npx @k08200/decision-lab@latest capture decisions/active/pricing/decision.json --kind evidence --text "Three enterprise QBRs mentioned packaging confusion." --source "Customer QBR notes" --strength medium
 ```
 
 Regenerate the operating artifacts:
 
 ```bash
-node "$DL" run decisions/active/pricing/decision.json --out-dir decisions/active/pricing/run
-```
-
-Create a daily operating brief:
-
-```bash
-node "$DL" today decisions --out-dir outputs/today/$(date +%F)
+npx @k08200/decision-lab@latest run decisions/active/pricing/decision.json --out-dir decisions/active/pricing/run
 ```
 
 Start the local product UI:
 
 ```bash
-node "$DL" serve decisions --as-of $(date +%F) --token local-dev-token --actor "Your Name"
+npx @k08200/decision-lab@latest serve decisions --as-of $(date +%F) --token local-dev-token --actor "Your Name"
 ```
 
-Open the printed local URL. The UI lets you browse decisions, create records, edit JSON, validate saves, preview memos, and review portfolio reports. API mutations are logged to `.decision-lab/audit.jsonl`.
+Open the printed local URL. The UI lets you browse decisions, create records, inspect memo and evidence tabs, add evidence/questions/actions/risks, and open Raw JSON only when you need low-level control. API mutations are logged to `.decision-lab/audit.jsonl`.
+
+In the memo and UI, read the scores separately:
+
+- Completeness shows whether the record structure is filled in.
+- Evidence Quality shows whether the conclusion is backed by strong, decision-specific, observed evidence.
+- A complete record is not the same thing as a correct decision.
+
+## Developer Checkout
+
+```bash
+git clone https://github.com/k08200/decision-lab.git
+cd decision-lab
+npm install
+npm run verify
+```
+
+From a cloned checkout, run commands with:
+
+```bash
+node bin/decision-lab.js help
+```
+
+If you create a separate private workspace next to the repo, a convenient pattern is:
+
+```bash
+node bin/decision-lab.js private-workspace ../my-private-decisions --owner "Your Name"
+cd ../my-private-decisions
+node ../decision-lab/bin/decision-lab.js list-types
+```
+
+Create a daily operating brief:
+
+```bash
+node ../decision-lab/bin/decision-lab.js today decisions --out-dir outputs/today/$(date +%F)
+```
+
+The longer workflow examples below use a cloned-checkout shorthand. From a private workspace next to the repo, set:
+
+```bash
+export DL="../decision-lab/bin/decision-lab.js"
+```
 
 ## Daily Operating Loop
 

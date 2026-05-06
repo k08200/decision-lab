@@ -182,7 +182,9 @@ test("renders a markdown memo", () => {
   assert.match(memo, /# Add to NVIDIA Position/);
   assert.match(memo, /## What Would Change My Mind/);
   assert.match(memo, /## Option Scorecard/);
-  assert.match(memo, /Quality Score/);
+  assert.match(memo, /Completeness/);
+  assert.match(memo, /Evidence Quality/);
+  assert.match(memo, /not whether the decision is correct/);
 });
 
 test("renders brief and review plan", () => {
@@ -216,6 +218,17 @@ test("creates valid decision records from a rough question", () => {
   const result = validateDecision(decision);
   assert.equal(decision.decision_type, "investment");
   assert.equal(result.valid, true, JSON.stringify(result.issues, null, 2));
+});
+
+test("localizes generated records for Korean questions", () => {
+  const decision = createDecisionFromQuestion("이 제품을 계속 개선할 것인가?", { type: "business" });
+  const memo = renderDecisionMemo(decision);
+  const result = validateDecision(decision);
+  assert.equal(result.valid, true, JSON.stringify(result.issues, null, 2));
+  assert.match(decision.context, /원본 결정 요청/);
+  assert.match(decision.recommendation.summary, /최종 결론이 아니라/);
+  assert.match(memo, /결정 전 추가 조사/);
+  assert.match(memo, /파일럿/);
 });
 
 test("creates decision drafts from inbox text", () => {
