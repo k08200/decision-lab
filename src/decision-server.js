@@ -189,6 +189,7 @@ export function readDecisionRecord(root, filePath) {
   return {
     filePath,
     decision,
+    row: buildDecisionRows([{ filePath, decision }])[0],
     validation: validateDecision(decision),
     memo: renderDecisionMemo(decision)
   };
@@ -338,7 +339,7 @@ export function renderApp({ root, asOf }) {
     .main-column { min-width: 0; }
     .stats {
       display: grid;
-      grid-template-columns: repeat(4, minmax(130px, 1fr));
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
       gap: 10px;
       margin-bottom: 14px;
     }
@@ -529,6 +530,14 @@ export function renderApp({ root, asOf }) {
       border-radius: 8px;
       overflow: hidden;
     }
+    .markdown-card {
+      margin: 12px 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .markdown-card h2:first-child { margin-top: 0; }
     .empty {
       padding: 36px 18px;
       text-align: center;
@@ -654,6 +663,12 @@ export function renderApp({ root, asOf }) {
       return "bad";
     }
 
+    function scorePercentClass(value) {
+      if (value >= 80) return "good";
+      if (value >= 50) return "warn";
+      return "bad";
+    }
+
     function metric(label, value) {
       return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
     }
@@ -685,13 +700,15 @@ export function renderApp({ root, asOf }) {
         total: payload.count || 0,
         operational: 0,
         dueReviews: 0,
-        averageScore: 0
+        averageCompleteness: 0,
+        averageEvidenceQuality: 0
       };
       stats.innerHTML = [
         metric("Total", safeStats.total),
         metric("Operational", safeStats.operational),
         metric("Due Reviews", safeStats.dueReviews),
-        metric("Completeness", safeStats.averageScore + "%")
+        metric("Completeness", (safeStats.averageCompleteness ?? safeStats.averageScore ?? 0) + "%"),
+        metric("Evidence Quality", (safeStats.averageEvidenceQuality ?? 0) + "%")
       ].join("");
     }
 
@@ -787,14 +804,15 @@ export function renderApp({ root, asOf }) {
         return;
       }
       view.innerHTML = '<div class="toolbar"><strong>Decision Ledger</strong><span class="small">' + rows.length + ' visible</span></div>'
-        + '<table><thead><tr><th>Decision</th><th>Type</th><th>Status</th><th>Recommendation</th><th>Priority</th><th>Score</th><th>Review</th><th></th></tr></thead><tbody>'
+        + '<table><thead><tr><th>Decision</th><th>Type</th><th>Status</th><th>Recommendation</th><th>Priority</th><th>Completeness</th><th>Evidence Quality</th><th>Review</th><th></th></tr></thead><tbody>'
         + rows.map((row) => '<tr>'
           + '<td><div class="title">' + escapeHtml(row.title) + '</div><div class="small">' + escapeHtml(row.question) + '</div><div class="small">' + escapeHtml(row.file) + '</div></td>'
           + '<td><span class="pill">' + escapeHtml(row.type) + '</span></td>'
           + '<td><span class="pill">' + escapeHtml(row.status) + '</span></td>'
           + '<td>' + escapeHtml(row.decision) + '<div class="small">' + escapeHtml(row.owner || "") + '</div></td>'
           + '<td><span class="pill ' + (row.priority >= 50 ? "bad" : row.priority >= 25 ? "warn" : "good") + '">' + escapeHtml(row.priority) + '</span></td>'
-          + '<td><span class="pill ' + scoreClass(row) + '">' + escapeHtml(row.score + "/" + row.max_score + " " + row.grade) + '</span></td>'
+          + '<td><span class="pill ' + scoreClass(row) + '">' + escapeHtml((row.completeness_percent ?? Math.round(row.score / row.max_score * 100)) + "% " + (row.completeness_grade || row.grade)) + '</span></td>'
+          + '<td><span class="pill ' + scorePercentClass(row.evidence_quality_score || 0) + '">' + escapeHtml((row.evidence_quality_score || 0) + "% " + (row.evidence_quality_grade || "F")) + '</span></td>'
           + '<td>' + escapeHtml(row.review_date || "") + (row.due_review ? '<div class="small">due</div>' : "") + '</td>'
           + '<td><button class="inline secondary" data-open="' + escapeHtml(row.file) + '">Open</button></td>'
           + '</tr>').join("")
@@ -847,6 +865,7 @@ export function renderApp({ root, asOf }) {
         ["memo", "Memo"],
         ["evidence", "Evidence"],
         ["questions", "Questions"],
+        ["risks", "Risks"],
         ["actions", "Actions"],
         ["raw", "Raw JSON"]
       ];
@@ -866,15 +885,16 @@ export function renderApp({ root, asOf }) {
       if (tab === "memo") return renderMarkdown(payload.memo);
       if (tab === "evidence") return renderEvidenceTab(decision);
       if (tab === "questions") return renderQuestionsTab(decision);
+      if (tab === "risks") return renderRisksTab(decision);
       if (tab === "actions") return renderActionsTab(decision);
       if (tab === "raw") {
         return '<div class="actions"><button id="save" class="inline">Save JSON</button><span class="small">' + escapeHtml(payload.validation.valid ? "Valid record" : "Needs fixes") + '</span></div>'
           + '<textarea id="editor" spellcheck="false">' + escapeHtml(JSON.stringify(decision, null, 2)) + '</textarea>';
       }
-      return renderSummaryTab(decision, payload.validation);
+      return renderSummaryTab(decision, payload.validation, payload.row || {});
     }
 
-    function renderSummaryTab(decision, validation) {
+    function renderSummaryTab(decision, validation, row) {
       const recommendation = decision.recommendation || {};
       const frame = decision.decision_frame || {};
       const option = (decision.options || []).find((item) => item.id === recommendation.selected_option);
@@ -887,6 +907,8 @@ export function renderApp({ root, asOf }) {
         + field("Confidence", formatPercent(recommendation.confidence))
         + field("Status", decision.status)
         + field("Evidence", strongEvidence + " strong / " + (decision.evidence || []).length + " total")
+        + field("Completeness", (row.completeness_percent ?? "") + "% " + (row.completeness_grade || ""))
+        + field("Evidence Quality", (row.evidence_quality_score ?? 0) + "% " + (row.evidence_quality_grade || "F"))
         + '</div>'
         + '<div class="detail-card"><h3>Decision Frame</h3><p>'
         + [frame.decision_class, frame.default_action && "default: " + frame.default_action, frame.reversibility && "reversibility: " + frame.reversibility, frame.urgency && "urgency: " + frame.urgency].filter(Boolean).map(escapeHtml).join(" · ")
@@ -920,10 +942,20 @@ export function renderApp({ root, asOf }) {
     function renderActionsTab(decision) {
       return '<div class="detail">'
         + '<div class="capture-grid compact"><div><label for="capture-action">Next action</label><input id="capture-action" type="text" placeholder="Smallest next move"></div><button id="add-action" class="secondary">Add</button></div>'
-        + '<div class="detail-grid">'
-        + '<div class="detail-card"><h3>Next Actions</h3>' + renderList(decision.next_actions || [], "No next actions yet.") + '</div>'
-        + '<div class="detail-card"><h3>Risks</h3>' + renderList(decision.risks || [], "No risks captured yet.", (item) => '<div class="title">' + escapeHtml(item.risk || item) + '</div><div class="small">' + escapeHtml([item.probability, item.impact].filter(Boolean).join(" / ")) + '</div>') + '</div>'
-        + '</div></div>';
+        + renderList(decision.next_actions || [], "No next actions yet.")
+        + '</div>';
+    }
+
+    function renderRisksTab(decision) {
+      return '<div class="detail">'
+        + '<div class="capture-grid">'
+        + '<div><label for="capture-risk">Risk</label><input id="capture-risk" type="text" placeholder="What could break this decision?"></div>'
+        + '<div><label for="capture-risk-trigger">Trigger</label><input id="capture-risk-trigger" type="text" placeholder="observable trigger"></div>'
+        + '<div><label for="capture-risk-impact">Impact</label><select id="capture-risk-impact"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>'
+        + '<button id="add-risk" class="secondary">Add</button>'
+        + '</div>'
+        + renderList(decision.risks || [], "No risks captured yet.", (item) => '<div class="title">' + escapeHtml(item.risk || item) + '</div><div class="small">' + escapeHtml([item.probability, item.impact, item.trigger].filter(Boolean).join(" / ")) + '</div><div class="small">' + escapeHtml(item.mitigation || "") + '</div>')
+        + '</div>';
     }
 
     function attachDecisionTabHandlers(tab) {
@@ -935,6 +967,9 @@ export function renderApp({ root, asOf }) {
       }
       if (tab === "questions") {
         document.querySelector("#add-question").addEventListener("click", addQuestion);
+      }
+      if (tab === "risks") {
+        document.querySelector("#add-risk").addEventListener("click", addRisk);
       }
       if (tab === "actions") {
         document.querySelector("#add-action").addEventListener("click", addAction);
@@ -978,6 +1013,23 @@ export function renderApp({ root, asOf }) {
       await persistDecision(decision, "actions");
     }
 
+    async function addRisk() {
+      const risk = document.querySelector("#capture-risk").value.trim();
+      if (!risk) return;
+      const trigger = document.querySelector("#capture-risk-trigger").value.trim();
+      const impact = document.querySelector("#capture-risk-impact").value;
+      const decision = structuredClone(state.activeDecision.decision);
+      decision.updated_at = formatDate();
+      decision.risks = [...(decision.risks || []), {
+        risk,
+        probability: "medium",
+        impact,
+        trigger: trigger || "Captured in the local Decision Lab UI.",
+        mitigation: "Define mitigation before commitment."
+      }];
+      await persistDecision(decision, "risks");
+    }
+
     async function saveDecision() {
       const editor = document.querySelector("#editor");
       let decision;
@@ -1013,6 +1065,7 @@ export function renderApp({ root, asOf }) {
       let list = [];
       let inCode = false;
       let code = [];
+      let cardOpen = false;
 
       function flushParagraph() {
         if (!paragraph.length) return;
@@ -1027,6 +1080,11 @@ export function renderApp({ root, asOf }) {
       function flushCode() {
         html += '<pre>' + escapeHtml(code.join("\\n")) + '</pre>';
         code = [];
+      }
+      function closeCard() {
+        if (!cardOpen) return;
+        html += '</section>';
+        cardOpen = false;
       }
       function isTableStart(index) {
         return lines[index]?.trim().startsWith("|")
@@ -1078,13 +1136,16 @@ export function renderApp({ root, asOf }) {
         if (trimmed.startsWith("# ")) {
           flushParagraph();
           flushList();
+          closeCard();
           html += '<h1>' + inlineMarkdown(trimmed.slice(2)) + '</h1>';
           continue;
         }
         if (trimmed.startsWith("## ")) {
           flushParagraph();
           flushList();
-          html += '<h2>' + inlineMarkdown(trimmed.slice(3)) + '</h2>';
+          closeCard();
+          html += '<section class="markdown-card"><h2>' + inlineMarkdown(trimmed.slice(3)) + '</h2>';
+          cardOpen = true;
           continue;
         }
         if (trimmed.startsWith("### ")) {
@@ -1103,6 +1164,7 @@ export function renderApp({ root, asOf }) {
       flushParagraph();
       flushList();
       if (inCode) flushCode();
+      closeCard();
       return html + '</div>';
     }
 
@@ -1169,12 +1231,16 @@ export function renderApp({ root, asOf }) {
 
 function summarizeRows(rows) {
   const total = rows.length;
+  const averageCompleteness = total ? Math.round(avg(rows.map((row) => row.completeness_ratio ?? row.score / row.max_score)) * 100) : 0;
+  const averageEvidenceQuality = total ? Math.round(avg(rows.map((row) => row.evidence_quality_score || 0))) : 0;
   return {
     total,
     operational: rows.filter((row) => row.maturity === "operational").length,
     reviewed: rows.filter((row) => row.status === "reviewed").length,
     dueReviews: rows.filter((row) => row.due_review).length,
-    averageScore: total ? Math.round(avg(rows.map((row) => row.score / row.max_score)) * 100) : 0
+    averageCompleteness,
+    averageEvidenceQuality,
+    averageScore: averageCompleteness
   };
 }
 

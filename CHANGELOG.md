@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.72.0
+
+### Added
+
+- Split local UI and dashboard scoring into separate completeness and evidence quality scores
+- Evidence quality score now accounts for evidence strength, source presence, decision-specificity, and primary or observed usage evidence
+- Local UI now includes a dedicated Risks tab with quick risk capture
+- Markdown reports now render sections as readable cards with HTML tables
+
+### Changed
+
+- Decision ledger, dashboard, and API row payloads now expose completeness and evidence-quality fields while keeping legacy score fields for compatibility
+
 ## 2.71.0
 
 ### Added

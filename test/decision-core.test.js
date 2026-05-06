@@ -610,10 +610,13 @@ test("exports decision rows and dashboard", () => {
   assert.equal(rows[0].type, "business");
   assert.equal(typeof rows[0].priority, "number");
   assert.equal(typeof rows[0].high_risks, "number");
+  assert.equal(typeof rows[0].completeness_percent, "number");
+  assert.equal(typeof rows[0].evidence_quality_score, "number");
   assert.match(renderExport(records, "csv"), /pricing.json/);
   assert.match(renderExport(records, "json"), /Move Enterprise Plan/);
   assert.match(renderDashboard(records), /Decision Lab Dashboard/);
   assert.match(renderDashboard(records), /Needs Attention/);
+  assert.match(renderDashboard(records), /Evidence Quality/);
 });
 
 test("creates, verifies, reports, and restores backup bundles", () => {
@@ -641,7 +644,9 @@ test("creates, verifies, reports, and restores backup bundles", () => {
 test("serves the local product API", async () => {
   const payload = decisionPayload("examples");
   assert.equal(payload.count, 4);
-  assert.ok(payload.stats.averageScore > 0);
+  assert.ok(payload.stats.averageCompleteness > 0);
+  assert.ok(payload.stats.averageEvidenceQuality > 0);
+  assert.equal(typeof payload.rows[0].evidence_quality_score, "number");
   assert.ok(reportCatalog().some((report) => report.id === "executive"));
 
   const dir = mkdtempSync(path.join(tmpdir(), "decision-lab-server-test-"));
@@ -663,6 +668,8 @@ test("serves the local product API", async () => {
   assert.match(html, /Operating Loop/);
   assert.match(html, /Decision Ledger/);
   assert.match(html, /Completeness/);
+  assert.match(html, /Evidence Quality/);
+  assert.match(html, /Risks/);
   assert.match(html, /Raw JSON/);
   assert.match(html, /Evidence claim/);
   assert.match(html, /API token required/);

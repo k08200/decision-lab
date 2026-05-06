@@ -3,6 +3,7 @@ import { auditDecision } from "./decision-core.js";
 export function buildDecisionRows(records) {
   return records.map(({ filePath, decision }) => {
     const audit = auditDecision(decision);
+    const evidenceQuality = scoreEvidenceQuality(decision);
     return {
       file: filePath,
       status: decision.status || "draft",
@@ -13,6 +14,14 @@ export function buildDecisionRows(records) {
       selected_option: decision.recommendation?.selected_option || "",
       confidence: decision.recommendation?.confidence ?? null,
       maturity: audit.maturity,
+      completeness_score: audit.score.score,
+      completeness_max_score: audit.score.max_score,
+      completeness_ratio: audit.score.ratio,
+      completeness_percent: Math.round(audit.score.ratio * 100),
+      completeness_grade: audit.score.grade,
+      evidence_quality_score: evidenceQuality.score,
+      evidence_quality_grade: evidenceQuality.grade,
+      evidence_quality_reasons: evidenceQuality.reasons.join("; "),
       score: audit.score.score,
       max_score: audit.score.max_score,
       grade: audit.score.grade,
@@ -185,7 +194,8 @@ export function renderDashboard(records) {
       <div class="metric"><span>Reviewed</span><strong>${stats.reviewed}</strong></div>
       <div class="metric"><span>Needs Attention</span><strong>${stats.needsAttention}</strong></div>
       <div class="metric"><span>Due Reviews</span><strong>${stats.dueReviews}</strong></div>
-      <div class="metric"><span>Average Score</span><strong>${stats.averageScore}%</strong></div>
+      <div class="metric"><span>Completeness</span><strong>${stats.averageCompleteness}%</strong></div>
+      <div class="metric"><span>Evidence Quality</span><strong>${stats.averageEvidenceQuality}%</strong></div>
       <div class="metric"><span>Average Confidence</span><strong>${stats.averageConfidence}%</strong></div>
     </section>
     <section class="toolbar" aria-label="Filters">
@@ -229,6 +239,12 @@ export function renderDashboard(records) {
       return "bad";
     }
 
+    function scorePillClass(value) {
+      if (value >= 80) return "good";
+      if (value >= 50) return "warn";
+      return "bad";
+    }
+
     function render() {
       const query = search.value.trim().toLowerCase();
       const selectedType = type.value;
@@ -255,7 +271,8 @@ export function renderDashboard(records) {
               <th>Recommendation</th>
               <th>Priority</th>
               <th>Confidence</th>
-              <th>Score</th>
+              <th>Completeness</th>
+              <th>Evidence Quality</th>
               <th>Review</th>
               <th>Actions</th>
             </tr>
@@ -279,7 +296,8 @@ export function renderDashboard(records) {
                   <div class="question">\${row.high_risks} high risks</div>
                 </td>
                 <td>\${row.confidence === null ? "N/A" : Math.round(row.confidence * 100) + "%"}</td>
-                <td><span class="pill \${maturityClass(row.maturity)}">\${escapeHtml(row.score + "/" + row.max_score + " " + row.grade)}</span></td>
+                <td><span class="pill \${maturityClass(row.maturity)}">\${escapeHtml(row.completeness_percent + "% " + row.completeness_grade)}</span></td>
+                <td><span class="pill \${scorePillClass(row.evidence_quality_score)}">\${escapeHtml(row.evidence_quality_score + "% " + row.evidence_quality_grade)}</span></td>
                 <td>
                   <div>\${escapeHtml(row.review_date || "")}</div>
                   \${row.due_review ? '<div class="question">due</div>' : ""}
@@ -323,15 +341,81 @@ function csvCell(value) {
 
 function summarizeRows(rows) {
   const total = rows.length;
+  const averageCompleteness = total ? Math.round(avg(rows.map((row) => row.completeness_ratio ?? row.score / row.max_score)) * 100) : 0;
+  const averageEvidenceQuality = total ? Math.round(avg(rows.map((row) => row.evidence_quality_score || 0))) : 0;
   return {
     total,
     operational: rows.filter((row) => row.maturity === "operational").length,
     reviewed: rows.filter((row) => row.status === "reviewed").length,
     needsAttention: rows.filter((row) => row.priority >= 25).length,
     dueReviews: rows.filter((row) => row.due_review).length,
-    averageScore: total ? Math.round(avg(rows.map((row) => row.score / row.max_score)) * 100) : 0,
+    averageCompleteness,
+    averageEvidenceQuality,
+    averageScore: averageCompleteness,
     averageConfidence: total ? Math.round(avg(rows.map((row) => row.confidence).filter((value) => value !== null)) * 100) : 0
   };
+}
+
+export function scoreEvidenceQuality(decision) {
+  const evidenceItems = Array.isArray(decision.evidence) ? decision.evidence : [];
+  if (!evidenceItems.length) {
+    return { score: 0, grade: "D", reasons: ["no evidence items"] };
+  }
+
+  const strengthAverage = avg(evidenceItems.map((item) => strengthValue(item.strength)));
+  const sourcedShare = evidenceItems.filter((item) => Boolean(item.source)).length / evidenceItems.length;
+  const decisionSpecificShare = evidenceItems.filter(isDecisionSpecificEvidence).length / evidenceItems.length;
+  const primaryShare = evidenceItems.filter(isPrimaryOrObservedEvidence).length / evidenceItems.length;
+  const score = Math.round((strengthAverage * 45) + (sourcedShare * 20) + (decisionSpecificShare * 20) + (primaryShare * 15));
+  const reasons = [];
+  reasons.push(`${evidenceItems.filter((item) => item.strength === "strong").length}/${evidenceItems.length} strong evidence`);
+  reasons.push(`${Math.round(primaryShare * 100)}% primary or observed`);
+  if (decisionSpecificShare < 0.5) reasons.push("generic framework evidence still dominates");
+  if (primaryShare < 0.34) reasons.push("needs more direct user or product evidence");
+  return { score, grade: evidenceGrade(score), reasons };
+}
+
+function strengthValue(strength) {
+  if (strength === "strong") return 1;
+  if (strength === "medium") return 0.55;
+  if (strength === "weak") return 0.2;
+  return 0.35;
+}
+
+function isDecisionSpecificEvidence(item) {
+  const source = String(item.source || "").toLowerCase();
+  const sourceType = String(item.source_type || "").toLowerCase();
+  const claim = String(item.claim || "").toLowerCase();
+  if (source.includes("decision lab evidence quality rule")) return false;
+  if (source.includes("decision lab operating framework")) return false;
+  if (sourceType.includes("framework")) return false;
+  if (claim.includes("decision has been identified")) return false;
+  if (claim.includes("record still needs primary")) return false;
+  return true;
+}
+
+function isPrimaryOrObservedEvidence(item) {
+  const haystack = [item.source, item.source_type, item.notes].join(" ").toLowerCase();
+  return [
+    "manual test",
+    "install test",
+    "operator observation",
+    "user test",
+    "customer",
+    "usage",
+    "bug report",
+    "release check",
+    "smoke test",
+    "registry"
+  ].some((needle) => haystack.includes(needle));
+}
+
+function evidenceGrade(score) {
+  if (score >= 85) return "A";
+  if (score >= 70) return "B";
+  if (score >= 50) return "C";
+  if (score >= 30) return "D";
+  return "F";
 }
 
 function dashboardPriority(decision, audit) {
