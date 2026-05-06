@@ -55,6 +55,69 @@ export function buildOpenApiSpec({
           responses: { 200: jsonResponse("Save result") }
         }
       },
+      "/api/decision/run": {
+        post: {
+          summary: "Regenerate workflow artifacts for one decision",
+          parameters: [fileParameter()],
+          requestBody: jsonBody({
+            type: "object",
+            properties: {
+              outDir: { type: "string" }
+            }
+          }),
+          responses: { 200: jsonResponse("Regenerated decision payload") }
+        }
+      },
+      "/api/decision/promote": {
+        post: {
+          summary: "Promote one decision status",
+          parameters: [fileParameter()],
+          requestBody: jsonBody({
+            type: "object",
+            properties: {
+              status: { type: "string", enum: ["draft", "researching", "decided", "reviewed"] }
+            },
+            required: ["status"]
+          }),
+          responses: { 200: jsonResponse("Promoted decision payload") }
+        }
+      },
+      "/api/decision/review": {
+        post: {
+          summary: "Close one decision review",
+          parameters: [fileParameter()],
+          requestBody: jsonBody({
+            type: "object",
+            properties: {
+              outcome: { type: "string" },
+              lesson: { type: "string" },
+              lessons: { type: "array", items: { type: "string" } }
+            }
+          }),
+          responses: { 200: jsonResponse("Reviewed decision payload") }
+        }
+      },
+      "/api/decision/archive": {
+        post: {
+          summary: "Move one decision into archive",
+          parameters: [fileParameter()],
+          responses: { 200: jsonResponse("Archive result") }
+        }
+      },
+      "/api/decision/restore": {
+        post: {
+          summary: "Restore one archived decision into active decisions",
+          parameters: [fileParameter()],
+          responses: { 200: jsonResponse("Restore result") }
+        }
+      },
+      "/api/decision/localize": {
+        post: {
+          summary: "Polish generated copy for a Korean decision record",
+          parameters: [fileParameter()],
+          responses: { 200: jsonResponse("Localized decision payload") }
+        }
+      },
       "/api/reports": {
         get: {
           summary: "List available reports",

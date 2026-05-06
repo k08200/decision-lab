@@ -1043,6 +1043,40 @@ export function renderDoctor({ root = ".", examples = [] } = {}) {
   ].join("\n") + "\n";
 }
 
+export function renderWorkspaceDoctor({ root = ".", records = [] } = {}) {
+  const checks = [
+    fileCheck(".decision-lab.json", fs.existsSync(`${root}/.decision-lab.json`)),
+    fileCheck("decisions", fs.existsSync(`${root}/decisions`)),
+    fileCheck("decisions/active", fs.existsSync(`${root}/decisions/active`)),
+    fileCheck("decisions/archive", fs.existsSync(`${root}/decisions/archive`)),
+    fileCheck("outputs", fs.existsSync(`${root}/outputs`)),
+    fileCheck("outputs/decision-lab-backup.json", fs.existsSync(`${root}/outputs/decision-lab-backup.json`))
+  ];
+  const recordChecks = records.map(({ filePath, decision }) => {
+    const validation = validateDecision(decision);
+    return {
+      name: filePath,
+      passed: validation.valid,
+      detail: validation.valid ? "valid" : formatIssues(validation.issues)
+    };
+  });
+
+  return [
+    "# Decision Lab Doctor",
+    "",
+    "## Workspace Checks",
+    checklist(checks),
+    "",
+    "## Decision Record Checks",
+    checklist(recordChecks),
+    "",
+    "## Summary",
+    allPassed([...checks, ...recordChecks])
+      ? "All workspace checks passed."
+      : "Some workspace checks failed. Fix the failed items before relying on this workspace."
+  ].join("\n") + "\n";
+}
+
 export function renderIntegrityManifest(records) {
   return [
     "# Integrity Manifest",

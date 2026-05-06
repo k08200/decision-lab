@@ -16,7 +16,7 @@ Creates local folders for decisions, research, and outputs.
 
 `demo` creates a sanitized sample workspace with a decision record, memo, audit, weekly pack, and calendar file.
 
-`start` initializes a private local workspace when needed and creates the first decision memo in one command.
+`start` initializes a private local workspace when needed and creates the first decision memo in one command. After reading the memo, run `serve decisions --token local-dev-token --actor "Your Name"` to continue from the browser UI.
 
 `config` writes the default local settings file for owner, directories, quality gate thresholds, and stale decision age.
 

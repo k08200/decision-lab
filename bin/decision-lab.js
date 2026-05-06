@@ -125,6 +125,7 @@ import {
   renderThemeReport,
   renderTimeline,
   renderTriageReport,
+  renderWorkspaceDoctor,
   promoteDecision,
   setJsonPath,
   summarizeDecisionHealth
@@ -268,12 +269,12 @@ First run from npm:
   npx @k08200/decision-lab@latest start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing
   less decisions/active/pricing/run/memo.md
 
-Add one piece of evidence:
-  npx @k08200/decision-lab@latest capture decisions/active/pricing/decision.json --kind evidence --text "Three customer notes mentioned this problem." --source "Customer notes" --strength medium
-  npx @k08200/decision-lab@latest run decisions/active/pricing/decision.json --out-dir decisions/active/pricing/run
-
 Open the local UI:
   npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "Your Name"
+
+Add one piece of evidence, then refresh the memo:
+  npx @k08200/decision-lab@latest capture decisions/active/pricing/decision.json --kind evidence --text "Three customer notes mentioned this problem." --source "Customer notes" --strength medium
+  npx @k08200/decision-lab@latest run decisions/active/pricing/decision.json --out-dir decisions/active/pricing/run
 
 Run "decision-lab help" for every command.
 Run "decision-lab help serve" or "decision-lab serve --help" for a command.
@@ -318,6 +319,7 @@ Example:
   cd my-decisions
   npx @k08200/decision-lab@latest start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing
   less decisions/active/pricing/run/memo.md
+  npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "Your Name"
 `,
     decide: `Decision Lab decide
 
@@ -1004,11 +1006,14 @@ try {
     console.log(`Record: ${result.recordPath}`);
     console.log(`Memo: ${result.memoPath}`);
     console.log("Next:");
-    console.log(`  less ${result.memoPath}`);
-    console.log(`  npx @k08200/decision-lab@latest capture ${result.recordPath} --kind question --text "What evidence would change this decision?"`);
-    console.log(`  npx @k08200/decision-lab@latest capture ${result.recordPath} --kind evidence --text "What did you learn?" --source "First source" --strength medium`);
-    console.log(`  npx @k08200/decision-lab@latest run ${result.recordPath} --out-dir ${path.join(result.root, "run")}`);
-    console.log(`  npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "${result.owner}"`);
+    console.log("  1. Open the memo");
+    console.log(`     less ${result.memoPath}`);
+    console.log("  2. Open the local UI");
+    console.log(`     npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "${result.owner}"`);
+    console.log("  3. Add the first signal in the UI, or use the CLI");
+    console.log(`     npx @k08200/decision-lab@latest capture ${result.recordPath} --kind evidence --text "What did you learn?" --source "First source" --strength medium`);
+    console.log("  4. Regenerate the memo after each useful signal");
+    console.log(`     npx @k08200/decision-lab@latest run ${result.recordPath} --out-dir ${path.join(result.root, "run")}`);
     process.exit(result.valid ? 0 : 1);
   }
 
@@ -1794,8 +1799,17 @@ try {
 
   if (command === "doctor") {
     const root = args[0] && !args[0].startsWith("--") ? args[0] : ".";
-    const examples = readDecisionFiles(path.join(root, "examples"));
-    writeOrPrint(renderDoctor({ root, examples }), readFlag(args, "--out"));
+    const isFrameworkRepo = fs.existsSync(path.join(root, "package.json")) && fs.existsSync(path.join(root, "src/decision-core.js"));
+    const isPrivateWorkspace = fs.existsSync(path.join(root, ".decision-lab.json")) || fs.existsSync(path.join(root, "decisions"));
+    if (isPrivateWorkspace && !isFrameworkRepo) {
+      writeOrPrint(renderWorkspaceDoctor({
+        root,
+        records: readDecisionFiles(path.join(root, "decisions"))
+      }), readFlag(args, "--out"));
+    } else {
+      const examples = readDecisionFiles(path.join(root, "examples"));
+      writeOrPrint(renderDoctor({ root, examples }), readFlag(args, "--out"));
+    }
     process.exit(0);
   }
 

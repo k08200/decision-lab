@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { Script } from "node:vm";
 import { strToU8, zipSync } from "fflate";
 import {
   auditDecision,
@@ -21,6 +22,7 @@ import {
   createDecisionsFromInbox,
   createDecisionFromQuestion,
   inferDecisionType,
+  localizeDecisionCopy,
   migrateDecision,
   parseInboxQuestions,
   renderLedger,
@@ -69,12 +71,18 @@ import {
   renderReadinessReport
 } from "../src/decision-readiness.js";
 import {
+  archiveDecisionRecord,
   createDraftDecision,
   createDecisionServer,
   decisionPayload,
+  localizeDecisionRecord,
+  promoteDecisionRecord,
   readDecisionRecord,
+  regenerateDecisionArtifacts,
   renderApp,
   reportCatalog,
+  restoreArchivedDecisionRecord,
+  reviewDecisionRecord,
   saveDecisionRecord,
   startDecisionServer
 } from "../src/decision-server.js";
@@ -136,6 +144,7 @@ import {
   renderThemeReport,
   renderTimeline,
   renderTriageReport,
+  renderWorkspaceDoctor,
   setJsonPath,
   summarizeDecisionHealth
 } from "../src/decision-tools.js";
@@ -230,13 +239,26 @@ test("localizes generated records for Korean questions", () => {
   const result = validateDecision(decision);
   assert.equal(result.valid, true, JSON.stringify(result.issues, null, 2));
   assert.match(decision.context, /원본 결정 요청/);
-  assert.match(decision.recommendation.summary, /최종 결론이 아니라/);
+  assert.match(decision.recommendation.summary, /가장 작은 유용한 파일럿/);
   assert.match(memo, /## 한눈에 보기/);
   assert.match(memo, /현재 판단/);
   assert.match(memo, /강한 근거/);
   assert.match(memo, /구체적인 근거 하나/);
-  assert.match(memo, /결정 전 추가 조사/);
+  assert.match(memo, /작은 파일럿으로 계속 검증/);
   assert.match(memo, /파일럿/);
+  assert.equal(decision.options.every((option) => /[가-힣]/.test(option.name)), true);
+  assert.match(decision.options[1].expected_value, /근거 수집 후 추정/);
+
+  const older = createDecisionFromQuestion("Should we keep productizing?", { type: "business" });
+  older.title = "이 제품을 계속 제품화할 것인가";
+  older.question = "이 제품을 계속 제품화할 것인가?";
+  older.context = "원본 결정 요청: 이 제품을 계속 제품화할 것인가?";
+  older.recommendation.decision = "continue as a small pilot";
+  const polished = localizeDecisionCopy(older, { now: "2026-05-06" });
+  assert.equal(validateDecision(polished).valid, true);
+  assert.match(polished.recommendation.decision, /작은 파일럿/);
+  assert.match(polished.options[1].name, /파일럿/);
+  assert.match(polished.updated_at, /2026-05-06/);
 });
 
 test("creates decision drafts from inbox text", () => {
@@ -383,6 +405,12 @@ test("renders calibration and doctor reports", () => {
     examples: [{ filePath: "examples/finance/hiring_runway_tradeoff.json", decision: finance }]
   });
   assert.match(doctor, /All doctor checks passed/);
+  const workspaceDoctor = renderWorkspaceDoctor({
+    root: ".",
+    records: [{ filePath: "decisions/active/example/decision.json", decision: business }]
+  });
+  assert.match(workspaceDoctor, /Workspace Checks/);
+  assert.match(workspaceDoctor, /Decision Record Checks/);
   assert.match(renderReportCatalog(), /Decision Lab Report Catalog/);
 });
 
@@ -505,8 +533,14 @@ test("creates private workspaces and scans privacy risks", () => {
   assert.match(readFileSync(path.join(dir, ".decision-lab.json"), "utf8"), /Private Owner/);
 
   const scan = scanPrivacy({ root: dir });
-  assert.equal(scan.ok, false);
-  assert.match(renderPrivacyReport(scan), /FAIL/);
+  assert.equal(scan.ok, true);
+  assert.equal(scan.mode, "filesystem");
+  assert.match(renderPrivacyReport(scan), /PASS/);
+
+  writeFileSync(path.join(dir, ".env"), `OPENAI_API_KEY=${"sk-" + "testsecret012345678901234567890"}\n`);
+  const secretScan = scanPrivacy({ root: dir });
+  assert.equal(secretScan.ok, false);
+  assert.match(renderPrivacyReport(secretScan), /OpenAI API key/);
 
   const publicDir = mkdtempSync(path.join(tmpdir(), "decision-lab-public-scan-test-"));
   writeFileSync(path.join(publicDir, "README.md"), "# Public\n");
@@ -691,14 +725,61 @@ test("serves the local product API", async () => {
   assert.equal(saveDecisionRecord(dir, created.filePath, updated).saved, true);
   assert.equal(readDecisionRecord(dir, created.filePath).decision.owner, "updated owner");
 
+  const localizeRoot = path.join(mkdtempSync(path.join(tmpdir(), "decision-lab-localize-test-")), "decisions");
+  const koreanCreated = createDraftDecision(localizeRoot, {
+    question: "이 제품을 계속 제품화할 것인가?",
+    type: "business",
+    owner: "product owner"
+  });
+  const localized = localizeDecisionRecord(localizeRoot, koreanCreated.filePath);
+  assert.equal(localized.localized, true);
+  assert.match(localized.decision.recommendation.decision, /작은 파일럿/);
+
+  const loopRoot = path.join(mkdtempSync(path.join(tmpdir(), "decision-lab-browser-loop-test-")), "decisions");
+  const loopCreated = createDraftDecision(loopRoot, {
+    question: "Should we complete the browser loop?",
+    type: "business",
+    owner: "product owner"
+  });
+  const regenerated = regenerateDecisionArtifacts(loopRoot, loopCreated.filePath);
+  assert.equal(regenerated.regenerated, true);
+  assert.equal(existsSync(path.join(path.dirname(path.resolve(loopCreated.filePath)), "run", "memo.md")), true);
+  assert.equal(promoteDecisionRecord(loopRoot, loopCreated.filePath, "decided").decision.status, "decided");
+  const reviewed = reviewDecisionRecord(loopRoot, loopCreated.filePath, {
+    outcome: "The browser loop worked.",
+    lesson: "Keep the loop in the UI."
+  });
+  assert.equal(reviewed.decision.status, "reviewed");
+  assert.match(reviewed.decision.post_decision_review.actual_outcome, /browser loop/);
+  const archived = archiveDecisionRecord(loopRoot, loopCreated.filePath);
+  assert.equal(archived.archived, true);
+  assert.equal(existsSync(archived.archivedFilePath), true);
+  assert.equal(decisionPayload(loopRoot).count, 0);
+  assert.equal(decisionPayload(loopRoot, { includeArchive: true }).count, 1);
+  const restored = restoreArchivedDecisionRecord(loopRoot, archived.archivedFilePath);
+  assert.equal(restored.restored, true);
+  assert.equal(existsSync(restored.restoredFilePath), true);
+  assert.equal(decisionPayload(loopRoot).count, 1);
+
   const server = createDecisionServer({ root: "examples", asOf: "2026-08-01" });
   assert.equal(typeof server.listen, "function");
   assert.equal(typeof server.close, "function");
   const html = renderApp({ root: "examples", asOf: "2026-08-01" });
+  const script = html.match(/<script>([\s\S]+)<\/script>/)?.[1] || "";
+  assert.doesNotThrow(() => new Script(script));
   assert.match(html, /Operating Loop/);
   assert.match(html, /CLI_COMMAND = "npx @k08200\/decision-lab@latest"/);
   assert.match(html, /ROOT_COMMAND_ARG = 'examples'/);
-  assert.match(html, /CLI_COMMAND \+ ' next ' \+ ROOT_COMMAND_ARG \+ ' --out outputs\/next.md'/);
+  assert.match(html, /SAMPLE_QUESTIONS = /);
+  assert.match(html, /FIRST_USER_TEST_STEPS = /);
+  assert.match(html, /CAPTURE_PRESETS = /);
+  assert.match(html, /Open Focus/);
+  assert.match(html, /command-toggle/);
+  assert.match(html, /copy-command/);
+  assert.match(html, /data-command-copy/);
+  assert.match(html, /Command copied/);
+  assert.match(html, /10-minute user test/);
+  assert.match(html, /data-sample-question/);
   assert.match(html, /Focus Now/);
   assert.match(html, /Needs Evidence/);
   assert.match(html, /Add Evidence/);
@@ -709,6 +790,48 @@ test("serves the local product API", async () => {
   assert.match(html, /Decision Board/);
   assert.match(html, /focus-hero/);
   assert.match(html, /decision-card/);
+  assert.match(html, /single-dashboard/);
+  assert.match(html, /next-action-strip/);
+  assert.match(html, /Work This Decision/);
+  assert.match(html, /action-tile/);
+  assert.match(html, /Evidence tab -> Add Evidence/);
+  assert.match(html, /capture-panel/);
+  assert.match(html, /Customer note/);
+  assert.match(html, /Change-mind question/);
+  assert.match(html, /Interview user/);
+  assert.match(html, /Adoption risk/);
+  assert.match(html, /item-card/);
+  assert.match(html, /nav-section/);
+  assert.match(html, /Decision Brief/);
+  assert.match(html, /Decision Workspace/);
+  assert.match(html, /detail-hero/);
+  assert.match(html, /detail-kpis/);
+  assert.match(html, /Undo/);
+  assert.match(html, /decision-lab-undo/);
+  assert.match(html, /max-width: 640px/);
+  assert.match(html, /Edit Decision/);
+  assert.match(html, /save-summary-edits/);
+  assert.match(html, /Polish Korean/);
+  assert.match(html, /Regenerate Memo/);
+  assert.match(html, /Close Review/);
+  assert.match(html, /data-workflow-action="archive"/);
+  assert.match(html, /Restore to Active/);
+  assert.match(html, /memo-page/);
+  assert.match(html, /memo-card/);
+  assert.match(html, /Change-Mind Triggers/);
+  assert.match(html, /Review Signals/);
+  assert.match(html, /toast/);
+  assert.match(html, /summary-page/);
+  assert.match(html, /decision-brief/);
+  assert.match(html, /frame-strip/);
+  assert.match(html, /option-card/);
+  assert.match(html, /validation-panel/);
+  assert.match(html, /api\/decision\/run/);
+  assert.match(html, /api\/decision\/review/);
+  assert.match(html, /api\/decision\/promote/);
+  assert.match(html, /api\/decision\/archive/);
+  assert.match(html, /api\/decision\/restore/);
+  assert.match(html, /api\/decision\/localize/);
   assert.match(html, /Completeness/);
   assert.match(html, /Evidence Quality/);
   assert.match(html, /Risks/);
@@ -765,6 +888,12 @@ test("builds API contracts and audit logs", () => {
   const spec = buildOpenApiSpec({ serverUrl: "http://127.0.0.1:9999" });
   assert.equal(spec.openapi, "3.1.0");
   assert.ok(spec.paths["/api/decisions"]);
+  assert.ok(spec.paths["/api/decision/run"]);
+  assert.ok(spec.paths["/api/decision/review"]);
+  assert.ok(spec.paths["/api/decision/promote"]);
+  assert.ok(spec.paths["/api/decision/archive"]);
+  assert.ok(spec.paths["/api/decision/restore"]);
+  assert.ok(spec.paths["/api/decision/localize"]);
   assert.ok(spec.components.securitySchemes.bearerAuth);
 
   appendAuditEvent(dir, {
@@ -826,6 +955,7 @@ test("cli prints first-run and command-specific help", () => {
   });
   assert.match(startHelp, /Decision Lab start/);
   assert.match(startHelp, /Creates a private local workspace/);
+  assert.match(startHelp, /serve decisions --token local-dev-token/);
 });
 
 test("cli serve branch does not fall through to unknown command", () => {
@@ -951,12 +1081,21 @@ test("cli starts a beginner session and excludes archive from active reports", (
 
   assert.match(output, /Decision Lab workspace/);
   assert.match(output, /Next:/);
-  assert.match(output, /--kind question/);
+  assert.match(output, /Open the local UI/);
+  assert.match(output, /Add the first signal in the UI/);
+  assert.match(output, /--kind evidence/);
   assert.match(output, / run decisions\/active\/productize\/decision\.json --out-dir decisions\/active\/productize\/run/);
   assert.equal(existsSync(path.join(dir, ".decision-lab.json")), true);
   assert.equal(existsSync(path.join(dir, "decisions/active/productize/decision.json")), true);
   assert.equal(existsSync(path.join(dir, "outputs/decision-lab-backup.json")), true);
   assert.match(readFileSync(path.join(dir, "decisions/active/productize/run/memo.md"), "utf8"), /productizing/i);
+  const workspaceDoctor = execFileSync("node", [cliPath, "doctor"], {
+    cwd: dir,
+    encoding: "utf8"
+  });
+  assert.match(workspaceDoctor, /Workspace Checks/);
+  assert.match(workspaceDoctor, /All workspace checks passed/);
+  assert.doesNotMatch(workspaceDoctor, /package\.json: missing/);
 
   const archived = createDecisionFromQuestion("Should archived records affect active score?", {
     type: "business",
@@ -1285,11 +1424,11 @@ test("cli creates private workspaces and runs privacy checks", () => {
   ], { encoding: "utf8" }), /Created private Decision Lab workspace/);
   assert.match(readFileSync(path.join(workspacePath, "README.md"), "utf8"), /Do not make this repository public/);
 
-  assert.throws(() => execFileSync("node", [
+  assert.match(execFileSync("node", [
     "bin/decision-lab.js",
     "privacy-check",
     workspacePath
-  ], { encoding: "utf8" }));
+  ], { encoding: "utf8" }), /Status: PASS/);
 
   assert.match(execFileSync("node", [
     "bin/decision-lab.js",
@@ -1300,7 +1439,7 @@ test("cli creates private workspaces and runs privacy checks", () => {
     "--no-fail",
     "yes"
   ], { encoding: "utf8" }), /Wrote/);
-  assert.match(readFileSync(reportPath, "utf8"), /FAIL/);
+  assert.match(readFileSync(reportPath, "utf8"), /PASS/);
 });
 
 test("cli extracts evidence from notes", () => {

@@ -37,9 +37,17 @@ Read the generated memo:
 less decisions/active/pricing/run/memo.md
 ```
 
+Open the local UI:
+
+```bash
+npx @k08200/decision-lab serve decisions --token local-dev-token --actor "Your Name"
+```
+
+Use the green focus button, then work inside Evidence, Questions, Actions, and Memo.
+
 ## 3. Add Evidence And Open Questions
 
-Capture evidence without editing JSON by hand:
+Capture evidence from the UI, or use the CLI without editing JSON by hand:
 
 ```bash
 npx @k08200/decision-lab capture decisions/active/pricing/decision.json --kind evidence --text "Three enterprise QBRs mentioned packaging confusion." --source "Customer QBR notes" --strength medium

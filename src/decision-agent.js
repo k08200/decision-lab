@@ -88,6 +88,82 @@ export function createDecisionFromQuestion(question, options = {}) {
   return decision;
 }
 
+export function localizeDecisionCopy(decision, options = {}) {
+  if (!decision || typeof decision !== "object") throw new Error("Decision payload is required");
+  const text = [
+    decision.title,
+    decision.question,
+    decision.context,
+    decision.recommendation?.decision,
+    decision.recommendation?.summary
+  ].join(" ");
+  const next = structuredClone(decision);
+  if (!hasKorean(text)) return next;
+
+  const type = normalizeDecisionType(decision.decision_type);
+  const now = options.now || new Date().toISOString().slice(0, 10);
+  const base = createDecisionFromQuestion(decision.question || decision.title || "결정", {
+    type,
+    owner: decision.owner || "decision owner",
+    now: decision.created_at || now
+  });
+  const currentRecommendation = decision.recommendation || {};
+  const currentReview = decision.post_decision_review || {};
+
+  next.decision_type = type;
+  next.context = base.context;
+  next.decision_frame = base.decision_frame;
+  next.recommendation = {
+    ...base.recommendation,
+    selected_option: currentRecommendation.selected_option || base.recommendation.selected_option,
+    confidence: currentRecommendation.confidence ?? base.recommendation.confidence,
+    decision_deadline: currentRecommendation.decision_deadline || base.recommendation.decision_deadline,
+    review_date: currentRecommendation.review_date || base.recommendation.review_date
+  };
+  next.hypotheses = preferLocalizedList(decision.hypotheses, base.hypotheses);
+  next.options = base.options;
+  next.assumption_register = preferLocalizedList(decision.assumption_register, base.assumption_register);
+  next.risks = preferLocalizedList(decision.risks, base.risks);
+  next.decision_criteria = base.decision_criteria;
+  next.option_scores = base.option_scores;
+  next.what_would_change_my_mind = preferLocalizedList(decision.what_would_change_my_mind, base.what_would_change_my_mind);
+  next.open_questions = preferLocalizedList(decision.open_questions, base.open_questions);
+  next.next_actions = preferLocalizedList(decision.next_actions, base.next_actions);
+  next.post_decision_review = {
+    ...base.post_decision_review,
+    actual_outcome: currentReview.actual_outcome || "",
+    lessons: Array.isArray(currentReview.lessons) ? currentReview.lessons : []
+  };
+  next.evidence = preferLocalizedList(decision.evidence, base.evidence);
+  if (type === "business") {
+    next.strategic_goal = base.strategic_goal;
+    next.stakeholders = base.stakeholders;
+    next.constraints = base.constraints;
+    next.financial_impact = base.financial_impact;
+    next.execution_plan = base.execution_plan;
+    next.operating_cadence = base.operating_cadence;
+  }
+  if (type === "finance") {
+    next.financial_hypothesis = base.financial_hypothesis;
+    next.model_driver = base.model_driver;
+    next.planning_horizon = base.planning_horizon;
+    next.base_case = base.base_case;
+    next.upside_case = base.upside_case;
+    next.downside_case = base.downside_case;
+    next.sensitivity_checks = base.sensitivity_checks;
+    next.financial_guardrails = base.financial_guardrails;
+  }
+  if (type === "investment") {
+    next.asset = base.asset;
+    next.portfolio_context = base.portfolio_context;
+    next.valuation = base.valuation;
+    next.catalysts = base.catalysts;
+    next.risk_controls = base.risk_controls;
+  }
+  next.updated_at = now;
+  return next;
+}
+
 export function migrateDecision(decision, options = {}) {
   const type = normalizeDecisionType(decision.decision_type);
   const question = decision.question || decision.title || "Migrated decision";
@@ -283,13 +359,19 @@ function hasKorean(text) {
   return /[가-힣]/.test(text);
 }
 
+function preferLocalizedList(current, replacement) {
+  if (hasKorean(JSON.stringify(current || []))) return structuredClone(current);
+  return structuredClone(replacement || []);
+}
+
 function localizeKoreanDecision(decision, type, question) {
+  const recommendation = koreanRecommendationFor(type);
   decision.context = `원본 결정 요청: ${question}`;
   decision.decision_frame = koreanFrameFor(type);
   decision.recommendation = {
     ...decision.recommendation,
-    decision: "결정 전 추가 조사",
-    summary: "이 기록은 최종 결론이 아니라, 근거를 더 모아 작은 파일럿으로 검증하라는 초안입니다."
+    decision: recommendation.decision,
+    summary: recommendation.summary
   };
   decision.hypotheses = koreanHypothesesFor(type);
   decision.options = koreanOptionsFor(type);
@@ -329,6 +411,31 @@ function localizeKoreanDecision(decision, type, question) {
   }
 }
 
+function koreanRecommendationFor(type) {
+  if (type === "investment") {
+    return {
+      decision: "작게 나누어 검증 후 투자 판단",
+      summary: "지금 바로 크게 행동하기보다, 포지션 크기와 하방 기준을 정하고 한 번 더 근거를 확인하는 쪽이 적절합니다."
+    };
+  }
+  if (type === "finance") {
+    return {
+      decision: "단계적으로 집행하며 재무 가드레일 확인",
+      summary: "현금과 런웨이 리스크를 보존하면서, 작은 집행 단위로 효과를 확인한 뒤 확대 여부를 결정하는 초안입니다."
+    };
+  }
+  if (type === "business") {
+    return {
+      decision: "작은 파일럿으로 계속 검증",
+      summary: "최종 확정이 아니라, 가장 작은 유용한 파일럿으로 실제 신호를 모은 뒤 확대 여부를 결정하는 초안입니다."
+    };
+  }
+  return {
+    decision: "작게 실행하며 근거 보강",
+    summary: "지금은 결론을 고정하기보다, 되돌릴 수 있는 작은 행동으로 근거를 보강하는 초안입니다."
+  };
+}
+
 function koreanFrameFor(type) {
   const map = {
     investment: {
@@ -355,8 +462,8 @@ function koreanFrameFor(type) {
   const item = map[type] || map.general;
   return {
     decision_class: item.decision_class,
-    reversibility: "medium",
-    urgency: "medium",
+    reversibility: "보통",
+    urgency: "보통",
     default_action: item.default_action,
     desired_outcome: item.desired_outcome,
     constraints: ["핵심 가정이 검증되기 전에는 최종 결정을 내리지 않는다."],
@@ -409,14 +516,45 @@ function koreanHypothesisStatement(type, positive) {
 }
 
 function koreanOptionsFor(type) {
-  if (type === "business") {
+  if (type === "investment") {
     return [
-      option("A", "전면 실행", "관련 영역 전체에 결정을 적용한다.", "가장 빠른 전략적 효과.", "실행 리스크와 신뢰 리스크가 가장 큼.", "팀 집중도와 운영 복잡도.", "low"),
-      option("B", "파일럿", "성공 기준과 중단 기준이 있는 가장 작은 실험을 실행한다.", "작은 범위에서 신호를 얻을 수 있음.", "전면 실행보다 느림.", "파일럿 설계와 조율 비용.", "medium"),
-      option("C", "보류", "현재 운영 방식을 유지하고 결정을 미룬다.", "불필요한 혼란을 피함.", "병목이 계속 남을 수 있음.", "기회비용.", "high")
+      koreanOption("A", "지금 실행", "제안된 투자 행동을 지금 실행한다.", "논리가 맞으면 상승 여력을 빠르게 잡을 수 있음.", "근거가 충분히 보강되기 전에 행동함.", "자본과 집중도 리스크.", "보통"),
+      koreanOption("B", "단계적 판단", "작은 비중 또는 추가 근거 체크포인트를 거쳐 진행한다.", "상승 여지와 근거 규율을 함께 유지함.", "일부 상승을 놓칠 수 있음.", "기회비용.", "높음"),
+      koreanOption("C", "보류", "지금은 행동하지 않고 현금과 유연성을 유지한다.", "불필요한 손실을 피함.", "좋은 기회를 놓칠 수 있음.", "기회비용.", "높음")
     ];
   }
-  return optionsFor(type);
+  if (type === "business") {
+    return [
+      koreanOption("A", "전면 실행", "관련 영역 전체에 결정을 적용한다.", "가장 빠른 전략적 효과.", "실행 리스크와 신뢰 리스크가 가장 큼.", "팀 집중도와 운영 복잡도.", "낮음"),
+      koreanOption("B", "파일럿", "성공 기준과 중단 기준이 있는 가장 작은 실험을 실행한다.", "작은 범위에서 신호를 얻을 수 있음.", "전면 실행보다 느림.", "파일럿 설계와 조율 비용.", "보통"),
+      koreanOption("C", "보류", "현재 운영 방식을 유지하고 결정을 미룬다.", "불필요한 혼란을 피함.", "병목이 계속 남을 수 있음.", "기회비용.", "높음")
+    ];
+  }
+  if (type === "finance") {
+    return [
+      koreanOption("A", "전액 집행", "지금 전체 지출 또는 배분을 승인한다.", "논리가 맞으면 가장 빠르게 실행할 수 있음.", "현금과 유연성 리스크가 가장 큼.", "번, 예산 또는 런웨이.", "낮음"),
+      koreanOption("B", "단계적 집행", "측정 가능한 근거와 연결된 작은 첫 단계를 승인한다.", "속도와 생존 가능성을 균형 있게 유지함.", "기회를 충분히 지원하지 못할 수 있음.", "일부 지출과 관리 집중도.", "보통"),
+      koreanOption("C", "현금 보존", "더 강한 근거가 나올 때까지 지출을 미룬다.", "유연성을 가장 많이 보존함.", "성장 또는 실행이 느려질 수 있음.", "기회비용.", "높음")
+    ];
+  }
+  return [
+    koreanOption("A", "지금 실행", "지금 행동한다.", "가장 빠르게 기대효과를 볼 수 있음.", "근거가 완성되기 전에 행동함.", "시간, 돈 또는 집중도.", "보통"),
+    koreanOption("B", "작게 실행", "되돌릴 수 있는 작은 단계를 실행한다.", "하방을 줄이면서 신호를 얻음.", "속도가 느릴 수 있음.", "일부 준비 비용.", "높음"),
+    koreanOption("C", "기다리기", "지금은 아무 행동도 하지 않는다.", "선택권을 보존함.", "타이밍을 놓칠 수 있음.", "기회비용.", "높음")
+  ];
+}
+
+function koreanOption(id, name, description, upside, downside, cost, reversibility) {
+  return {
+    id,
+    name,
+    description,
+    expected_value: "근거 수집 후 추정",
+    upside,
+    downside,
+    cost,
+    reversibility
+  };
 }
 
 function koreanEvidenceFor(question) {

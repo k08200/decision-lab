@@ -85,6 +85,7 @@ mkdir my-private-decisions
 cd my-private-decisions
 npx @k08200/decision-lab start "Should we change enterprise pricing this quarter?" --type business --owner "Your Name" --slug pricing
 less decisions/active/pricing/run/memo.md
+npx @k08200/decision-lab serve decisions --token local-dev-token --actor "Your Name"
 ```
 
 If npm is unavailable, run from GitHub:
@@ -117,7 +118,12 @@ decisions/active/pricing/run/prompts/*.md
 outputs/decision-lab-backup.json
 ```
 
-Read the memo:
+Read the memo and then open the local UI:
+
+```bash
+less decisions/active/pricing/run/memo.md
+npx @k08200/decision-lab@latest serve decisions --token local-dev-token --actor "Your Name"
+```
 
 ```bash
 less decisions/active/pricing/run/memo.md

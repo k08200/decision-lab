@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.82.0
+
+### Added
+
+- Local UI summary now supports inline editing for recommendation, selected option, confidence, decision frame, and option copy without opening raw JSON
+- Archived decisions can now be restored to active decisions from the browser UI and API
+- Korean decision records can now polish generated recommendation/frame/option/review copy while preserving captured operating signals
+- Memo view now highlights change-mind triggers and review signals as first-class cards
+- Decision detail now opens with a cockpit-style header, key health metrics, and primary actions before the tab content
+- Evidence, Questions, Actions, and Risks now include one-click presets to reduce blank-page friction
+- First-run sidebar now includes sample question chips and a 10-minute user-test checklist
+- Local UI now keeps a browser-local undo snapshot before UI saves, status changes, review close, and Korean copy polish
+- Local UI operating-loop command snippets now include copy buttons for faster first-user testing
+- `doctor` now recognizes private workspaces and reports workspace health instead of failing repository-only checks
+- `privacy-check` now treats standalone private workspaces as filesystem scans, while still flagging secrets and tracked private paths in git repositories
+
+### Changed
+
+- Empty-state and first-decision copy now make the beginner path more direct and less command-heavy
+- `start` output and first-run docs now point beginners to the local UI immediately after reading the first memo
+- Single-decision workspaces now show a fuller status dashboard instead of leaving the board feeling sparse
+- Local UI sample questions and capture presets are split into a dedicated UI config module
+- Narrow mobile layouts now tighten spacing, keep tabs scrollable, and reduce oversized editor panels
+
 ## 2.81.0
 
 ### Changed
@@ -7,6 +31,14 @@
 - Reworked the local UI ledger from a spreadsheet-like table into a focus-first decision board with a prominent focus panel and decision cards
 - Added visible priority, recommendation, review date, completeness, and evidence bars to each decision card so the first screen feels like an operating dashboard
 - Updated the local UI shell with a stronger header, roomier workspace, and clearer primary open buttons
+- Simplified the active operating loop so command examples no longer dominate the screen or point at a placeholder decision path
+- Single-decision workspaces now show a focused workbench for Evidence, Questions, Actions, and Memo instead of repeating the same decision as both the focus panel and a board card
+- Evidence, Questions, Actions, and Risks now use focused capture panels and card-style logs instead of plain form/list layouts
+- Report navigation is grouped under a collapsible sidebar section so the primary decision workflow stays visible
+- Decision summaries now open as a compact brief with recommendation, health stats, decision frame, option cards, and validation state instead of a loose field grid
+- Local UI now supports the full browser loop: regenerate memo artifacts, promote status, close review, and archive a decision without dropping back to the CLI
+- Memo view now presents the current call, evidence gaps, open questions, and next actions as product-style cards while keeping the full Markdown memo available
+- Korean first-run records now generate Korean recommendation, options, expected value, frame, and review copy more consistently
 
 ## 2.80.0
 

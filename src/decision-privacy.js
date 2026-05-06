@@ -20,14 +20,17 @@ const SECRET_PATTERNS = [
 
 export function scanPrivacy({ root = "." } = {}) {
   const base = path.resolve(root);
-  const files = trackedFiles(base);
-  const pathFindings = files
-    .filter((filePath) => PRIVATE_PATH_RULES.some((rule) => rule.test(filePath)))
-    .map((filePath) => ({
-      severity: "high",
-      filePath,
-      issue: "Private workspace path is tracked"
-    }));
+  const scan = trackedFiles(base);
+  const files = scan.files;
+  const pathFindings = scan.tracked
+    ? files
+      .filter((filePath) => PRIVATE_PATH_RULES.some((rule) => rule.test(filePath)))
+      .map((filePath) => ({
+        severity: "high",
+        filePath,
+        issue: "Private workspace path is tracked"
+      }))
+    : [];
 
   const contentFindings = [];
   for (const filePath of files) {
@@ -49,6 +52,7 @@ export function scanPrivacy({ root = "." } = {}) {
   return {
     ok: findings.length === 0,
     files_checked: files.length,
+    mode: scan.tracked ? "git-tracked" : "filesystem",
     findings
   };
 }
@@ -59,6 +63,7 @@ export function renderPrivacyReport(result) {
     "",
     `Status: ${result.ok ? "PASS" : "FAIL"}`,
     `Files checked: ${result.files_checked}`,
+    `Mode: ${result.mode || "git-tracked"}`,
     `Findings: ${result.findings.length}`,
     "",
     result.findings.length
@@ -107,13 +112,15 @@ export function createPrivateWorkspace(directory, {
 
 function trackedFiles(root) {
   try {
-    return execFileSync("git", ["-C", root, "ls-files"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })
+    const files = execFileSync("git", ["-C", root, "ls-files"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })
       .split(/\r?\n/)
       .filter(Boolean);
+    return { files, tracked: true };
   } catch {
-    return walk(root)
+    const files = walk(root)
       .map((filePath) => path.relative(root, filePath).replaceAll(path.sep, "/"))
       .filter((filePath) => !filePath.startsWith(".git/") && !filePath.startsWith("node_modules/"));
+    return { files, tracked: false };
   }
 }
 
